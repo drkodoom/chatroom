@@ -2073,6 +2073,89 @@ function scrollChatToBottom() {
     chatMessages.scrollHeight;
 }
 
+  function renderOnlineUsers(users) {
+
+  const onlineUsers =
+    document.getElementById(
+      "onlineUsers"
+    );
+
+
+  onlineUsers.innerHTML =
+    "";
+
+
+  if (
+    !Array.isArray(users) ||
+    users.length === 0
+  ) {
+
+    onlineUsers.innerHTML =
+      '<div class="small">Nobody online.</div>';
+
+    return;
+  }
+
+
+  users.forEach(
+    username => {
+
+      const row =
+        document.createElement(
+          "div"
+        );
+
+
+      row.className =
+        "chat-user-card";
+
+
+      row.textContent =
+        "● " +
+        username;
+
+
+      onlineUsers.appendChild(
+        row
+      );
+
+    }
+  );
+}
+
+
+function handleSystemEvent(data) {
+
+  if (
+    !data.username
+  ) {
+    return;
+  }
+
+
+  if (
+    data.event === "join"
+  ) {
+
+    addSystemLine(
+      data.username +
+      " has entered the room"
+    );
+
+  }
+
+
+  if (
+    data.event === "leave"
+  ) {
+
+    addSystemLine(
+      data.username +
+      " has left the room"
+    );
+
+  }
+}
 
 async function enterChatroom() {
 
@@ -2224,7 +2307,28 @@ async function enterChatroom() {
 
         return;
       }
+if (
+  data.type === "presence"
+) {
 
+  renderOnlineUsers(
+    data.users
+  );
+
+  return;
+}
+
+
+if (
+  data.type === "system"
+) {
+
+  handleSystemEvent(
+    data
+  );
+
+  return;
+}
 
       if (
         data.type === "add"
