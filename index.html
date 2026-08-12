@@ -9,7 +9,7 @@
 >
 
 <title>
-  DRKODOOM Chatroom v0.9.7
+  DRKODOOM Chatroom v0.9.8
 </title>
 
 <style>
@@ -20,41 +20,51 @@
 
 body {
   margin: 0;
-  min-height: 100vh;
-  background: #008080;
-  font-family: "Courier New", monospace;
+  width: 100%;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  background: #0b0f17;
+  font-family: Arial, Helvetica, sans-serif;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  padding: 20px;
+  padding: 10px;
 }
 
 .window {
   width: 100%;
-  max-width: 900px;
-  background: #c0c0c0;
-
-  border-top: 2px solid #fff;
-  border-left: 2px solid #fff;
-  border-right: 2px solid #404040;
-  border-bottom: 2px solid #404040;
-
-  box-shadow: 3px 3px 0 #000;
+  max-width: 1100px;
+  height: calc(100dvh - 20px);
+  max-height: calc(100dvh - 20px);
+  min-height: 0;
+  background: #0f1724;
+  border: 1px solid #273448;
+  border-radius: 16px;
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.42);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .titlebar {
-  background: #000080;
-  color: #fff;
-  font-weight: bold;
-  padding: 6px 8px;
-
+  background: #111a28;
+  color: #eef4ff;
+  font-weight: 700;
+  padding: 11px 14px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
+  flex: 0 0 auto;
+  border-bottom: 1px solid #26364c;
 }
 
 .content {
   padding: 24px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
 }
 
 h1,
@@ -207,6 +217,11 @@ button:disabled {
 
 .chat-shell {
   padding: 12px;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .chat-toolbar {
@@ -234,27 +249,29 @@ button:disabled {
 
 .chat-layout {
   display: grid;
-  grid-template-columns: 1fr 190px;
-  height: 520px;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
   background: #fff;
-
-  border-top: 2px solid #404040;
-  border-left: 2px solid #404040;
-  border-right: 2px solid #fff;
-  border-bottom: 2px solid #fff;
+  border: 1px solid #253247;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
 .chat-main {
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
 
 .chat-messages {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
-  padding: 10px;
-  background: #fff;
+  padding: 14px;
+  background: #111827;
 }
 
 .chat-line {
@@ -274,10 +291,11 @@ button:disabled {
 }
 
 .chat-sidebar {
-  border-left: 2px solid #808080;
-  background: #c0c0c0;
-  padding: 10px;
+  border-left: 1px solid #28374c;
+  background: #0d1521;
+  padding: 12px;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .chat-sidebar-title {
@@ -340,20 +358,740 @@ button:disabled {
 }
 
 
+/* ========================================= */
+/* APP FRAME + VERSION TRIGGER               */
+/* ========================================= */
+
+#chatScreen {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.version-trigger {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-block;
+  margin: 0;
+  padding: 1px 5px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.82em;
+  line-height: 1.2;
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+  box-shadow: none;
+  vertical-align: baseline;
+}
+
+.version-trigger:hover {
+  background: rgba(127, 127, 127, 0.14);
+}
+
+.version-trigger:active {
+  border: 0;
+  transform: translateY(1px);
+}
+
+/* ========================================= */
+/* SECRET CLIENT / CHEAT CODE DIALOG         */
+/* ========================================= */
+
+.client-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(5px);
+}
+
+.client-dialog {
+  width: min(520px, 100%);
+  max-height: min(720px, calc(100dvh - 36px));
+  overflow: auto;
+  background: #f0f1f3;
+  color: #111;
+  border: 1px solid #8a929e;
+  border-radius: 14px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+
+.client-dialog-title {
+  padding: 11px 14px;
+  font-weight: 800;
+  background: #111827;
+  color: #fff;
+  border-bottom: 1px solid #313b4b;
+}
+
+.client-dialog-body {
+  padding: 18px;
+}
+
+.client-code-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.client-code-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.client-code-row button {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.client-code-message {
+  min-height: 22px;
+  margin-top: 10px;
+  font-weight: 700;
+}
+
+.client-list {
+  margin-top: 16px;
+  border-top: 1px solid #aeb4bd;
+  padding-top: 12px;
+}
+
+.client-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(110, 118, 129, 0.25);
+}
+
+.client-row-name {
+  font-weight: 800;
+}
+
+.client-row-status {
+  font-size: 12px;
+  opacity: 0.72;
+}
+
+.client-row button {
+  margin: 0;
+  padding: 6px 10px;
+}
+
+/* ========================================= */
+/* CLIENT THEMES                             */
+/* ========================================= */
+
+/* Default: DRK Modern */
+body.theme-modern {
+  background:
+    radial-gradient(circle at 20% 0%, #173050 0, transparent 34%),
+    radial-gradient(circle at 100% 100%, #132438 0, transparent 35%),
+    #070b11;
+  color: #dce7f5;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body.theme-modern .window {
+  background: rgba(13, 20, 31, 0.96);
+  border: 1px solid #26354a;
+  border-radius: 18px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.52);
+}
+
+body.theme-modern .titlebar {
+  background: linear-gradient(180deg, #131e2e, #0f1724);
+  color: #f3f8ff;
+  border-bottom: 1px solid #25364d;
+}
+
+body.theme-modern .content,
+body.theme-modern .chat-shell,
+body.theme-modern .chat-toolbar,
+body.theme-modern .chat-statusbar {
+  color: #dce7f5;
+}
+
+body.theme-modern .chat-toolbar,
+body.theme-modern .chat-compose,
+body.theme-modern .chat-statusbar {
+  background: #111a28;
+  border-color: #2b3b53;
+}
+
+body.theme-modern .chat-layout {
+  background: #111827;
+  border-color: #2a3a50;
+}
+
+body.theme-modern .chat-messages {
+  background: #0e1622;
+  color: #e4edf8;
+}
+
+body.theme-modern .chat-sidebar {
+  background: #111a28;
+  color: #dce7f5;
+  border-color: #2a3a50;
+}
+
+body.theme-modern .chat-user {
+  color: #61dafb;
+}
+
+body.theme-modern .system-line {
+  color: #91a2b8;
+}
+
+body.theme-modern input,
+body.theme-modern textarea {
+  background: #0b121d;
+  color: #edf4ff;
+  border: 1px solid #35465f;
+  border-radius: 9px;
+}
+
+body.theme-modern button {
+  background: #182538;
+  color: #edf4ff;
+  border: 1px solid #3a4d67;
+  border-radius: 9px;
+  box-shadow: none;
+}
+
+body.theme-modern button:hover {
+  background: #21324a;
+}
+
+body.theme-modern .status-box,
+body.theme-modern .request-card,
+body.theme-modern .empty-state {
+  background: #111a28;
+  color: #dce7f5;
+  border: 1px solid #33445e;
+  border-radius: 10px;
+}
+
+body.theme-modern .member-box {
+  background: #081019;
+  color: #63f5b4;
+  border-color: #245d4a;
+  border-radius: 10px;
+}
+
+/* AOL / 90s online-service parody */
+body.theme-aol90 {
+  background: #008080;
+  color: #000;
+  font-family: "Courier New", monospace;
+}
+
+body.theme-aol90 .window {
+  background: #c0c0c0;
+  border-radius: 0;
+  border-top: 2px solid #fff;
+  border-left: 2px solid #fff;
+  border-right: 2px solid #404040;
+  border-bottom: 2px solid #404040;
+  box-shadow: 3px 3px 0 #000;
+}
+
+body.theme-aol90 .titlebar {
+  background: linear-gradient(90deg, #000080, #0b38b8);
+  color: #fff;
+  border: 0;
+}
+
+body.theme-aol90 .chat-toolbar,
+body.theme-aol90 .chat-compose,
+body.theme-aol90 .chat-statusbar {
+  background: #c0c0c0;
+  color: #000;
+  border-color: #808080;
+}
+
+body.theme-aol90 .chat-layout {
+  border-radius: 0;
+  background: #fff;
+  border-top: 2px solid #404040;
+  border-left: 2px solid #404040;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+}
+
+body.theme-aol90 .chat-messages {
+  background: #fff;
+  color: #000;
+}
+
+body.theme-aol90 .chat-sidebar {
+  background: #c0c0c0;
+  color: #000;
+  border-left: 2px solid #808080;
+}
+
+body.theme-aol90 .chat-user {
+  color: #000080;
+}
+
+body.theme-aol90 .system-line {
+  color: #606060;
+}
+
+body.theme-aol90 input,
+body.theme-aol90 textarea {
+  background: #fff;
+  color: #000;
+  border-radius: 0;
+  border-top: 2px solid #404040;
+  border-left: 2px solid #404040;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+}
+
+body.theme-aol90 button {
+  background: #c0c0c0;
+  color: #000;
+  border-radius: 0;
+  border-top: 2px solid #fff;
+  border-left: 2px solid #fff;
+  border-right: 2px solid #404040;
+  border-bottom: 2px solid #404040;
+  box-shadow: none;
+}
+
+body.theme-aol90 .status-box,
+body.theme-aol90 .request-card,
+body.theme-aol90 .empty-state {
+  background: #fff;
+  color: #000;
+  border-radius: 0;
+}
+
+/* Phosphor terminal */
+body.theme-terminal {
+  background: #020604;
+  color: #6cff9a;
+  font-family: "Courier New", monospace;
+}
+
+body.theme-terminal .window {
+  background: #020604;
+  border: 1px solid #22d66d;
+  border-radius: 0;
+  box-shadow: 0 0 28px rgba(34, 214, 109, 0.18);
+}
+
+body.theme-terminal .titlebar,
+body.theme-terminal .chat-toolbar,
+body.theme-terminal .chat-compose,
+body.theme-terminal .chat-statusbar,
+body.theme-terminal .chat-sidebar {
+  background: #020604;
+  color: #6cff9a;
+  border-color: #126b3a;
+}
+
+body.theme-terminal .chat-layout {
+  background: #020604;
+  border-color: #126b3a;
+  border-radius: 0;
+}
+
+body.theme-terminal .chat-messages {
+  background: #020604;
+  color: #6cff9a;
+  text-shadow: 0 0 8px rgba(108, 255, 154, 0.28);
+}
+
+body.theme-terminal .chat-user {
+  color: #d9ff70;
+}
+
+body.theme-terminal .system-line {
+  color: #42ca7a;
+}
+
+body.theme-terminal input,
+body.theme-terminal textarea {
+  background: #000;
+  color: #6cff9a;
+  border: 1px solid #1a8a4d;
+  border-radius: 0;
+  caret-color: #6cff9a;
+}
+
+body.theme-terminal button {
+  background: #041108;
+  color: #6cff9a;
+  border: 1px solid #1a8a4d;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+body.theme-terminal .status-box,
+body.theme-terminal .request-card,
+body.theme-terminal .empty-state,
+body.theme-terminal .member-box {
+  background: #020604;
+  color: #6cff9a;
+  border: 1px solid #1a8a4d;
+  border-radius: 0;
+}
+
+/* Futuristic Apple-inspired */
+body.theme-future {
+  background:
+    radial-gradient(circle at 15% 15%, rgba(255,255,255,.9), transparent 26%),
+    linear-gradient(145deg, #e8edf4, #cbd4df 55%, #eef2f7);
+  color: #17191c;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+}
+
+body.theme-future .window {
+  background: rgba(248, 250, 253, 0.74);
+  color: #17191c;
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 28px;
+  box-shadow: 0 30px 90px rgba(69, 82, 99, 0.24);
+  backdrop-filter: blur(24px) saturate(140%);
+}
+
+body.theme-future .titlebar {
+  background: rgba(255,255,255,.42);
+  color: #111317;
+  border-bottom: 1px solid rgba(70, 80, 92, .13);
+  padding: 14px 18px;
+}
+
+body.theme-future .chat-toolbar,
+body.theme-future .chat-compose,
+body.theme-future .chat-statusbar {
+  background: rgba(255,255,255,.38);
+  color: #262a30;
+  border-color: rgba(55, 65, 75, .12);
+}
+
+body.theme-future .chat-layout {
+  background: rgba(255,255,255,.5);
+  border: 1px solid rgba(60,70,85,.12);
+  border-radius: 20px;
+}
+
+body.theme-future .chat-messages {
+  background: rgba(255,255,255,.62);
+  color: #1c2025;
+}
+
+body.theme-future .chat-line {
+  margin-bottom: 10px;
+  padding: 9px 12px;
+  border-radius: 16px;
+  background: rgba(239,243,248,.9);
+}
+
+body.theme-future .system-line {
+  background: transparent;
+  text-align: center;
+  color: #717780;
+}
+
+body.theme-future .chat-sidebar {
+  background: rgba(247,249,252,.72);
+  color: #22272e;
+  border-color: rgba(55,65,75,.12);
+}
+
+body.theme-future .chat-user {
+  color: #0a66ff;
+}
+
+body.theme-future input,
+body.theme-future textarea {
+  background: rgba(255,255,255,.9);
+  color: #111;
+  border: 1px solid rgba(80,90,105,.18);
+  border-radius: 14px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,.03);
+}
+
+body.theme-future button {
+  background: rgba(255,255,255,.82);
+  color: #15181c;
+  border: 1px solid rgba(65,75,90,.14);
+  border-radius: 14px;
+  box-shadow: 0 5px 16px rgba(80,90,110,.09);
+}
+
+body.theme-future .status-box,
+body.theme-future .request-card,
+body.theme-future .empty-state,
+body.theme-future .member-box {
+  background: rgba(255,255,255,.68);
+  color: #17191c;
+  border: 1px solid rgba(70,80,95,.14);
+  border-radius: 18px;
+}
+
+/* Comic-book client */
+body.theme-comic {
+  background:
+    radial-gradient(circle, rgba(0,0,0,.14) 1px, transparent 1.5px) 0 0/12px 12px,
+    #ffd72e;
+  color: #111;
+  font-family: "Trebuchet MS", Arial, sans-serif;
+}
+
+body.theme-comic .window {
+  background: #fff9e8;
+  border: 4px solid #111;
+  border-radius: 0;
+  box-shadow: 10px 10px 0 #111;
+}
+
+body.theme-comic .titlebar {
+  background: #e6282e;
+  color: #ffe928;
+  border: 0;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+body.theme-comic .chat-toolbar,
+body.theme-comic .chat-compose,
+body.theme-comic .chat-statusbar {
+  background: #ffe94a;
+  color: #111;
+  border-color: #111;
+}
+
+body.theme-comic .chat-layout {
+  background: #fff;
+  border: 3px solid #111;
+  border-radius: 0;
+}
+
+body.theme-comic .chat-messages {
+  background: #fffdf5;
+  color: #111;
+}
+
+body.theme-comic .chat-line {
+  padding: 8px 10px;
+  margin: 8px;
+  border: 2px solid #111;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 3px 3px 0 #111;
+}
+
+body.theme-comic .system-line {
+  border-radius: 0;
+  background: #39c4ff;
+  text-align: center;
+  font-weight: 800;
+  font-style: normal;
+}
+
+body.theme-comic .chat-sidebar {
+  background: #ffef65;
+  color: #111;
+  border-left: 3px solid #111;
+}
+
+body.theme-comic .chat-user {
+  color: #1756d8;
+  text-transform: uppercase;
+}
+
+body.theme-comic input,
+body.theme-comic textarea,
+body.theme-comic button {
+  border: 3px solid #111;
+  border-radius: 0;
+  box-shadow: 3px 3px 0 #111;
+}
+
+body.theme-comic button {
+  background: #ffec3d;
+  color: #111;
+}
+
+body.theme-comic .status-box,
+body.theme-comic .request-card,
+body.theme-comic .empty-state,
+body.theme-comic .member-box {
+  background: #fff;
+  color: #111;
+  border: 3px solid #111;
+  border-radius: 0;
+  box-shadow: 4px 4px 0 #111;
+}
+
+/* Retro video-game client */
+body.theme-arcade {
+  background:
+    linear-gradient(rgba(12, 0, 30, .92), rgba(12, 0, 30, .92)),
+    repeating-linear-gradient(0deg, #120025 0 2px, #180030 2px 4px);
+  color: #63fff1;
+  font-family: "Courier New", monospace;
+}
+
+body.theme-arcade .window {
+  background: #160929;
+  border: 2px solid #1fffe5;
+  border-radius: 0;
+  box-shadow:
+    0 0 0 3px #5a16a3,
+    0 0 26px rgba(31,255,229,.35);
+}
+
+body.theme-arcade .titlebar {
+  background: linear-gradient(90deg, #ff1eb8, #6a2bff);
+  color: #fff;
+  border: 0;
+  text-transform: uppercase;
+}
+
+body.theme-arcade .chat-toolbar,
+body.theme-arcade .chat-compose,
+body.theme-arcade .chat-statusbar,
+body.theme-arcade .chat-sidebar {
+  background: #120520;
+  color: #63fff1;
+  border-color: #5a2a80;
+}
+
+body.theme-arcade .chat-layout {
+  background: #08010f;
+  border: 2px solid #5a2a80;
+  border-radius: 0;
+}
+
+body.theme-arcade .chat-messages {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,.018) 0 1px,
+      transparent 1px 4px
+    ),
+    #08010f;
+  color: #63fff1;
+}
+
+body.theme-arcade .chat-user {
+  color: #ffe94a;
+  text-shadow: 0 0 7px rgba(255,233,74,.45);
+}
+
+body.theme-arcade .system-line {
+  color: #ff55d3;
+  font-style: normal;
+  text-transform: uppercase;
+}
+
+body.theme-arcade input,
+body.theme-arcade textarea {
+  background: #07010d;
+  color: #63fff1;
+  border: 2px solid #7c3db8;
+  border-radius: 0;
+}
+
+body.theme-arcade button {
+  background: #32115d;
+  color: #fff;
+  border: 2px solid #9f55e9;
+  border-radius: 0;
+  box-shadow: inset -2px -2px 0 #19062d;
+}
+
+body.theme-arcade .status-box,
+body.theme-arcade .request-card,
+body.theme-arcade .empty-state,
+body.theme-arcade .member-box {
+  background: #0b0214;
+  color: #63fff1;
+  border: 2px solid #6b329d;
+  border-radius: 0;
+}
+
+/* Dialog follows the selected client enough to feel native. */
+body.theme-terminal .client-dialog,
+body.theme-arcade .client-dialog {
+  background: #060a08;
+  color: #6cff9a;
+  border-color: #1a8a4d;
+  border-radius: 0;
+}
+
+body.theme-terminal .client-dialog-title,
+body.theme-arcade .client-dialog-title {
+  background: #020604;
+  color: #6cff9a;
+}
+
+body.theme-aol90 .client-dialog {
+  border-radius: 0;
+  background: #c0c0c0;
+}
+
+body.theme-aol90 .client-dialog-title {
+  border-radius: 0;
+  background: #000080;
+}
+
+body.theme-comic .client-dialog {
+  border: 4px solid #111;
+  border-radius: 0;
+  box-shadow: 8px 8px 0 #111;
+}
+
+body.theme-comic .client-dialog-title {
+  background: #e6282e;
+  color: #ffe928;
+}
+
+body.theme-future .client-dialog {
+  background: rgba(250,252,255,.88);
+  border-radius: 24px;
+  backdrop-filter: blur(26px);
+}
+
+body.theme-future .client-dialog-title {
+  background: rgba(255,255,255,.52);
+  color: #111;
+}
+
+
 @media (max-width: 700px) {
 
   body {
-    align-items: flex-start;
-    padding: 8px;
+    padding: 6px;
+  }
+
+  .window {
+    height: calc(100dvh - 12px);
+    max-height: calc(100dvh - 12px);
+    border-radius: 10px;
   }
 
   .content {
-    padding: 16px;
+    padding: 14px;
   }
 
   .chat-layout {
     grid-template-columns: 1fr;
-    height: 70vh;
   }
 
   .chat-sidebar {
@@ -373,6 +1111,10 @@ button:disabled {
     align-items: flex-start;
     flex-direction: column;
   }
+
+  .client-code-row {
+    flex-direction: column;
+  }
 }
 
 </style>
@@ -380,17 +1122,24 @@ button:disabled {
 </head>
 
 
-<body>
+<body class="theme-modern">
 
 <div class="window">
 
   <div class="titlebar">
 
     <span>
-      DRKODOOM CHATROOM
-      <span class="version">
-        v0.9.7
+      <span id="clientTitle">
+        DRK CHAT
       </span>
+
+      <button
+        type="button"
+        class="version-trigger"
+        aria-label="Application version 0.9.8"
+      >
+        v0.9.8
+      </button>
     </span>
 
     <span>
@@ -876,8 +1625,11 @@ button:disabled {
 
         <div class="chat-sidebar">
 
-          <div class="chat-sidebar-title">
-            PEOPLE ONLINE
+          <div
+            class="chat-sidebar-title"
+            id="onlineTitle"
+          >
+            ONLINE
           </div>
 
           <div id="onlineUsers">
@@ -899,7 +1651,20 @@ button:disabled {
         <span>
           #lobby
           &nbsp; • &nbsp;
-          v0.9.7
+
+          <button
+            type="button"
+            class="version-trigger"
+            aria-label="Application version 0.9.8"
+          >
+            v0.9.8
+          </button>
+
+          &nbsp; • &nbsp;
+
+          <span id="clientNameStatus">
+            DRK Modern
+          </span>
         </span>
 
         <span
@@ -937,10 +1702,86 @@ button:disabled {
 </div>
 
 
+<!-- ======================================= -->
+<!-- SECRET CLIENT ACCESS                   -->
+<!-- ======================================= -->
+
+<div
+  id="clientOverlay"
+  class="client-overlay hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="clientDialogTitle"
+>
+
+  <div class="client-dialog">
+
+    <div
+      class="client-dialog-title"
+      id="clientDialogTitle"
+    >
+      DRK SYSTEM — CLIENT ACCESS
+    </div>
+
+    <div class="client-dialog-body">
+
+      <p class="small">
+        Enter an access code to unlock a hidden chat client.
+        Unlocked clients stay available on this device.
+      </p>
+
+      <form id="clientCodeForm">
+
+        <div class="client-code-row">
+
+          <input
+            id="clientCodeInput"
+            type="text"
+            maxlength="40"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="ENTER CODE"
+            aria-label="Theme access code"
+          >
+
+          <button type="submit">
+            EXECUTE
+          </button>
+
+          <button
+            type="button"
+            id="clientDialogClose"
+          >
+            CANCEL
+          </button>
+
+        </div>
+
+      </form>
+
+      <div
+        id="clientCodeMessage"
+        class="client-code-message"
+        aria-live="polite"
+      ></div>
+
+      <div
+        id="clientList"
+        class="client-list"
+      ></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
 <script>
 
 const APP_VERSION =
-  "0.9.7";
+  "0.9.8";
 
 const API =
   "https://chatroom.drko-doom.workers.dev";
@@ -1015,6 +1856,950 @@ let chatHeartbeatTimer =
 
 let chatReconnectAttempts =
   0;
+
+
+
+// =============================================
+// CLIENT / THEME SYSTEM
+// =============================================
+
+const CLIENTS = {
+
+  modern: {
+    name:
+      "DRK Modern",
+
+    bodyClass:
+      "theme-modern",
+
+    title:
+      "DRK CHAT",
+
+    online:
+      "ONLINE",
+
+    send:
+      "SEND",
+
+    clear:
+      "CLEAR SCREEN",
+
+    clearRoom:
+      "CLEAR ROOM",
+
+    leave:
+      "LEAVE"
+  },
+
+  aol90: {
+    name:
+      "DRK Online 96",
+
+    bodyClass:
+      "theme-aol90",
+
+    title:
+      "DRK ONLINE 96",
+
+    online:
+      "PEOPLE HERE",
+
+    send:
+      "SEND",
+
+    clear:
+      "CLEAR MY SCREEN",
+
+    clearRoom:
+      "CLEAR ROOM HISTORY",
+
+    leave:
+      "LEAVE ROOM"
+  },
+
+  terminal: {
+    name:
+      "Phosphor",
+
+    bodyClass:
+      "theme-terminal",
+
+    title:
+      "PHOSPHOR IRC",
+
+    online:
+      "WHO",
+
+    send:
+      "TRANSMIT",
+
+    clear:
+      "CLEAR LOCAL",
+
+    clearRoom:
+      "PURGE ROOM",
+
+    leave:
+      "/PART"
+  },
+
+  future: {
+    name:
+      "One More Thing",
+
+    bodyClass:
+      "theme-future",
+
+    title:
+      "DRK FUTURE",
+
+    online:
+      "PEOPLE",
+
+    send:
+      "SEND",
+
+    clear:
+      "CLEAR VIEW",
+
+    clearRoom:
+      "CLEAR CONVERSATION",
+
+    leave:
+      "LEAVE"
+  },
+
+  comic: {
+    name:
+      "PanelChat",
+
+    bodyClass:
+      "theme-comic",
+
+    title:
+      "PANELCHAT",
+
+    online:
+      "CAST",
+
+    send:
+      "SEND!",
+
+    clear:
+      "WIPE PANEL",
+
+    clearRoom:
+      "WIPE THE ROOM",
+
+    leave:
+      "EXIT PANEL"
+  },
+
+  arcade: {
+    name:
+      "Pixel Lobby",
+
+    bodyClass:
+      "theme-arcade",
+
+    title:
+      "PIXEL LOBBY",
+
+    online:
+      "PLAYERS",
+
+    send:
+      "SEND",
+
+    clear:
+      "ERASE LOG",
+
+    clearRoom:
+      "ERASE ROOM LOG",
+
+    leave:
+      "EXIT LOBBY"
+  }
+
+};
+
+
+const CLIENT_CODES = {
+
+  DRK2026:
+    "modern",
+
+  DEFAULT:
+    "modern",
+
+  WELCOME:
+    "aol90",
+
+  AOL90:
+    "aol90",
+
+  TERMINAL:
+    "terminal",
+
+  PHOSPHOR:
+    "terminal",
+
+  FUTURE:
+    "future",
+
+  APPLEFUTURE:
+    "future",
+
+  POW:
+    "comic",
+
+  COMICBLAST:
+    "comic",
+
+  UPUPDOWNDOWN:
+    "arcade",
+
+  PIXELPOWER:
+    "arcade"
+
+};
+
+
+const CLIENT_STORAGE_KEY =
+  "chatroom_theme";
+
+
+const CLIENT_UNLOCKED_KEY =
+  "chatroom_unlocked_clients";
+
+
+const clientOverlay =
+  document.getElementById(
+    "clientOverlay"
+  );
+
+
+const clientCodeForm =
+  document.getElementById(
+    "clientCodeForm"
+  );
+
+
+const clientCodeInput =
+  document.getElementById(
+    "clientCodeInput"
+  );
+
+
+const clientCodeMessage =
+  document.getElementById(
+    "clientCodeMessage"
+  );
+
+
+const clientList =
+  document.getElementById(
+    "clientList"
+  );
+
+
+let activeClient =
+  "modern";
+
+
+let versionClickCount =
+  0;
+
+
+let versionClickTimer =
+  null;
+
+
+function getUnlockedClients() {
+
+  let unlocked =
+    ["modern"];
+
+
+  try {
+
+    const stored =
+      JSON.parse(
+        localStorage.getItem(
+          CLIENT_UNLOCKED_KEY
+        ) ||
+        "[]"
+      );
+
+
+    if (
+      Array.isArray(
+        stored
+      )
+    ) {
+
+      unlocked =
+        Array.from(
+          new Set([
+            "modern",
+            ...stored.filter(
+              id =>
+                CLIENTS[id]
+            )
+          ])
+        );
+
+    }
+
+  }
+
+  catch {
+
+    unlocked =
+      ["modern"];
+
+  }
+
+
+  return unlocked;
+
+}
+
+
+function saveUnlockedClients(
+  clients
+) {
+
+  localStorage.setItem(
+    CLIENT_UNLOCKED_KEY,
+    JSON.stringify(
+      Array.from(
+        new Set(
+          clients
+        )
+      )
+    )
+  );
+
+}
+
+
+function unlockClient(
+  clientId
+) {
+
+  const unlocked =
+    getUnlockedClients();
+
+
+  if (
+    !unlocked.includes(
+      clientId
+    )
+  ) {
+
+    unlocked.push(
+      clientId
+    );
+
+
+    saveUnlockedClients(
+      unlocked
+    );
+
+  }
+
+}
+
+
+function applyClient(
+  clientId,
+  persist = true
+) {
+
+  if (
+    !CLIENTS[
+      clientId
+    ]
+  ) {
+
+    clientId =
+      "modern";
+
+  }
+
+
+  const client =
+    CLIENTS[
+      clientId
+    ];
+
+
+  document.body.classList.remove(
+    ...Object
+      .values(
+        CLIENTS
+      )
+      .map(
+        item =>
+          item.bodyClass
+      )
+  );
+
+
+  document.body.classList.add(
+    client.bodyClass
+  );
+
+
+  activeClient =
+    clientId;
+
+
+  const clientTitle =
+    document.getElementById(
+      "clientTitle"
+    );
+
+
+  const clientNameStatus =
+    document.getElementById(
+      "clientNameStatus"
+    );
+
+
+  const onlineTitle =
+    document.getElementById(
+      "onlineTitle"
+    );
+
+
+  if (
+    clientTitle
+  ) {
+
+    clientTitle.textContent =
+      client.title;
+
+  }
+
+
+  if (
+    clientNameStatus
+  ) {
+
+    clientNameStatus.textContent =
+      client.name;
+
+  }
+
+
+  if (
+    onlineTitle
+  ) {
+
+    onlineTitle.textContent =
+      client.online;
+
+  }
+
+
+  const chatSendButton =
+    document.getElementById(
+      "chatSendButton"
+    );
+
+
+  const clearScreenButton =
+    document.getElementById(
+      "clearScreenButton"
+    );
+
+
+  const clearRoomButton =
+    document.getElementById(
+      "clearRoomButton"
+    );
+
+
+  const leaveChatButton =
+    document.getElementById(
+      "leaveChatButton"
+    );
+
+
+  if (
+    chatSendButton
+  ) {
+
+    chatSendButton.textContent =
+      client.send;
+
+  }
+
+
+  if (
+    clearScreenButton
+  ) {
+
+    clearScreenButton.textContent =
+      client.clear;
+
+  }
+
+
+  if (
+    clearRoomButton
+  ) {
+
+    clearRoomButton.textContent =
+      client.clearRoom;
+
+  }
+
+
+  if (
+    leaveChatButton
+  ) {
+
+    leaveChatButton.textContent =
+      client.leave;
+
+  }
+
+
+  document.title =
+    client.name +
+    " — DRKODOOM Chatroom v" +
+    APP_VERSION;
+
+
+  if (
+    persist
+  ) {
+
+    localStorage.setItem(
+      CLIENT_STORAGE_KEY,
+      clientId
+    );
+
+  }
+
+
+  renderClientList();
+
+}
+
+
+function restoreClient() {
+
+  const unlocked =
+    getUnlockedClients();
+
+
+  let stored =
+    localStorage.getItem(
+      CLIENT_STORAGE_KEY
+    ) ||
+    "modern";
+
+
+  if (
+    !unlocked.includes(
+      stored
+    )
+  ) {
+
+    stored =
+      "modern";
+
+  }
+
+
+  applyClient(
+    stored,
+    false
+  );
+
+}
+
+
+function openClientDialog() {
+
+  clientCodeMessage.textContent =
+    "";
+
+
+  clientCodeInput.value =
+    "";
+
+
+  renderClientList();
+
+
+  clientOverlay.classList.remove(
+    "hidden"
+  );
+
+
+  setTimeout(
+    () =>
+      clientCodeInput.focus(),
+    0
+  );
+
+}
+
+
+function closeClientDialog() {
+
+  clientOverlay.classList.add(
+    "hidden"
+  );
+
+
+  versionClickCount =
+    0;
+
+}
+
+
+function renderClientList() {
+
+  if (
+    !clientList
+  ) {
+
+    return;
+
+  }
+
+
+  const unlocked =
+    getUnlockedClients();
+
+
+  clientList.innerHTML =
+    "";
+
+
+  Object
+    .entries(
+      CLIENTS
+    )
+    .forEach(
+      ([
+        id,
+        client
+      ]) => {
+
+        const row =
+          document.createElement(
+            "div"
+          );
+
+
+        row.className =
+          "client-row";
+
+
+        const details =
+          document.createElement(
+            "div"
+          );
+
+
+        const name =
+          document.createElement(
+            "div"
+          );
+
+
+        name.className =
+          "client-row-name";
+
+
+        const status =
+          document.createElement(
+            "div"
+          );
+
+
+        status.className =
+          "client-row-status";
+
+
+        const unlockedClient =
+          unlocked.includes(
+            id
+          );
+
+
+        name.textContent =
+          unlockedClient
+            ? client.name
+            : "???";
+
+
+        status.textContent =
+          unlockedClient
+            ? (
+              id ===
+              activeClient
+                ? "ACTIVE"
+                : "UNLOCKED"
+            )
+            : "LOCKED";
+
+
+        details.append(
+          name,
+          status
+        );
+
+
+        row.appendChild(
+          details
+        );
+
+
+        if (
+          unlockedClient
+        ) {
+
+          const useButton =
+            document.createElement(
+              "button"
+            );
+
+
+          useButton.type =
+            "button";
+
+
+          useButton.textContent =
+            id ===
+            activeClient
+              ? "ACTIVE"
+              : "USE";
+
+
+          useButton.disabled =
+            id ===
+            activeClient;
+
+
+          useButton.addEventListener(
+            "click",
+            () => {
+
+              applyClient(
+                id
+              );
+
+
+              clientCodeMessage.textContent =
+                client.name +
+                " selected.";
+
+            }
+          );
+
+
+          row.appendChild(
+            useButton
+          );
+
+        }
+
+
+        clientList.appendChild(
+          row
+        );
+
+      }
+    );
+
+}
+
+
+clientCodeForm.addEventListener(
+  "submit",
+  event => {
+
+    event.preventDefault();
+
+
+    const code =
+      clientCodeInput
+        .value
+        .trim()
+        .toUpperCase();
+
+
+    const clientId =
+      CLIENT_CODES[
+        code
+      ];
+
+
+    if (
+      !clientId
+    ) {
+
+      clientCodeMessage.textContent =
+        "ACCESS CODE NOT RECOGNIZED.";
+
+
+      clientCodeMessage.className =
+        "client-code-message error";
+
+
+      return;
+
+    }
+
+
+    unlockClient(
+      clientId
+    );
+
+
+    applyClient(
+      clientId
+    );
+
+
+    clientCodeMessage.textContent =
+      CLIENTS[
+        clientId
+      ].name +
+      " unlocked and selected.";
+
+
+    clientCodeMessage.className =
+      "client-code-message success";
+
+
+    clientCodeInput.select();
+
+  }
+);
+
+
+document
+  .getElementById(
+    "clientDialogClose"
+  )
+  .addEventListener(
+    "click",
+    closeClientDialog
+  );
+
+
+clientOverlay.addEventListener(
+  "click",
+  event => {
+
+    if (
+      event.target ===
+      clientOverlay
+    ) {
+
+      closeClientDialog();
+
+    }
+
+  }
+);
+
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.key ===
+      "Escape" &&
+      !clientOverlay.classList.contains(
+        "hidden"
+      )
+    ) {
+
+      closeClientDialog();
+
+    }
+
+  }
+);
+
+
+document
+  .querySelectorAll(
+    ".version-trigger"
+  )
+  .forEach(
+    trigger => {
+
+      trigger.addEventListener(
+        "mousedown",
+        event => {
+
+          event.preventDefault();
+
+        }
+      );
+
+
+      trigger.addEventListener(
+        "click",
+        event => {
+
+          event.preventDefault();
+
+
+          versionClickCount +=
+            1;
+
+
+          clearTimeout(
+            versionClickTimer
+          );
+
+
+          if (
+            versionClickCount >=
+            5
+          ) {
+
+            versionClickCount =
+              0;
+
+
+            openClientDialog();
+
+
+            return;
+
+          }
+
+
+          versionClickTimer =
+            setTimeout(
+              () => {
+
+                versionClickCount =
+                  0;
+
+              },
+              1800
+            );
+
+        }
+      );
+
+    }
+  );
 
 
 // =============================================
@@ -3688,6 +5473,8 @@ document
 // =============================================
 
 (async function init() {
+
+  restoreClient();
 
   const params =
     new URLSearchParams(
