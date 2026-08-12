@@ -60,7 +60,8 @@
       font-weight: bold;
     }
 
-    input {
+    input,
+    textarea {
       width: 100%;
       padding: 9px;
       font-family: inherit;
@@ -71,6 +72,11 @@
       border-left: 2px solid #404040;
       border-right: 2px solid white;
       border-bottom: 2px solid white;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
     }
 
     button {
@@ -92,6 +98,11 @@
       border-left: 2px solid #404040;
       border-right: 2px solid white;
       border-bottom: 2px solid white;
+    }
+
+    button:disabled {
+      color: #808080;
+      cursor: default;
     }
 
     .message {
@@ -116,11 +127,28 @@
 
     .small {
       font-size: 13px;
+      line-height: 1.5;
     }
 
-    a {
-      color: #000080;
-      font-weight: bold;
+    .hidden {
+      display: none;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .status-box {
+      background: white;
+      padding: 14px;
+      margin-top: 18px;
+
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid white;
+      border-bottom: 2px solid white;
     }
   </style>
 </head>
@@ -134,7 +162,12 @@
       <span>[_][□][X]</span>
     </div>
 
-    <div class="content">
+
+    <!-- ========================================= -->
+    <!-- LOGIN SCREEN -->
+    <!-- ========================================= -->
+
+    <div class="content" id="loginScreen">
 
       <h1>Member Login</h1>
 
@@ -173,7 +206,7 @@
 
       </form>
 
-      <div id="message" class="message"></div>
+      <div id="loginMessage" class="message"></div>
 
       <div class="divider"></div>
 
@@ -190,6 +223,144 @@
 
     </div>
 
+
+    <!-- ========================================= -->
+    <!-- ACCESS REQUEST SCREEN -->
+    <!-- ========================================= -->
+
+    <div
+      class="content hidden"
+      id="requestScreen"
+    >
+
+      <h1>Request Access</h1>
+
+      <p class="small">
+        This is a private chatroom for friends.
+        Access requests must be approved before
+        an account can be created.
+      </p>
+
+      <form id="requestForm">
+
+        <label for="realName">
+          Your Name
+        </label>
+
+        <input
+          id="realName"
+          name="realName"
+          maxlength="80"
+          required
+        >
+
+
+        <label for="desiredUsername">
+          Desired Screen Name
+        </label>
+
+        <input
+          id="desiredUsername"
+          name="desiredUsername"
+          minlength="3"
+          maxlength="24"
+          required
+        >
+
+        <div class="small">
+          3-24 characters. Letters, numbers,
+          periods, underscores and hyphens only.
+        </div>
+
+
+        <label for="requestEmail">
+          Email
+        </label>
+
+        <input
+          id="requestEmail"
+          name="requestEmail"
+          type="email"
+          autocomplete="email"
+          required
+        >
+
+
+        <label for="howKnown">
+          How do you know the chatroom owner?
+        </label>
+
+        <textarea
+          id="howKnown"
+          name="howKnown"
+          maxlength="500"
+          required
+        ></textarea>
+
+
+        <div class="button-row">
+
+          <button
+            type="submit"
+            id="submitRequestButton"
+          >
+            SUBMIT REQUEST
+          </button>
+
+          <button
+            type="button"
+            id="backButton"
+          >
+            BACK
+          </button>
+
+        </div>
+
+      </form>
+
+      <div
+        id="requestMessage"
+        class="message"
+      ></div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- REQUEST SUBMITTED SCREEN -->
+    <!-- ========================================= -->
+
+    <div
+      class="content hidden"
+      id="submittedScreen"
+    >
+
+      <h1>Request Submitted</h1>
+
+      <div class="status-box">
+        <strong>STATUS: PENDING APPROVAL</strong>
+
+        <p>
+          Your request has been sent to the
+          chatroom administrator.
+        </p>
+
+        <p class="small">
+          You will not be able to log in until
+          your request has been approved and
+          your account has been activated.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        id="returnLoginButton"
+      >
+        RETURN TO LOGIN
+      </button>
+
+    </div>
+
   </div>
 
 
@@ -199,15 +370,93 @@ const API =
   "https://chatroom.drko-doom.workers.dev";
 
 
+const loginScreen =
+  document.getElementById("loginScreen");
+
+const requestScreen =
+  document.getElementById("requestScreen");
+
+const submittedScreen =
+  document.getElementById("submittedScreen");
+
+
 const loginForm =
   document.getElementById("loginForm");
 
-const message =
-  document.getElementById("message");
+const requestForm =
+  document.getElementById("requestForm");
+
+
+const loginMessage =
+  document.getElementById("loginMessage");
+
+const requestMessage =
+  document.getElementById("requestMessage");
+
 
 const requestButton =
   document.getElementById("requestButton");
 
+const backButton =
+  document.getElementById("backButton");
+
+const returnLoginButton =
+  document.getElementById("returnLoginButton");
+
+const submitRequestButton =
+  document.getElementById("submitRequestButton");
+
+
+// ==============================================
+// SCREEN SWITCHING
+// ==============================================
+
+function showScreen(screen) {
+
+  loginScreen.classList.add("hidden");
+  requestScreen.classList.add("hidden");
+  submittedScreen.classList.add("hidden");
+
+  screen.classList.remove("hidden");
+
+}
+
+
+requestButton.addEventListener(
+  "click",
+  () => {
+
+    requestMessage.textContent = "";
+
+    showScreen(requestScreen);
+
+  }
+);
+
+
+backButton.addEventListener(
+  "click",
+  () => {
+
+    showScreen(loginScreen);
+
+  }
+);
+
+
+returnLoginButton.addEventListener(
+  "click",
+  () => {
+
+    showScreen(loginScreen);
+
+  }
+);
+
+
+// ==============================================
+// LOGIN
+// ==============================================
 
 loginForm.addEventListener(
   "submit",
@@ -215,17 +464,21 @@ loginForm.addEventListener(
 
     event.preventDefault();
 
-    message.className = "message";
-    message.textContent =
+    loginMessage.className = "message";
+    loginMessage.textContent =
       "Connecting...";
 
+
     const login =
-      document.getElementById("login")
+      document
+        .getElementById("login")
         .value
         .trim();
 
+
     const password =
-      document.getElementById("password")
+      document
+        .getElementById("password")
         .value;
 
 
@@ -256,10 +509,10 @@ loginForm.addEventListener(
 
       if (!response.ok) {
 
-        message.className =
+        loginMessage.className =
           "message error";
 
-        message.textContent =
+        loginMessage.textContent =
           data.error ||
           "Login failed.";
 
@@ -279,24 +532,24 @@ loginForm.addEventListener(
       );
 
 
-      message.className =
+      loginMessage.className =
         "message success";
 
-      message.textContent =
+
+      loginMessage.textContent =
         "ACCESS GRANTED. Welcome, " +
         data.user.username +
         ".";
 
 
-      // Later this will open the real chatroom.
       setTimeout(() => {
 
         alert(
-          "LOGIN WORKED!\\n\\n" +
+          "LOGIN WORKED!\n\n" +
           "Welcome " +
           data.user.username +
-          ".\\n\\n" +
-          "Next we'll build the actual chatroom."
+          ".\n\n" +
+          "The live chatroom is coming next."
         );
 
       }, 300);
@@ -307,10 +560,10 @@ loginForm.addEventListener(
 
       console.error(error);
 
-      message.className =
+      loginMessage.className =
         "message error";
 
-      message.textContent =
+      loginMessage.textContent =
         "Could not connect to the chat server.";
 
     }
@@ -319,13 +572,127 @@ loginForm.addEventListener(
 );
 
 
-requestButton.addEventListener(
-  "click",
-  () => {
+// ==============================================
+// REQUEST ACCESS
+// ==============================================
 
-    alert(
-      "We'll build the access request page next."
-    );
+requestForm.addEventListener(
+  "submit",
+  async (event) => {
+
+    event.preventDefault();
+
+
+    requestMessage.className =
+      "message";
+
+    requestMessage.textContent =
+      "Submitting request...";
+
+
+    submitRequestButton.disabled = true;
+
+
+    const realName =
+      document
+        .getElementById("realName")
+        .value
+        .trim();
+
+
+    const desiredUsername =
+      document
+        .getElementById("desiredUsername")
+        .value
+        .trim();
+
+
+    const email =
+      document
+        .getElementById("requestEmail")
+        .value
+        .trim();
+
+
+    const howKnown =
+      document
+        .getElementById("howKnown")
+        .value
+        .trim();
+
+
+    try {
+
+      const response =
+        await fetch(
+          API + "/apply",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body: JSON.stringify({
+
+              real_name:
+                realName,
+
+              desired_username:
+                desiredUsername,
+
+              email:
+                email,
+
+              how_known:
+                howKnown
+
+            })
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if (!response.ok) {
+
+        requestMessage.className =
+          "message error";
+
+        requestMessage.textContent =
+          data.error ||
+          "Could not submit request.";
+
+        submitRequestButton.disabled = false;
+
+        return;
+      }
+
+
+      requestForm.reset();
+
+      submitRequestButton.disabled = false;
+
+      showScreen(submittedScreen);
+
+    }
+
+    catch (error) {
+
+      console.error(error);
+
+      requestMessage.className =
+        "message error";
+
+      requestMessage.textContent =
+        "Could not connect to the chat server.";
+
+      submitRequestButton.disabled = false;
+
+    }
 
   }
 );
