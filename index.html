@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>DRKODOOM Chatroom</title>
 
   <style>
@@ -24,33 +23,36 @@
 
     .window {
       width: 100%;
-      max-width: 520px;
+      max-width: 780px;
       background: #c0c0c0;
 
-      border-top: 2px solid white;
-      border-left: 2px solid white;
+      border-top: 2px solid #fff;
+      border-left: 2px solid #fff;
       border-right: 2px solid #404040;
       border-bottom: 2px solid #404040;
 
-      box-shadow: 3px 3px 0 black;
+      box-shadow: 3px 3px 0 #000;
     }
 
     .titlebar {
       background: #000080;
-      color: white;
+      color: #fff;
       font-weight: bold;
       padding: 6px 8px;
+
       display: flex;
       justify-content: space-between;
+      gap: 12px;
     }
 
     .content {
       padding: 24px;
     }
 
-    h1 {
+    h1,
+    h2,
+    h3 {
       margin-top: 0;
-      font-size: 22px;
     }
 
     label {
@@ -66,12 +68,12 @@
       padding: 9px;
       font-family: inherit;
       font-size: 16px;
-      background: white;
+      background: #fff;
 
       border-top: 2px solid #404040;
       border-left: 2px solid #404040;
-      border-right: 2px solid white;
-      border-bottom: 2px solid white;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
     }
 
     textarea {
@@ -84,11 +86,11 @@
       font-family: inherit;
       font-weight: bold;
       padding: 8px 18px;
-      margin-top: 20px;
+      margin-top: 12px;
       cursor: pointer;
 
-      border-top: 2px solid white;
-      border-left: 2px solid white;
+      border-top: 2px solid #fff;
+      border-left: 2px solid #fff;
       border-right: 2px solid #404040;
       border-bottom: 2px solid #404040;
     }
@@ -96,8 +98,8 @@
     button:active {
       border-top: 2px solid #404040;
       border-left: 2px solid #404040;
-      border-right: 2px solid white;
-      border-bottom: 2px solid white;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
     }
 
     button:disabled {
@@ -105,10 +107,15 @@
       cursor: default;
     }
 
+    .hidden {
+      display: none !important;
+    }
+
     .message {
-      margin-top: 18px;
+      margin-top: 16px;
       min-height: 22px;
       font-weight: bold;
+      white-space: pre-wrap;
     }
 
     .error {
@@ -119,36 +126,114 @@
       color: #006000;
     }
 
-    .divider {
-      border-top: 1px solid #808080;
-      border-bottom: 1px solid white;
-      margin: 25px 0 15px;
-    }
-
     .small {
       font-size: 13px;
       line-height: 1.5;
     }
 
-    .hidden {
-      display: none;
+    .divider {
+      border-top: 1px solid #808080;
+      border-bottom: 1px solid #fff;
+      margin: 24px 0 16px;
     }
 
     .button-row {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      align-items: center;
     }
 
-    .status-box {
-      background: white;
+    .status-box,
+    .request-card,
+    .activation-box {
+      background: #fff;
       padding: 14px;
-      margin-top: 18px;
+      margin-top: 14px;
 
       border-top: 2px solid #404040;
       border-left: 2px solid #404040;
-      border-right: 2px solid white;
-      border-bottom: 2px solid white;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+    }
+
+    .request-card p {
+      margin: 8px 0;
+    }
+
+    .request-meta {
+      font-size: 13px;
+      color: #333;
+    }
+
+    .request-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .approve-btn {
+      min-width: 110px;
+    }
+
+    .deny-btn {
+      min-width: 90px;
+    }
+
+    .activation-link {
+      width: 100%;
+      margin-top: 8px;
+      font-family: inherit;
+    }
+
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .admin-header button {
+      margin-top: 0;
+    }
+
+    .empty-state {
+      padding: 20px;
+      border: 1px dashed #606060;
+      margin-top: 14px;
+      background: #d8d8d8;
+    }
+
+    .member-box {
+      background: #000;
+      color: #00ff00;
+      padding: 18px;
+      border: 1px solid #00ff00;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        align-items: flex-start;
+        padding: 10px;
+      }
+
+      .content {
+        padding: 18px;
+      }
+
+      .titlebar {
+        font-size: 14px;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      .request-actions button,
+      .admin-header button {
+        width: auto;
+      }
     }
   </style>
 </head>
@@ -163,9 +248,7 @@
     </div>
 
 
-    <!-- ========================================= -->
-    <!-- LOGIN SCREEN -->
-    <!-- ========================================= -->
+    <!-- LOGIN -->
 
     <div class="content" id="loginScreen">
 
@@ -183,7 +266,6 @@
 
         <input
           id="login"
-          name="login"
           autocomplete="username"
           required
         >
@@ -194,7 +276,6 @@
 
         <input
           id="password"
-          name="password"
           type="password"
           autocomplete="current-password"
           required
@@ -206,7 +287,10 @@
 
       </form>
 
-      <div id="loginMessage" class="message"></div>
+      <div
+        id="loginMessage"
+        class="message"
+      ></div>
 
       <div class="divider"></div>
 
@@ -224,9 +308,7 @@
     </div>
 
 
-    <!-- ========================================= -->
-    <!-- ACCESS REQUEST SCREEN -->
-    <!-- ========================================= -->
+    <!-- ACCESS REQUEST -->
 
     <div
       class="content hidden"
@@ -249,11 +331,9 @@
 
         <input
           id="realName"
-          name="realName"
           maxlength="80"
           required
         >
-
 
         <label for="desiredUsername">
           Desired Screen Name
@@ -261,7 +341,6 @@
 
         <input
           id="desiredUsername"
-          name="desiredUsername"
           minlength="3"
           maxlength="24"
           required
@@ -272,19 +351,16 @@
           periods, underscores and hyphens only.
         </div>
 
-
         <label for="requestEmail">
           Email
         </label>
 
         <input
           id="requestEmail"
-          name="requestEmail"
           type="email"
           autocomplete="email"
           required
         >
-
 
         <label for="howKnown">
           How do you know the chatroom owner?
@@ -292,11 +368,9 @@
 
         <textarea
           id="howKnown"
-          name="howKnown"
           maxlength="500"
           required
         ></textarea>
-
 
         <div class="button-row">
 
@@ -326,9 +400,7 @@
     </div>
 
 
-    <!-- ========================================= -->
-    <!-- REQUEST SUBMITTED SCREEN -->
-    <!-- ========================================= -->
+    <!-- SUBMITTED -->
 
     <div
       class="content hidden"
@@ -338,7 +410,10 @@
       <h1>Request Submitted</h1>
 
       <div class="status-box">
-        <strong>STATUS: PENDING APPROVAL</strong>
+
+        <strong>
+          STATUS: PENDING APPROVAL
+        </strong>
 
         <p>
           Your request has been sent to the
@@ -350,6 +425,7 @@
           your request has been approved and
           your account has been activated.
         </p>
+
       </div>
 
       <button
@@ -358,6 +434,193 @@
       >
         RETURN TO LOGIN
       </button>
+
+    </div>
+
+
+    <!-- ACTIVATION -->
+
+    <div
+      class="content hidden"
+      id="activationScreen"
+    >
+
+      <h1>
+        Account Activation
+      </h1>
+
+      <div
+        id="activationIntro"
+        class="status-box"
+      >
+        Checking activation link...
+      </div>
+
+      <form
+        id="activationForm"
+        class="hidden"
+      >
+
+        <label for="activationPassword">
+          Choose Password
+        </label>
+
+        <input
+          id="activationPassword"
+          type="password"
+          minlength="12"
+          maxlength="128"
+          autocomplete="new-password"
+          required
+        >
+
+        <label for="activationPasswordConfirm">
+          Confirm Password
+        </label>
+
+        <input
+          id="activationPasswordConfirm"
+          type="password"
+          minlength="12"
+          maxlength="128"
+          autocomplete="new-password"
+          required
+        >
+
+        <button
+          type="submit"
+          id="activateButton"
+        >
+          ACTIVATE ACCOUNT
+        </button>
+
+      </form>
+
+      <div
+        id="activationMessage"
+        class="message"
+      ></div>
+
+      <button
+        type="button"
+        id="activationBackButton"
+      >
+        RETURN TO LOGIN
+      </button>
+
+    </div>
+
+
+    <!-- ADMIN PANEL -->
+
+    <div
+      class="content hidden"
+      id="adminScreen"
+    >
+
+      <div class="admin-header">
+
+        <div>
+
+          <h1>
+            Admin Control Panel
+          </h1>
+
+          <div
+            id="adminWelcome"
+            class="small"
+          ></div>
+
+        </div>
+
+        <div class="button-row">
+
+          <button
+            type="button"
+            id="refreshRequestsButton"
+          >
+            REFRESH
+          </button>
+
+          <button
+            type="button"
+            id="adminLogoutButton"
+          >
+            LOG OUT
+          </button>
+
+        </div>
+
+      </div>
+
+      <div class="divider"></div>
+
+      <h2>
+        Pending Access Requests
+      </h2>
+
+      <div
+        id="adminMessage"
+        class="message"
+      ></div>
+
+      <div id="requestList"></div>
+
+      <div class="divider"></div>
+
+      <button
+        type="button"
+        id="adminEnterChatButton"
+      >
+        ENTER CHATROOM
+      </button>
+
+    </div>
+
+
+    <!-- NORMAL MEMBER -->
+
+    <div
+      class="content hidden"
+      id="memberScreen"
+    >
+
+      <h1>
+        Member Area
+      </h1>
+
+      <div class="member-box">
+
+        <strong>
+          LOGIN SUCCESSFUL
+        </strong>
+
+        <p id="memberWelcome"></p>
+
+        <p>
+          The live chatroom is the next piece
+          we'll connect.
+        </p>
+
+      </div>
+
+      <div class="button-row">
+
+        <button
+          type="button"
+          id="memberEnterChatButton"
+        >
+          ENTER CHATROOM
+        </button>
+
+        <button
+          type="button"
+          id="memberLogoutButton"
+        >
+          LOG OUT
+        </button>
+
+      </div>
 
     </div>
 
@@ -370,165 +633,473 @@ const API =
   "https://chatroom.drko-doom.workers.dev";
 
 
-const loginScreen =
-  document.getElementById("loginScreen");
+const screens = {
 
-const requestScreen =
-  document.getElementById("requestScreen");
+  login:
+    document.getElementById(
+      "loginScreen"
+    ),
 
-const submittedScreen =
-  document.getElementById("submittedScreen");
+  request:
+    document.getElementById(
+      "requestScreen"
+    ),
 
+  submitted:
+    document.getElementById(
+      "submittedScreen"
+    ),
 
-const loginForm =
-  document.getElementById("loginForm");
+  activation:
+    document.getElementById(
+      "activationScreen"
+    ),
 
-const requestForm =
-  document.getElementById("requestForm");
+  admin:
+    document.getElementById(
+      "adminScreen"
+    ),
 
+  member:
+    document.getElementById(
+      "memberScreen"
+    )
 
-const loginMessage =
-  document.getElementById("loginMessage");
-
-const requestMessage =
-  document.getElementById("requestMessage");
-
-
-const requestButton =
-  document.getElementById("requestButton");
-
-const backButton =
-  document.getElementById("backButton");
-
-const returnLoginButton =
-  document.getElementById("returnLoginButton");
-
-const submitRequestButton =
-  document.getElementById("submitRequestButton");
+};
 
 
-// ==============================================
-// SCREEN SWITCHING
-// ==============================================
+function showScreen(name) {
 
-function showScreen(screen) {
+  Object
+    .values(screens)
+    .forEach(
+      screen =>
+        screen.classList.add(
+          "hidden"
+        )
+    );
 
-  loginScreen.classList.add("hidden");
-  requestScreen.classList.add("hidden");
-  submittedScreen.classList.add("hidden");
 
-  screen.classList.remove("hidden");
+  screens[name]
+    .classList
+    .remove(
+      "hidden"
+    );
 
 }
 
 
-requestButton.addEventListener(
-  "click",
-  () => {
+function getToken() {
 
-    requestMessage.textContent = "";
+  return localStorage.getItem(
+    "chatroom_token"
+  );
 
-    showScreen(requestScreen);
+}
+
+
+function saveSession(
+  token,
+  user
+) {
+
+  localStorage.setItem(
+    "chatroom_token",
+    token
+  );
+
+
+  localStorage.setItem(
+    "chatroom_user",
+    JSON.stringify(user)
+  );
+
+}
+
+
+function clearSession() {
+
+  localStorage.removeItem(
+    "chatroom_token"
+  );
+
+
+  localStorage.removeItem(
+    "chatroom_user"
+  );
+
+}
+
+
+// ======================================================
+// API HELPER
+// ======================================================
+
+async function apiFetch(
+  path,
+  options = {},
+  auth = false
+) {
+
+  const headers =
+    new Headers(
+      options.headers || {}
+    );
+
+
+  if (
+    options.body &&
+    !headers.has(
+      "Content-Type"
+    )
+  ) {
+
+    headers.set(
+      "Content-Type",
+      "application/json"
+    );
 
   }
-);
 
 
-backButton.addEventListener(
-  "click",
-  () => {
+  if (auth) {
 
-    showScreen(loginScreen);
+    const token =
+      getToken();
+
+
+    if (!token) {
+
+      throw new Error(
+        "NO_SESSION"
+      );
+
+    }
+
+
+    headers.set(
+      "Authorization",
+      "Bearer " + token
+    );
 
   }
-);
 
 
-returnLoginButton.addEventListener(
-  "click",
-  () => {
+  const response =
+    await fetch(
+      API + path,
+      {
+        ...options,
+        headers
+      }
+    );
 
-    showScreen(loginScreen);
+
+  let data = {};
+
+
+  try {
+
+    data =
+      await response.json();
 
   }
-);
+
+  catch {
+
+    data = {
+      ok: false,
+      error:
+        "Invalid server response."
+    };
+
+  }
 
 
-// ==============================================
+  return {
+    response,
+    data
+  };
+
+}
+
+
+// ======================================================
+// LOG OUT
+// ======================================================
+
+async function logout() {
+
+  try {
+
+    const token =
+      getToken();
+
+
+    if (token) {
+
+      await apiFetch(
+        "/logout",
+        {
+          method: "POST"
+        },
+        true
+      );
+
+    }
+
+  }
+
+  catch {
+
+    // Clear local session anyway.
+
+  }
+
+
+  clearSession();
+
+
+  document
+    .getElementById(
+      "loginForm"
+    )
+    .reset();
+
+
+  document
+    .getElementById(
+      "loginMessage"
+    )
+    .textContent = "";
+
+
+  showScreen(
+    "login"
+  );
+
+}
+
+
+// ======================================================
+// RESTORE EXISTING SESSION
+// ======================================================
+
+async function restoreSession() {
+
+  const token =
+    getToken();
+
+
+  if (!token) {
+
+    return false;
+
+  }
+
+
+  try {
+
+    const {
+      response,
+      data
+    } =
+      await apiFetch(
+        "/me",
+        {
+          method: "GET"
+        },
+        true
+      );
+
+
+    if (
+      !response.ok ||
+      !data.ok
+    ) {
+
+      clearSession();
+
+      return false;
+
+    }
+
+
+    localStorage.setItem(
+      "chatroom_user",
+      JSON.stringify(
+        data.user
+      )
+    );
+
+
+    routeLoggedInUser(
+      data.user
+    );
+
+
+    return true;
+
+  }
+
+  catch {
+
+    clearSession();
+
+    return false;
+
+  }
+
+}
+
+
+// ======================================================
+// ROUTE LOGGED-IN USERS
+// ======================================================
+
+function routeLoggedInUser(
+  user
+) {
+
+  if (
+    user &&
+    user.role === "admin"
+  ) {
+
+    document
+      .getElementById(
+        "adminWelcome"
+      )
+      .textContent =
+        "Logged in as " +
+        user.username +
+        " (administrator)";
+
+
+    showScreen(
+      "admin"
+    );
+
+
+    loadPendingRequests();
+
+
+    return;
+
+  }
+
+
+  document
+    .getElementById(
+      "memberWelcome"
+    )
+    .textContent =
+      "Welcome, " +
+      (
+        user?.username ||
+        "member"
+      ) +
+      ".";
+
+
+  showScreen(
+    "member"
+  );
+
+}
+
+
+// ======================================================
 // LOGIN
-// ==============================================
+// ======================================================
+
+const loginForm =
+  document.getElementById(
+    "loginForm"
+  );
+
+
+const loginMessage =
+  document.getElementById(
+    "loginMessage"
+  );
+
 
 loginForm.addEventListener(
   "submit",
-  async (event) => {
+  async event => {
 
     event.preventDefault();
 
-    loginMessage.className = "message";
+
+    loginMessage.className =
+      "message";
+
+
     loginMessage.textContent =
       "Connecting...";
 
 
     const login =
       document
-        .getElementById("login")
+        .getElementById(
+          "login"
+        )
         .value
         .trim();
 
 
     const password =
       document
-        .getElementById("password")
+        .getElementById(
+          "password"
+        )
         .value;
 
 
     try {
 
-      const response =
-        await fetch(
-          API + "/login",
+      const {
+        response,
+        data
+      } =
+        await apiFetch(
+          "/login",
           {
-            method: "POST",
+            method:
+              "POST",
 
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
-
-            body: JSON.stringify({
-              login,
-              password
-            })
+            body:
+              JSON.stringify({
+                login,
+                password
+              })
           }
         );
 
 
-      const data =
-        await response.json();
-
-
-      if (!response.ok) {
+      if (
+        !response.ok ||
+        !data.ok
+      ) {
 
         loginMessage.className =
           "message error";
+
 
         loginMessage.textContent =
           data.error ||
           "Login failed.";
 
+
         return;
+
       }
 
 
-      localStorage.setItem(
-        "chatroom_token",
-        data.token
-      );
-
-
-      localStorage.setItem(
-        "chatroom_user",
-        JSON.stringify(data.user)
+      saveSession(
+        data.token,
+        data.user
       );
 
 
@@ -542,26 +1113,26 @@ loginForm.addEventListener(
         ".";
 
 
-      setTimeout(() => {
-
-        alert(
-          "LOGIN WORKED!\n\n" +
-          "Welcome " +
-          data.user.username +
-          ".\n\n" +
-          "The live chatroom is coming next."
-        );
-
-      }, 300);
+      setTimeout(
+        () =>
+          routeLoggedInUser(
+            data.user
+          ),
+        250
+      );
 
     }
 
     catch (error) {
 
-      console.error(error);
+      console.error(
+        error
+      );
+
 
       loginMessage.className =
         "message error";
+
 
       loginMessage.textContent =
         "Could not connect to the chat server.";
@@ -572,13 +1143,84 @@ loginForm.addEventListener(
 );
 
 
-// ==============================================
-// REQUEST ACCESS
-// ==============================================
+// ======================================================
+// REQUEST ACCESS NAVIGATION
+// ======================================================
+
+document
+  .getElementById(
+    "requestButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      document
+        .getElementById(
+          "requestMessage"
+        )
+        .textContent = "";
+
+
+      showScreen(
+        "request"
+      );
+
+    }
+  );
+
+
+document
+  .getElementById(
+    "backButton"
+  )
+  .addEventListener(
+    "click",
+    () =>
+      showScreen(
+        "login"
+      )
+  );
+
+
+document
+  .getElementById(
+    "returnLoginButton"
+  )
+  .addEventListener(
+    "click",
+    () =>
+      showScreen(
+        "login"
+      )
+  );
+
+
+// ======================================================
+// REQUEST ACCESS SUBMIT
+// ======================================================
+
+const requestForm =
+  document.getElementById(
+    "requestForm"
+  );
+
+
+const requestMessage =
+  document.getElementById(
+    "requestMessage"
+  );
+
+
+const submitRequestButton =
+  document.getElementById(
+    "submitRequestButton"
+  );
+
 
 requestForm.addEventListener(
   "submit",
-  async (event) => {
+  async event => {
 
     event.preventDefault();
 
@@ -586,116 +1228,1289 @@ requestForm.addEventListener(
     requestMessage.className =
       "message";
 
+
     requestMessage.textContent =
       "Submitting request...";
 
 
-    submitRequestButton.disabled = true;
+    submitRequestButton.disabled =
+      true;
 
 
-    const realName =
-      document
-        .getElementById("realName")
-        .value
-        .trim();
+    const payload = {
 
+      real_name:
+        document
+          .getElementById(
+            "realName"
+          )
+          .value
+          .trim(),
 
-    const desiredUsername =
-      document
-        .getElementById("desiredUsername")
-        .value
-        .trim();
+      desired_username:
+        document
+          .getElementById(
+            "desiredUsername"
+          )
+          .value
+          .trim(),
 
+      email:
+        document
+          .getElementById(
+            "requestEmail"
+          )
+          .value
+          .trim(),
 
-    const email =
-      document
-        .getElementById("requestEmail")
-        .value
-        .trim();
+      how_known:
+        document
+          .getElementById(
+            "howKnown"
+          )
+          .value
+          .trim()
 
-
-    const howKnown =
-      document
-        .getElementById("howKnown")
-        .value
-        .trim();
+    };
 
 
     try {
 
-      const response =
-        await fetch(
-          API + "/apply",
+      const {
+        response,
+        data
+      } =
+        await apiFetch(
+          "/apply",
           {
-            method: "POST",
+            method:
+              "POST",
 
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
-
-            body: JSON.stringify({
-
-              real_name:
-                realName,
-
-              desired_username:
-                desiredUsername,
-
-              email:
-                email,
-
-              how_known:
-                howKnown
-
-            })
+            body:
+              JSON.stringify(
+                payload
+              )
           }
         );
 
 
-      const data =
-        await response.json();
-
-
-      if (!response.ok) {
+      if (
+        !response.ok ||
+        !data.ok
+      ) {
 
         requestMessage.className =
           "message error";
+
 
         requestMessage.textContent =
           data.error ||
           "Could not submit request.";
 
-        submitRequestButton.disabled = false;
 
         return;
+
       }
 
 
       requestForm.reset();
 
-      submitRequestButton.disabled = false;
 
-      showScreen(submittedScreen);
+      showScreen(
+        "submitted"
+      );
 
     }
 
     catch (error) {
 
-      console.error(error);
+      console.error(
+        error
+      );
+
 
       requestMessage.className =
         "message error";
 
+
       requestMessage.textContent =
         "Could not connect to the chat server.";
 
-      submitRequestButton.disabled = false;
+    }
+
+    finally {
+
+      submitRequestButton.disabled =
+        false;
 
     }
 
   }
 );
+
+
+// ======================================================
+// ADMIN PANEL
+// ======================================================
+
+const requestList =
+  document.getElementById(
+    "requestList"
+  );
+
+
+const adminMessage =
+  document.getElementById(
+    "adminMessage"
+  );
+
+
+async function loadPendingRequests() {
+
+  adminMessage.className =
+    "message";
+
+
+  adminMessage.textContent =
+    "Loading pending requests...";
+
+
+  requestList.innerHTML =
+    "";
+
+
+  try {
+
+    const {
+      response,
+      data
+    } =
+      await apiFetch(
+        "/admin/requests",
+        {
+          method: "GET"
+        },
+        true
+      );
+
+
+    if (
+      response.status === 401 ||
+      response.status === 403
+    ) {
+
+      clearSession();
+
+
+      showScreen(
+        "login"
+      );
+
+
+      loginMessage.className =
+        "message error";
+
+
+      loginMessage.textContent =
+        "Your administrator session is no longer valid. Please log in again.";
+
+
+      return;
+
+    }
+
+
+    if (
+      !response.ok ||
+      !data.ok
+    ) {
+
+      adminMessage.className =
+        "message error";
+
+
+      adminMessage.textContent =
+        data.error ||
+        "Could not load requests.";
+
+
+      return;
+
+    }
+
+
+    adminMessage.textContent =
+      "";
+
+
+    if (
+      !data.requests ||
+      data.requests.length === 0
+    ) {
+
+      requestList.innerHTML =
+        '<div class="empty-state">No pending access requests.</div>';
+
+
+      return;
+
+    }
+
+
+    data.requests.forEach(
+      renderRequestCard
+    );
+
+  }
+
+  catch (error) {
+
+    console.error(
+      error
+    );
+
+
+    adminMessage.className =
+      "message error";
+
+
+    adminMessage.textContent =
+      "Could not connect to the chat server.";
+
+  }
+
+}
+
+
+// ======================================================
+// BUILD REQUEST CARD
+// ======================================================
+
+function renderRequestCard(
+  item
+) {
+
+  const card =
+    document.createElement(
+      "div"
+    );
+
+
+  card.className =
+    "request-card";
+
+
+  const title =
+    document.createElement(
+      "h3"
+    );
+
+
+  title.textContent =
+    item.real_name +
+    " (" +
+    item.desired_username +
+    ")";
+
+
+  card.appendChild(
+    title
+  );
+
+
+  const email =
+    document.createElement(
+      "p"
+    );
+
+
+  email.innerHTML =
+    "<strong>Email:</strong> ";
+
+
+  email.appendChild(
+    document.createTextNode(
+      item.email
+    )
+  );
+
+
+  card.appendChild(
+    email
+  );
+
+
+  const reasonLabel =
+    document.createElement(
+      "p"
+    );
+
+
+  reasonLabel.innerHTML =
+    "<strong>How they know you:</strong>";
+
+
+  card.appendChild(
+    reasonLabel
+  );
+
+
+  const reason =
+    document.createElement(
+      "p"
+    );
+
+
+  reason.textContent =
+    item.how_known;
+
+
+  card.appendChild(
+    reason
+  );
+
+
+  const meta =
+    document.createElement(
+      "p"
+    );
+
+
+  meta.className =
+    "request-meta";
+
+
+  meta.textContent =
+    "Submitted: " +
+    item.created_at +
+    " | Request ID: " +
+    item.id;
+
+
+  card.appendChild(
+    meta
+  );
+
+
+  const actions =
+    document.createElement(
+      "div"
+    );
+
+
+  actions.className =
+    "request-actions";
+
+
+  const approveButton =
+    document.createElement(
+      "button"
+    );
+
+
+  approveButton.className =
+    "approve-btn";
+
+
+  approveButton.textContent =
+    "APPROVE";
+
+
+  approveButton.addEventListener(
+    "click",
+    () =>
+      approveRequest(
+        item,
+        card,
+        approveButton
+      )
+  );
+
+
+  const denyButton =
+    document.createElement(
+      "button"
+    );
+
+
+  denyButton.className =
+    "deny-btn";
+
+
+  denyButton.textContent =
+    "DENY";
+
+
+  denyButton.addEventListener(
+    "click",
+    () =>
+      denyRequest(
+        item,
+        card,
+        denyButton
+      )
+  );
+
+
+  actions.appendChild(
+    approveButton
+  );
+
+
+  actions.appendChild(
+    denyButton
+  );
+
+
+  card.appendChild(
+    actions
+  );
+
+
+  requestList.appendChild(
+    card
+  );
+
+}
+
+
+// ======================================================
+// APPROVE USER
+// ======================================================
+
+async function approveRequest(
+  item,
+  card,
+  button
+) {
+
+  button.disabled =
+    true;
+
+
+  adminMessage.className =
+    "message";
+
+
+  adminMessage.textContent =
+    "Approving " +
+    item.desired_username +
+    "...";
+
+
+  try {
+
+    const {
+      response,
+      data
+    } =
+      await apiFetch(
+        "/admin/requests/" +
+        item.id +
+        "/approve",
+        {
+          method: "POST"
+        },
+        true
+      );
+
+
+    if (
+      !response.ok ||
+      !data.ok
+    ) {
+
+      adminMessage.className =
+        "message error";
+
+
+      adminMessage.textContent =
+        data.error ||
+        "Approval failed.";
+
+
+      button.disabled =
+        false;
+
+
+      return;
+
+    }
+
+
+    adminMessage.className =
+      "message success";
+
+
+    adminMessage.textContent =
+      "APPROVED: " +
+      item.desired_username;
+
+
+    card.innerHTML =
+      "";
+
+
+    const heading =
+      document.createElement(
+        "h3"
+      );
+
+
+    heading.textContent =
+      item.desired_username +
+      " APPROVED";
+
+
+    card.appendChild(
+      heading
+    );
+
+
+    const info =
+      document.createElement(
+        "p"
+      );
+
+
+    info.textContent =
+      "Send this one-time activation link to your friend. It expires in " +
+      data.expires_in_days +
+      " days.";
+
+
+    card.appendChild(
+      info
+    );
+
+
+    const linkInput =
+      document.createElement(
+        "input"
+      );
+
+
+    linkInput.className =
+      "activation-link";
+
+
+    linkInput.value =
+      data.activation_url;
+
+
+    linkInput.readOnly =
+      true;
+
+
+    card.appendChild(
+      linkInput
+    );
+
+
+    const copyButton =
+      document.createElement(
+        "button"
+      );
+
+
+    copyButton.textContent =
+      "COPY ACTIVATION LINK";
+
+
+    copyButton.addEventListener(
+      "click",
+      async () => {
+
+        const copied =
+          await copyText(
+            data.activation_url,
+            linkInput
+          );
+
+
+        copyButton.textContent =
+          copied
+            ? "COPIED!"
+            : "SELECTED - COPY MANUALLY";
+
+
+        setTimeout(
+          () => {
+
+            copyButton.textContent =
+              "COPY ACTIVATION LINK";
+
+          },
+          1800
+        );
+
+      }
+    );
+
+
+    card.appendChild(
+      copyButton
+    );
+
+  }
+
+  catch (error) {
+
+    console.error(
+      error
+    );
+
+
+    adminMessage.className =
+      "message error";
+
+
+    adminMessage.textContent =
+      "Could not connect to the chat server.";
+
+
+    button.disabled =
+      false;
+
+  }
+
+}
+
+
+// ======================================================
+// DENY USER
+// ======================================================
+
+async function denyRequest(
+  item,
+  card,
+  button
+) {
+
+  const confirmed =
+    confirm(
+      "Deny access request for " +
+      item.desired_username +
+      "?"
+    );
+
+
+  if (!confirmed) {
+
+    return;
+
+  }
+
+
+  button.disabled =
+    true;
+
+
+  adminMessage.className =
+    "message";
+
+
+  adminMessage.textContent =
+    "Denying " +
+    item.desired_username +
+    "...";
+
+
+  try {
+
+    const {
+      response,
+      data
+    } =
+      await apiFetch(
+        "/admin/requests/" +
+        item.id +
+        "/deny",
+        {
+          method: "POST"
+        },
+        true
+      );
+
+
+    if (
+      !response.ok ||
+      !data.ok
+    ) {
+
+      adminMessage.className =
+        "message error";
+
+
+      adminMessage.textContent =
+        data.error ||
+        "Denial failed.";
+
+
+      button.disabled =
+        false;
+
+
+      return;
+
+    }
+
+
+    adminMessage.className =
+      "message success";
+
+
+    adminMessage.textContent =
+      "DENIED: " +
+      item.desired_username;
+
+
+    card.remove();
+
+
+    if (
+      !requestList.querySelector(
+        ".request-card"
+      )
+    ) {
+
+      requestList.innerHTML =
+        '<div class="empty-state">No pending access requests.</div>';
+
+    }
+
+  }
+
+  catch (error) {
+
+    console.error(
+      error
+    );
+
+
+    adminMessage.className =
+      "message error";
+
+
+    adminMessage.textContent =
+      "Could not connect to the chat server.";
+
+
+    button.disabled =
+      false;
+
+  }
+
+}
+
+
+// ======================================================
+// COPY LINK
+// ======================================================
+
+async function copyText(
+  text,
+  input
+) {
+
+  try {
+
+    await navigator.clipboard.writeText(
+      text
+    );
+
+
+    return true;
+
+  }
+
+  catch {
+
+    input.focus();
+
+    input.select();
+
+    return false;
+
+  }
+
+}
+
+
+// ======================================================
+// ADMIN BUTTONS
+// ======================================================
+
+document
+  .getElementById(
+    "refreshRequestsButton"
+  )
+  .addEventListener(
+    "click",
+    loadPendingRequests
+  );
+
+
+document
+  .getElementById(
+    "adminLogoutButton"
+  )
+  .addEventListener(
+    "click",
+    logout
+  );
+
+
+document
+  .getElementById(
+    "memberLogoutButton"
+  )
+  .addEventListener(
+    "click",
+    logout
+  );
+
+
+// Chat itself comes next.
+
+document
+  .getElementById(
+    "adminEnterChatButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      alert(
+        "The live WebSocket chatroom is the next step."
+      );
+
+    }
+  );
+
+
+document
+  .getElementById(
+    "memberEnterChatButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      alert(
+        "The live WebSocket chatroom is the next step."
+      );
+
+    }
+  );
+
+
+// ======================================================
+// ACTIVATION FLOW
+// ======================================================
+
+const activationForm =
+  document.getElementById(
+    "activationForm"
+  );
+
+
+const activationIntro =
+  document.getElementById(
+    "activationIntro"
+  );
+
+
+const activationMessage =
+  document.getElementById(
+    "activationMessage"
+  );
+
+
+let activationToken =
+  null;
+
+
+async function startActivation(
+  token
+) {
+
+  activationToken =
+    token;
+
+
+  showScreen(
+    "activation"
+  );
+
+
+  activationIntro.textContent =
+    "Checking activation link...";
+
+
+  activationForm.classList.add(
+    "hidden"
+  );
+
+
+  activationMessage.textContent =
+    "";
+
+
+  try {
+
+    const {
+      response,
+      data
+    } =
+      await apiFetch(
+        "/activation-info?token=" +
+        encodeURIComponent(
+          token
+        ),
+        {
+          method: "GET"
+        }
+      );
+
+
+    if (
+      !response.ok ||
+      !data.ok
+    ) {
+
+      activationIntro.textContent =
+        data.error ||
+        "This activation link is invalid or expired.";
+
+
+      return;
+
+    }
+
+
+    activationIntro.innerHTML =
+      "";
+
+
+    const strong =
+      document.createElement(
+        "strong"
+      );
+
+
+    strong.textContent =
+      "ACCOUNT APPROVED";
+
+
+    activationIntro.appendChild(
+      strong
+    );
+
+
+    activationIntro.appendChild(
+      document.createElement(
+        "br"
+      )
+    );
+
+
+    activationIntro.appendChild(
+      document.createElement(
+        "br"
+      )
+    );
+
+
+    activationIntro.appendChild(
+      document.createTextNode(
+        "Screen name: " +
+        data.username
+      )
+    );
+
+
+    activationIntro.appendChild(
+      document.createElement(
+        "br"
+      )
+    );
+
+
+    activationIntro.appendChild(
+      document.createTextNode(
+        "Choose a password to activate your account."
+      )
+    );
+
+
+    activationForm.classList.remove(
+      "hidden"
+    );
+
+  }
+
+  catch (error) {
+
+    console.error(
+      error
+    );
+
+
+    activationIntro.textContent =
+      "Could not connect to the chat server.";
+
+  }
+
+}
+
+
+activationForm.addEventListener(
+  "submit",
+  async event => {
+
+    event.preventDefault();
+
+
+    const password =
+      document
+        .getElementById(
+          "activationPassword"
+        )
+        .value;
+
+
+    const confirmPassword =
+      document
+        .getElementById(
+          "activationPasswordConfirm"
+        )
+        .value;
+
+
+    activationMessage.className =
+      "message";
+
+
+    if (
+      password !==
+      confirmPassword
+    ) {
+
+      activationMessage.className =
+        "message error";
+
+
+      activationMessage.textContent =
+        "Passwords do not match.";
+
+
+      return;
+
+    }
+
+
+    if (
+      password.length < 12 ||
+      password.length > 128
+    ) {
+
+      activationMessage.className =
+        "message error";
+
+
+      activationMessage.textContent =
+        "Password must be between 12 and 128 characters.";
+
+
+      return;
+
+    }
+
+
+    const activateButton =
+      document.getElementById(
+        "activateButton"
+      );
+
+
+    activateButton.disabled =
+      true;
+
+
+    activationMessage.textContent =
+      "Activating account...";
+
+
+    try {
+
+      const {
+        response,
+        data
+      } =
+        await apiFetch(
+          "/activate",
+          {
+            method:
+              "POST",
+
+            body:
+              JSON.stringify({
+                token:
+                  activationToken,
+
+                password
+              })
+          }
+        );
+
+
+      if (
+        !response.ok ||
+        !data.ok
+      ) {
+
+        activationMessage.className =
+          "message error";
+
+
+        activationMessage.textContent =
+          data.error ||
+          "Activation failed.";
+
+
+        return;
+
+      }
+
+
+      activationMessage.className =
+        "message success";
+
+
+      activationMessage.textContent =
+        "ACCOUNT ACTIVATED. You can now log in.";
+
+
+      activationForm.reset();
+
+
+      activationForm.classList.add(
+        "hidden"
+      );
+
+
+      const cleanUrl =
+        window.location.origin +
+        window.location.pathname;
+
+
+      history.replaceState(
+        {},
+        "",
+        cleanUrl
+      );
+
+    }
+
+    catch (error) {
+
+      console.error(
+        error
+      );
+
+
+      activationMessage.className =
+        "message error";
+
+
+      activationMessage.textContent =
+        "Could not connect to the chat server.";
+
+    }
+
+    finally {
+
+      activateButton.disabled =
+        false;
+
+    }
+
+  }
+);
+
+
+document
+  .getElementById(
+    "activationBackButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      const cleanUrl =
+        window.location.origin +
+        window.location.pathname;
+
+
+      history.replaceState(
+        {},
+        "",
+        cleanUrl
+      );
+
+
+      showScreen(
+        "login"
+      );
+
+    }
+  );
+
+
+// ======================================================
+// INITIAL LOAD
+// ======================================================
+
+(async function init() {
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+
+  const activation =
+    params.get(
+      "activate"
+    );
+
+
+  if (activation) {
+
+    await startActivation(
+      activation
+    );
+
+
+    return;
+
+  }
+
+
+  const restored =
+    await restoreSession();
+
+
+  if (!restored) {
+
+    showScreen(
+      "login"
+    );
+
+  }
+
+})();
 
 </script>
 
