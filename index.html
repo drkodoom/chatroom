@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>DRKODOOM Chatroom</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #008080;
+      font-family: "Courier New", monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .window {
+      width: 100%;
+      max-width: 520px;
+      background: #c0c0c0;
+
+      border-top: 2px solid white;
+      border-left: 2px solid white;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+
+      box-shadow: 3px 3px 0 black;
+    }
+
+    .titlebar {
+      background: #000080;
+      color: white;
+      font-weight: bold;
+      padding: 6px 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .content {
+      padding: 24px;
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 22px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 9px;
+      font-family: inherit;
+      font-size: 16px;
+      background: white;
+
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid white;
+      border-bottom: 2px solid white;
+    }
+
+    button {
+      background: #c0c0c0;
+      font-family: inherit;
+      font-weight: bold;
+      padding: 8px 18px;
+      margin-top: 20px;
+      cursor: pointer;
+
+      border-top: 2px solid white;
+      border-left: 2px solid white;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+    }
+
+    button:active {
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid white;
+      border-bottom: 2px solid white;
+    }
+
+    .message {
+      margin-top: 18px;
+      min-height: 22px;
+      font-weight: bold;
+    }
+
+    .error {
+      color: #800000;
+    }
+
+    .success {
+      color: #006000;
+    }
+
+    .divider {
+      border-top: 1px solid #808080;
+      border-bottom: 1px solid white;
+      margin: 25px 0 15px;
+    }
+
+    .small {
+      font-size: 13px;
+    }
+
+    a {
+      color: #000080;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="window">
+
+    <div class="titlebar">
+      <span>DRKODOOM CHATROOM</span>
+      <span>[_][□][X]</span>
+    </div>
+
+    <div class="content">
+
+      <h1>Member Login</h1>
+
+      <p>
+        Authorized users only.
+      </p>
+
+      <form id="loginForm">
+
+        <label for="login">
+          Username or Email
+        </label>
+
+        <input
+          id="login"
+          name="login"
+          autocomplete="username"
+          required
+        >
+
+        <label for="password">
+          Password
+        </label>
+
+        <input
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+        >
+
+        <button type="submit">
+          ENTER CHATROOM
+        </button>
+
+      </form>
+
+      <div id="message" class="message"></div>
+
+      <div class="divider"></div>
+
+      <p class="small">
+        Don't have an account?
+      </p>
+
+      <button
+        type="button"
+        id="requestButton"
+      >
+        REQUEST ACCESS
+      </button>
+
+    </div>
+
+  </div>
+
+
+<script>
+
+const API =
+  "https://chatroom.drko-doom.workers.dev";
+
+
+const loginForm =
+  document.getElementById("loginForm");
+
+const message =
+  document.getElementById("message");
+
+const requestButton =
+  document.getElementById("requestButton");
+
+
+loginForm.addEventListener(
+  "submit",
+  async (event) => {
+
+    event.preventDefault();
+
+    message.className = "message";
+    message.textContent =
+      "Connecting...";
+
+    const login =
+      document.getElementById("login")
+        .value
+        .trim();
+
+    const password =
+      document.getElementById("password")
+        .value;
+
+
+    try {
+
+      const response =
+        await fetch(
+          API + "/login",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body: JSON.stringify({
+              login,
+              password
+            })
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      if (!response.ok) {
+
+        message.className =
+          "message error";
+
+        message.textContent =
+          data.error ||
+          "Login failed.";
+
+        return;
+      }
+
+
+      localStorage.setItem(
+        "chatroom_token",
+        data.token
+      );
+
+
+      localStorage.setItem(
+        "chatroom_user",
+        JSON.stringify(data.user)
+      );
+
+
+      message.className =
+        "message success";
+
+      message.textContent =
+        "ACCESS GRANTED. Welcome, " +
+        data.user.username +
+        ".";
+
+
+      // Later this will open the real chatroom.
+      setTimeout(() => {
+
+        alert(
+          "LOGIN WORKED!\\n\\n" +
+          "Welcome " +
+          data.user.username +
+          ".\\n\\n" +
+          "Next we'll build the actual chatroom."
+        );
+
+      }, 300);
+
+    }
+
+    catch (error) {
+
+      console.error(error);
+
+      message.className =
+        "message error";
+
+      message.textContent =
+        "Could not connect to the chat server.";
+
+    }
+
+  }
+);
+
+
+requestButton.addEventListener(
+  "click",
+  () => {
+
+    alert(
+      "We'll build the access request page next."
+    );
+
+  }
+);
+
+</script>
+
+</body>
+</html>
