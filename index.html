@@ -9,7 +9,7 @@
 >
 
 <title>
-  DRKODOOM Chatroom v0.9.8
+  DRKODOOM Chatroom v0.9.9
 </title>
 
 <style>
@@ -589,6 +589,33 @@ body.theme-modern .member-box {
   border-radius: 10px;
 }
 
+/* Fake classic desktop chrome is exclusive to Acirema Online. */
+.aol-only {
+  display: none !important;
+}
+
+body.theme-aol90 .aol-only {
+  display: inline-flex !important;
+}
+
+body.theme-aol90 .classic-window-controls {
+  align-items: center;
+  white-space: nowrap;
+}
+
+body.theme-aol90 .classic-menu {
+  align-items: center;
+  white-space: nowrap;
+}
+
+body:not(.theme-aol90) .chat-toolbar {
+  justify-content: flex-end;
+}
+
+body.theme-aol90 .chat-toolbar {
+  justify-content: space-between;
+}
+
 /* AOL / 90s online-service parody */
 body.theme-aol90 {
   background: #008080;
@@ -1138,11 +1165,15 @@ body.theme-future .client-dialog-title {
         class="version-trigger"
         aria-label="Application version 0.9.8"
       >
-        v0.9.8
+        v0.9.9
       </button>
     </span>
 
-    <span>
+    <span
+      id="classicWindowControls"
+      class="aol-only classic-window-controls"
+      aria-hidden="true"
+    >
       [_][□][X]
     </span>
 
@@ -1551,7 +1582,10 @@ body.theme-future .client-dialog-title {
 
     <div class="chat-toolbar">
 
-      <span>
+      <span
+        id="classicMenu"
+        class="aol-only classic-menu"
+      >
         File &nbsp;
         Edit &nbsp;
         People &nbsp;
@@ -1657,7 +1691,7 @@ body.theme-future .client-dialog-title {
             class="version-trigger"
             aria-label="Application version 0.9.8"
           >
-            v0.9.8
+            v0.9.9
           </button>
 
           &nbsp; • &nbsp;
@@ -1781,7 +1815,7 @@ body.theme-future .client-dialog-title {
 <script>
 
 const APP_VERSION =
-  "0.9.8";
+  "0.9.9";
 
 const API =
   "https://chatroom.drko-doom.workers.dev";
@@ -1893,13 +1927,13 @@ const CLIENTS = {
 
   aol90: {
     name:
-      "DRK Online 96",
+      "Acirema Online",
 
     bodyClass:
       "theme-aol90",
 
     title:
-      "DRK ONLINE 96",
+      "Acirema Online - Chatroom",
 
     online:
       "PEOPLE HERE",
