@@ -1,11 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DRKODOOM Chatroom</title>
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
+
+<title>
+  DRKODOOM Chatroom v0.9.7
+</title>
 
 <style>
+
 * {
   box-sizing: border-box;
 }
@@ -25,10 +33,12 @@ body {
   width: 100%;
   max-width: 900px;
   background: #c0c0c0;
+
   border-top: 2px solid #fff;
   border-left: 2px solid #fff;
   border-right: 2px solid #404040;
   border-bottom: 2px solid #404040;
+
   box-shadow: 3px 3px 0 #000;
 }
 
@@ -37,8 +47,10 @@ body {
   color: #fff;
   font-weight: bold;
   padding: 6px 8px;
+
   display: flex;
   justify-content: space-between;
+  gap: 12px;
 }
 
 .content {
@@ -65,6 +77,7 @@ textarea {
   font-family: inherit;
   font-size: 16px;
   background: #fff;
+
   border-top: 2px solid #404040;
   border-left: 2px solid #404040;
   border-right: 2px solid #fff;
@@ -83,6 +96,7 @@ button {
   padding: 8px 18px;
   margin-top: 12px;
   cursor: pointer;
+
   border-top: 2px solid #fff;
   border-left: 2px solid #fff;
   border-right: 2px solid #404040;
@@ -143,6 +157,7 @@ button:disabled {
   background: #fff;
   padding: 14px;
   margin-top: 14px;
+
   border-top: 2px solid #404040;
   border-left: 2px solid #404040;
   border-right: 2px solid #fff;
@@ -162,10 +177,6 @@ button:disabled {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-}
-
-.activation-link {
-  margin-top: 8px;
 }
 
 .admin-header {
@@ -189,7 +200,10 @@ button:disabled {
   border: 1px solid #00ff00;
 }
 
-/* CHATROOM */
+
+/* ========================================= */
+/* CHATROOM                                  */
+/* ========================================= */
 
 .chat-shell {
   padding: 12px;
@@ -199,6 +213,23 @@ button:disabled {
   background: #c0c0c0;
   padding: 5px 8px;
   border-bottom: 1px solid #808080;
+
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.chat-toolbar-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chat-toolbar button {
+  margin: 0;
+  padding: 3px 8px;
+  font-size: 12px;
 }
 
 .chat-layout {
@@ -206,6 +237,7 @@ button:disabled {
   grid-template-columns: 1fr 190px;
   height: 520px;
   background: #fff;
+
   border-top: 2px solid #404040;
   border-left: 2px solid #404040;
   border-right: 2px solid #fff;
@@ -298,7 +330,18 @@ button:disabled {
   font-weight: bold;
 }
 
+.danger {
+  color: #800000;
+}
+
+.version {
+  opacity: 0.9;
+  font-weight: normal;
+}
+
+
 @media (max-width: 700px) {
+
   body {
     align-items: flex-start;
     padding: 8px;
@@ -325,26 +368,54 @@ button:disabled {
     width: 100%;
     flex-basis: 100%;
   }
+
+  .chat-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
+
 </style>
+
 </head>
+
 
 <body>
 
 <div class="window">
 
   <div class="titlebar">
-    <span>DRKODOOM CHATROOM</span>
-    <span>[_][□][X]</span>
+
+    <span>
+      DRKODOOM CHATROOM
+      <span class="version">
+        v0.9.7
+      </span>
+    </span>
+
+    <span>
+      [_][□][X]
+    </span>
+
   </div>
 
-  <!-- LOGIN -->
 
-  <div class="content" id="loginScreen">
+  <!-- ======================================= -->
+  <!-- LOGIN                                   -->
+  <!-- ======================================= -->
 
-    <h1>Member Login</h1>
+  <div
+    class="content"
+    id="loginScreen"
+  >
 
-    <p>Authorized users only.</p>
+    <h1>
+      Member Login
+    </h1>
+
+    <p>
+      Authorized users only.
+    </p>
 
     <form id="loginForm">
 
@@ -396,14 +467,18 @@ button:disabled {
   </div>
 
 
-  <!-- REQUEST ACCESS -->
+  <!-- ======================================= -->
+  <!-- REQUEST ACCESS                          -->
+  <!-- ======================================= -->
 
   <div
     class="content hidden"
     id="requestScreen"
   >
 
-    <h1>Request Access</h1>
+    <h1>
+      Request Access
+    </h1>
 
     <p class="small">
       This is a private chatroom for friends.
@@ -446,6 +521,7 @@ button:disabled {
       <input
         id="requestEmail"
         type="email"
+        autocomplete="email"
         required
       >
 
@@ -487,14 +563,18 @@ button:disabled {
   </div>
 
 
-  <!-- REQUEST SUBMITTED -->
+  <!-- ======================================= -->
+  <!-- SUBMITTED                               -->
+  <!-- ======================================= -->
 
   <div
     class="content hidden"
     id="submittedScreen"
   >
 
-    <h1>Request Submitted</h1>
+    <h1>
+      Request Submitted
+    </h1>
 
     <div class="status-box">
 
@@ -519,14 +599,18 @@ button:disabled {
   </div>
 
 
-  <!-- ACTIVATION -->
+  <!-- ======================================= -->
+  <!-- ACTIVATION                              -->
+  <!-- ======================================= -->
 
   <div
     class="content hidden"
     id="activationScreen"
   >
 
-    <h1>Account Activation</h1>
+    <h1>
+      Account Activation
+    </h1>
 
     <div
       id="activationIntro"
@@ -549,6 +633,7 @@ button:disabled {
         type="password"
         minlength="12"
         maxlength="128"
+        autocomplete="new-password"
         required
       >
 
@@ -561,6 +646,7 @@ button:disabled {
         type="password"
         minlength="12"
         maxlength="128"
+        autocomplete="new-password"
         required
       >
 
@@ -588,7 +674,9 @@ button:disabled {
   </div>
 
 
-  <!-- ADMIN -->
+  <!-- ======================================= -->
+  <!-- ADMIN                                   -->
+  <!-- ======================================= -->
 
   <div
     class="content hidden"
@@ -598,12 +686,16 @@ button:disabled {
     <div class="admin-header">
 
       <div>
-        <h1>Admin Control Panel</h1>
+
+        <h1>
+          Admin Control Panel
+        </h1>
 
         <div
           id="adminWelcome"
           class="small"
         ></div>
+
       </div>
 
       <div class="button-row">
@@ -628,7 +720,9 @@ button:disabled {
 
     <div class="divider"></div>
 
-    <h2>Pending Access Requests</h2>
+    <h2>
+      Pending Access Requests
+    </h2>
 
     <div
       id="adminMessage"
@@ -649,18 +743,24 @@ button:disabled {
   </div>
 
 
-  <!-- MEMBER -->
+  <!-- ======================================= -->
+  <!-- MEMBER                                  -->
+  <!-- ======================================= -->
 
   <div
     class="content hidden"
     id="memberScreen"
   >
 
-    <h1>Member Area</h1>
+    <h1>
+      Member Area
+    </h1>
 
     <div class="member-box">
 
-      <strong>LOGIN SUCCESSFUL</strong>
+      <strong>
+        LOGIN SUCCESSFUL
+      </strong>
 
       <p id="memberWelcome"></p>
 
@@ -691,7 +791,9 @@ button:disabled {
   </div>
 
 
-  <!-- CHAT -->
+  <!-- ======================================= -->
+  <!-- CHAT                                    -->
+  <!-- ======================================= -->
 
   <div
     class="hidden"
@@ -699,16 +801,42 @@ button:disabled {
   >
 
     <div class="chat-toolbar">
-      File &nbsp;
-      Edit &nbsp;
-      People &nbsp;
-      Rooms &nbsp;
-      Help
+
+      <span>
+        File &nbsp;
+        Edit &nbsp;
+        People &nbsp;
+        Rooms &nbsp;
+        Help
+      </span>
+
+
+      <div class="chat-toolbar-actions">
+
+        <button
+          id="clearScreenButton"
+          type="button"
+        >
+          CLEAR MY SCREEN
+        </button>
+
+        <button
+          id="clearRoomButton"
+          type="button"
+          class="hidden danger"
+        >
+          CLEAR ROOM HISTORY
+        </button>
+
+      </div>
+
     </div>
+
 
     <div class="chat-shell">
 
       <div class="chat-layout">
+
 
         <div class="chat-main">
 
@@ -717,6 +845,7 @@ button:disabled {
             class="chat-messages"
             aria-live="polite"
           ></div>
+
 
           <form
             id="chatForm"
@@ -752,19 +881,26 @@ button:disabled {
           </div>
 
           <div id="onlineUsers">
+
             <div class="small">
               Connecting...
             </div>
+
           </div>
 
         </div>
+
 
       </div>
 
 
       <div class="chat-statusbar">
 
-        <span>#lobby</span>
+        <span>
+          #lobby
+          &nbsp; • &nbsp;
+          v0.9.7
+        </span>
 
         <span
           id="chatConnectionStatus"
@@ -803,6 +939,9 @@ button:disabled {
 
 <script>
 
+const APP_VERSION =
+  "0.9.7";
+
 const API =
   "https://chatroom.drko-doom.workers.dev";
 
@@ -810,58 +949,102 @@ const LIVE_HOST =
   "chatroom-live.drko-doom.workers.dev";
 
 
+console.log(
+  "DRKODOOM CHATROOM v" +
+  APP_VERSION
+);
+
+
 const screens = {
+
   login:
-    document.getElementById("loginScreen"),
+    document.getElementById(
+      "loginScreen"
+    ),
 
   request:
-    document.getElementById("requestScreen"),
+    document.getElementById(
+      "requestScreen"
+    ),
 
   submitted:
-    document.getElementById("submittedScreen"),
+    document.getElementById(
+      "submittedScreen"
+    ),
 
   activation:
-    document.getElementById("activationScreen"),
+    document.getElementById(
+      "activationScreen"
+    ),
 
   admin:
-    document.getElementById("adminScreen"),
+    document.getElementById(
+      "adminScreen"
+    ),
 
   member:
-    document.getElementById("memberScreen"),
+    document.getElementById(
+      "memberScreen"
+    ),
 
   chat:
-    document.getElementById("chatScreen")
+    document.getElementById(
+      "chatScreen"
+    )
+
 };
 
 
-let currentUser = null;
+let currentUser =
+  null;
 
-let chatSocket = null;
+let activationToken =
+  null;
 
-let chatIntentionalClose = false;
+let chatSocket =
+  null;
 
-let chatReconnectTimer = null;
+let chatIntentionalClose =
+  false;
 
-let chatHeartbeatTimer = null;
+let chatReconnectTimer =
+  null;
 
-let chatReconnectAttempts = 0;
+let chatHeartbeatTimer =
+  null;
+
+let chatReconnectAttempts =
+  0;
 
 
 // =============================================
 // SCREENS
 // =============================================
 
-function showScreen(name) {
+function showScreen(
+  name
+) {
 
   Object
-    .values(screens)
-    .forEach(screen => {
-      screen.classList.add("hidden");
-    });
+    .values(
+      screens
+    )
+    .forEach(
+      screen =>
+        screen
+          .classList
+          .add(
+            "hidden"
+          )
+    );
+
 
   screens[name]
     .classList
-    .remove("hidden");
+    .remove(
+      "hidden"
+    );
+
 }
 
 
@@ -871,25 +1054,38 @@ function showScreen(name) {
 
 function getToken() {
 
-  return localStorage.getItem(
-    "chatroom_token"
-  );
+  return localStorage
+    .getItem(
+      "chatroom_token"
+    );
+
 }
 
 
-function saveSession(token, user) {
+function saveSession(
+  token,
+  user
+) {
 
-  localStorage.setItem(
-    "chatroom_token",
-    token
-  );
+  localStorage
+    .setItem(
+      "chatroom_token",
+      token
+    );
 
-  localStorage.setItem(
-    "chatroom_user",
-    JSON.stringify(user)
-  );
 
-  currentUser = user;
+  localStorage
+    .setItem(
+      "chatroom_user",
+      JSON.stringify(
+        user
+      )
+    );
+
+
+  currentUser =
+    user;
+
 }
 
 
@@ -898,29 +1094,40 @@ function getStoredUser() {
   try {
 
     return JSON.parse(
-      localStorage.getItem(
-        "chatroom_user"
-      )
+      localStorage
+        .getItem(
+          "chatroom_user"
+        )
     );
 
-  } catch {
+  }
+
+  catch {
 
     return null;
+
   }
+
 }
 
 
 function clearSession() {
 
-  localStorage.removeItem(
-    "chatroom_token"
-  );
+  localStorage
+    .removeItem(
+      "chatroom_token"
+    );
 
-  localStorage.removeItem(
-    "chatroom_user"
-  );
 
-  currentUser = null;
+  localStorage
+    .removeItem(
+      "chatroom_user"
+    );
+
+
+  currentUser =
+    null;
+
 }
 
 
@@ -936,33 +1143,47 @@ async function apiFetch(
 
   const headers =
     new Headers(
-      options.headers || {}
+      options.headers ||
+      {}
     );
+
 
   if (
     options.body &&
-    !headers.has("Content-Type")
+    !headers.has(
+      "Content-Type"
+    )
   ) {
 
     headers.set(
       "Content-Type",
       "application/json"
     );
+
   }
 
 
   if (auth) {
 
-    const token = getToken();
+    const token =
+      getToken();
+
 
     if (!token) {
-      throw new Error("NO_SESSION");
+
+      throw new Error(
+        "NO_SESSION"
+      );
+
     }
+
 
     headers.set(
       "Authorization",
-      "Bearer " + token
+      "Bearer " +
+      token
     );
+
   }
 
 
@@ -976,21 +1197,26 @@ async function apiFetch(
     );
 
 
-  let data = {};
+  let data =
+    {};
 
 
   try {
 
     data =
-      await response.json();
+      await response
+        .json();
 
-  } catch {
+  }
+
+  catch {
 
     data = {
       ok: false,
       error:
         "Invalid server response."
     };
+
   }
 
 
@@ -998,6 +1224,7 @@ async function apiFetch(
     response,
     data
   };
+
 }
 
 
@@ -1009,31 +1236,56 @@ async function logout() {
 
   closeChatSocket();
 
+
   try {
 
-    if (getToken()) {
+    if (
+      getToken()
+    ) {
 
       await apiFetch(
         "/logout",
         {
-          method: "POST"
+          method:
+            "POST"
         },
         true
       );
+
     }
 
-  } catch {
-    // Always clear locally.
+  }
+
+  catch {
+
+    // Clear locally even if
+    // network logout fails.
+
   }
 
 
   clearSession();
 
+
   document
-    .getElementById("loginForm")
+    .getElementById(
+      "loginForm"
+    )
     .reset();
 
-  showScreen("login");
+
+  document
+    .getElementById(
+      "loginMessage"
+    )
+    .textContent =
+      "";
+
+
+  showScreen(
+    "login"
+  );
+
 }
 
 
@@ -1043,8 +1295,12 @@ async function logout() {
 
 async function restoreSession() {
 
-  if (!getToken()) {
+  if (
+    !getToken()
+  ) {
+
     return false;
+
   }
 
 
@@ -1057,7 +1313,8 @@ async function restoreSession() {
       await apiFetch(
         "/me",
         {
-          method: "GET"
+          method:
+            "GET"
         },
         true
       );
@@ -1071,6 +1328,7 @@ async function restoreSession() {
       clearSession();
 
       return false;
+
     }
 
 
@@ -1078,10 +1336,13 @@ async function restoreSession() {
       data.user;
 
 
-    localStorage.setItem(
-      "chatroom_user",
-      JSON.stringify(data.user)
-    );
+    localStorage
+      .setItem(
+        "chatroom_user",
+        JSON.stringify(
+          data.user
+        )
+      );
 
 
     routeLoggedInUser(
@@ -1091,12 +1352,16 @@ async function restoreSession() {
 
     return true;
 
-  } catch {
+  }
+
+  catch {
 
     clearSession();
 
     return false;
+
   }
+
 }
 
 
@@ -1104,41 +1369,60 @@ async function restoreSession() {
 // ROUTE USER
 // =============================================
 
-function routeLoggedInUser(user) {
+function routeLoggedInUser(
+  user
+) {
 
-  currentUser = user;
+  currentUser =
+    user;
 
 
   if (
     user &&
-    user.role === "admin"
+    user.role ===
+      "admin"
   ) {
 
     document
-      .getElementById("adminWelcome")
+      .getElementById(
+        "adminWelcome"
+      )
       .textContent =
         "Logged in as " +
         user.username +
         " (administrator)";
 
 
-    showScreen("admin");
+    showScreen(
+      "admin"
+    );
+
 
     loadPendingRequests();
 
+
     return;
+
   }
 
 
   document
-    .getElementById("memberWelcome")
+    .getElementById(
+      "memberWelcome"
+    )
     .textContent =
       "Welcome, " +
-      (user?.username || "member") +
+      (
+        user?.username ||
+        "member"
+      ) +
       ".";
 
 
-  showScreen("member");
+  showScreen(
+    "member"
+  );
+
 }
 
 
@@ -1147,18 +1431,22 @@ function routeLoggedInUser(user) {
 // =============================================
 
 document
-  .getElementById("loginForm")
+  .getElementById(
+    "loginForm"
+  )
   .addEventListener(
     "submit",
     async event => {
 
-      event.preventDefault();
+      event
+        .preventDefault();
 
 
       const message =
-        document.getElementById(
-          "loginMessage"
-        );
+        document
+          .getElementById(
+            "loginMessage"
+          );
 
 
       message.className =
@@ -1171,14 +1459,18 @@ document
 
       const login =
         document
-          .getElementById("login")
+          .getElementById(
+            "login"
+          )
           .value
           .trim();
 
 
       const password =
         document
-          .getElementById("password")
+          .getElementById(
+            "password"
+          )
           .value;
 
 
@@ -1191,7 +1483,8 @@ document
           await apiFetch(
             "/login",
             {
-              method: "POST",
+              method:
+                "POST",
 
               body:
                 JSON.stringify({
@@ -1210,11 +1503,14 @@ document
           message.className =
             "message error";
 
+
           message.textContent =
             data.error ||
             "Login failed.";
 
+
           return;
+
         }
 
 
@@ -1235,24 +1531,33 @@ document
 
 
         setTimeout(
-          () => {
+          () =>
             routeLoggedInUser(
               data.user
-            );
-          },
+            ),
           150
         );
 
-      } catch (error) {
+      }
 
-        console.error(error);
+      catch (
+        error
+      ) {
+
+        console.error(
+          error
+        );
+
 
         message.className =
           "message error";
 
+
         message.textContent =
           "Could not connect to the server.";
+
       }
+
     }
   );
 
@@ -1262,26 +1567,41 @@ document
 // =============================================
 
 document
-  .getElementById("requestButton")
+  .getElementById(
+    "requestButton"
+  )
   .addEventListener(
     "click",
-    () => showScreen("request")
+    () =>
+      showScreen(
+        "request"
+      )
   );
 
 
 document
-  .getElementById("backButton")
+  .getElementById(
+    "backButton"
+  )
   .addEventListener(
     "click",
-    () => showScreen("login")
+    () =>
+      showScreen(
+        "login"
+      )
   );
 
 
 document
-  .getElementById("returnLoginButton")
+  .getElementById(
+    "returnLoginButton"
+  )
   .addEventListener(
     "click",
-    () => showScreen("login")
+    () =>
+      showScreen(
+        "login"
+      )
   );
 
 
@@ -1290,27 +1610,33 @@ document
 // =============================================
 
 document
-  .getElementById("requestForm")
+  .getElementById(
+    "requestForm"
+  )
   .addEventListener(
     "submit",
     async event => {
 
-      event.preventDefault();
+      event
+        .preventDefault();
 
 
       const button =
-        document.getElementById(
-          "submitRequestButton"
-        );
+        document
+          .getElementById(
+            "submitRequestButton"
+          );
 
 
       const message =
-        document.getElementById(
-          "requestMessage"
-        );
+        document
+          .getElementById(
+            "requestMessage"
+          );
 
 
-      button.disabled = true;
+      button.disabled =
+        true;
 
 
       message.className =
@@ -1325,7 +1651,9 @@ document
 
         real_name:
           document
-            .getElementById("realName")
+            .getElementById(
+              "realName"
+            )
             .value
             .trim(),
 
@@ -1347,9 +1675,12 @@ document
 
         how_known:
           document
-            .getElementById("howKnown")
+            .getElementById(
+              "howKnown"
+            )
             .value
             .trim()
+
       };
 
 
@@ -1362,7 +1693,8 @@ document
           await apiFetch(
             "/apply",
             {
-              method: "POST",
+              method:
+                "POST",
 
               body:
                 JSON.stringify(
@@ -1380,30 +1712,45 @@ document
           message.className =
             "message error";
 
+
           message.textContent =
             data.error ||
             "Request failed.";
 
+
           return;
+
         }
 
 
-        event.target.reset();
+        event.target
+          .reset();
 
-        showScreen("submitted");
 
-      } catch {
+        showScreen(
+          "submitted"
+        );
+
+      }
+
+      catch {
 
         message.className =
           "message error";
 
+
         message.textContent =
           "Could not connect to the server.";
 
-      } finally {
-
-        button.disabled = false;
       }
+
+      finally {
+
+        button.disabled =
+          false;
+
+      }
+
     }
   );
 
@@ -1413,15 +1760,17 @@ document
 // =============================================
 
 const requestList =
-  document.getElementById(
-    "requestList"
-  );
+  document
+    .getElementById(
+      "requestList"
+    );
 
 
 const adminMessage =
-  document.getElementById(
-    "adminMessage"
-  );
+  document
+    .getElementById(
+      "adminMessage"
+    );
 
 
 async function loadPendingRequests() {
@@ -1429,10 +1778,13 @@ async function loadPendingRequests() {
   adminMessage.className =
     "message";
 
+
   adminMessage.textContent =
     "Loading pending requests...";
 
-  requestList.innerHTML = "";
+
+  requestList.innerHTML =
+    "";
 
 
   try {
@@ -1444,7 +1796,8 @@ async function loadPendingRequests() {
       await apiFetch(
         "/admin/requests",
         {
-          method: "GET"
+          method:
+            "GET"
         },
         true
       );
@@ -1458,15 +1811,19 @@ async function loadPendingRequests() {
       adminMessage.className =
         "message error";
 
+
       adminMessage.textContent =
         data.error ||
         "Unable to load requests.";
 
+
       return;
+
     }
 
 
-    adminMessage.textContent = "";
+    adminMessage.textContent =
+      "";
 
 
     if (
@@ -1479,36 +1836,54 @@ async function loadPendingRequests() {
         'No pending access requests.' +
         '</div>';
 
+
       return;
+
     }
 
 
-    data.requests.forEach(
-      renderRequestCard
-    );
+    data.requests
+      .forEach(
+        renderRequestCard
+      );
 
-  } catch {
+  }
+
+  catch {
 
     adminMessage.className =
       "message error";
 
+
     adminMessage.textContent =
       "Could not connect to server.";
+
   }
+
 }
 
 
-function renderRequestCard(item) {
+function renderRequestCard(
+  item
+) {
 
   const card =
-    document.createElement("div");
+    document
+      .createElement(
+        "div"
+      );
+
 
   card.className =
     "request-card";
 
 
   const title =
-    document.createElement("h3");
+    document
+      .createElement(
+        "h3"
+      );
+
 
   title.textContent =
     item.real_name +
@@ -1518,7 +1893,11 @@ function renderRequestCard(item) {
 
 
   const email =
-    document.createElement("p");
+    document
+      .createElement(
+        "p"
+      );
+
 
   email.textContent =
     "Email: " +
@@ -1526,7 +1905,11 @@ function renderRequestCard(item) {
 
 
   const reason =
-    document.createElement("p");
+    document
+      .createElement(
+        "p"
+      );
+
 
   reason.textContent =
     "How they know you: " +
@@ -1534,10 +1917,15 @@ function renderRequestCard(item) {
 
 
   const meta =
-    document.createElement("p");
+    document
+      .createElement(
+        "p"
+      );
+
 
   meta.className =
     "request-meta";
+
 
   meta.textContent =
     "Submitted: " +
@@ -1545,14 +1933,22 @@ function renderRequestCard(item) {
 
 
   const actions =
-    document.createElement("div");
+    document
+      .createElement(
+        "div"
+      );
+
 
   actions.className =
     "request-actions";
 
 
   const approve =
-    document.createElement("button");
+    document
+      .createElement(
+        "button"
+      );
+
 
   approve.textContent =
     "APPROVE";
@@ -1570,7 +1966,11 @@ function renderRequestCard(item) {
 
 
   const deny =
-    document.createElement("button");
+    document
+      .createElement(
+        "button"
+      );
+
 
   deny.textContent =
     "DENY";
@@ -1602,7 +2002,11 @@ function renderRequestCard(item) {
   );
 
 
-  requestList.appendChild(card);
+  requestList
+    .appendChild(
+      card
+    );
+
 }
 
 
@@ -1612,105 +2016,160 @@ async function approveRequest(
   button
 ) {
 
-  button.disabled = true;
+  button.disabled =
+    true;
 
 
-  const {
-    response,
-    data
-  } =
-    await apiFetch(
-      "/admin/requests/" +
-      item.id +
-      "/approve",
-      {
-        method: "POST"
-      },
-      true
+  try {
+
+    const {
+      response,
+      data
+    } =
+      await apiFetch(
+        "/admin/requests/" +
+        item.id +
+        "/approve",
+        {
+          method:
+            "POST"
+        },
+        true
+      );
+
+
+    if (
+      !response.ok ||
+      !data.ok
+    ) {
+
+      button.disabled =
+        false;
+
+
+      adminMessage.className =
+        "message error";
+
+
+      adminMessage.textContent =
+        data.error ||
+        "Approval failed.";
+
+
+      return;
+
+    }
+
+
+    card.innerHTML =
+      "";
+
+
+    const heading =
+      document
+        .createElement(
+          "h3"
+        );
+
+
+    heading.textContent =
+      item.desired_username +
+      " APPROVED";
+
+
+    const text =
+      document
+        .createElement(
+          "p"
+        );
+
+
+    text.textContent =
+      "Send this activation link to your friend:";
+
+
+    const link =
+      document
+        .createElement(
+          "input"
+        );
+
+
+    link.readOnly =
+      true;
+
+
+    link.value =
+      data.activation_url;
+
+
+    const copy =
+      document
+        .createElement(
+          "button"
+        );
+
+
+    copy.textContent =
+      "COPY ACTIVATION LINK";
+
+
+    copy.addEventListener(
+      "click",
+      async () => {
+
+        try {
+
+          await navigator
+            .clipboard
+            .writeText(
+              data.activation_url
+            );
+
+
+          copy.textContent =
+            "COPIED!";
+
+        }
+
+        catch {
+
+          link.select();
+
+
+          copy.textContent =
+            "LINK SELECTED";
+
+        }
+
+      }
     );
 
 
-  if (
-    !response.ok ||
-    !data.ok
-  ) {
+    card.append(
+      heading,
+      text,
+      link,
+      copy
+    );
 
-    button.disabled = false;
+  }
+
+  catch {
+
+    button.disabled =
+      false;
+
 
     adminMessage.className =
       "message error";
 
-    adminMessage.textContent =
-      data.error ||
-      "Approval failed.";
 
-    return;
+    adminMessage.textContent =
+      "Could not connect to server.";
+
   }
 
-
-  card.innerHTML = "";
-
-
-  const heading =
-    document.createElement("h3");
-
-  heading.textContent =
-    item.desired_username +
-    " APPROVED";
-
-
-  const text =
-    document.createElement("p");
-
-  text.textContent =
-    "Send this activation link to your friend:";
-
-
-  const link =
-    document.createElement("input");
-
-  link.readOnly = true;
-
-  link.value =
-    data.activation_url;
-
-
-  const copy =
-    document.createElement("button");
-
-  copy.textContent =
-    "COPY ACTIVATION LINK";
-
-
-  copy.onclick =
-    async () => {
-
-      try {
-
-        await navigator.clipboard
-          .writeText(
-            data.activation_url
-          );
-
-        copy.textContent =
-          "COPIED!";
-
-      } catch {
-
-        link.select();
-
-        copy.textContent =
-          "LINK SELECTED";
-      }
-    };
-
-
-  card.append(
-    heading,
-    text,
-    link,
-    copy
-  );
 }
 
 
@@ -1727,47 +2186,91 @@ async function denyRequest(
       "?"
     )
   ) {
+
     return;
+
   }
 
 
-  button.disabled = true;
+  button.disabled =
+    true;
 
 
-  const {
-    response,
-    data
-  } =
-    await apiFetch(
-      "/admin/requests/" +
-      item.id +
-      "/deny",
-      {
-        method: "POST"
-      },
-      true
-    );
+  try {
+
+    const {
+      response,
+      data
+    } =
+      await apiFetch(
+        "/admin/requests/" +
+        item.id +
+        "/deny",
+        {
+          method:
+            "POST"
+        },
+        true
+      );
 
 
-  if (
-    !response.ok ||
-    !data.ok
-  ) {
+    if (
+      !response.ok ||
+      !data.ok
+    ) {
 
-    button.disabled = false;
+      button.disabled =
+        false;
+
+
+      adminMessage.className =
+        "message error";
+
+
+      adminMessage.textContent =
+        data.error ||
+        "Denial failed.";
+
+
+      return;
+
+    }
+
+
+    card.remove();
+
+
+    if (
+      !requestList
+        .querySelector(
+          ".request-card"
+        )
+    ) {
+
+      requestList.innerHTML =
+        '<div class="empty-state">' +
+        'No pending access requests.' +
+        '</div>';
+
+    }
+
+  }
+
+  catch {
+
+    button.disabled =
+      false;
+
 
     adminMessage.className =
       "message error";
 
-    adminMessage.textContent =
-      data.error ||
-      "Denial failed.";
 
-    return;
+    adminMessage.textContent =
+      "Could not connect to server.";
+
   }
 
-
-  card.remove();
 }
 
 
@@ -1775,26 +2278,31 @@ async function denyRequest(
 // ACTIVATION
 // =============================================
 
-let activationToken = null;
+async function startActivation(
+  token
+) {
+
+  activationToken =
+    token;
 
 
-async function startActivation(token) {
-
-  activationToken = token;
-
-  showScreen("activation");
+  showScreen(
+    "activation"
+  );
 
 
   const intro =
-    document.getElementById(
-      "activationIntro"
-    );
+    document
+      .getElementById(
+        "activationIntro"
+      );
 
 
   const form =
-    document.getElementById(
-      "activationForm"
-    );
+    document
+      .getElementById(
+        "activationForm"
+      );
 
 
   try {
@@ -1805,9 +2313,12 @@ async function startActivation(token) {
     } =
       await apiFetch(
         "/activation-info?token=" +
-        encodeURIComponent(token),
+        encodeURIComponent(
+          token
+        ),
         {
-          method: "GET"
+          method:
+            "GET"
         }
       );
 
@@ -1821,7 +2332,9 @@ async function startActivation(token) {
         data.error ||
         "Invalid activation link.";
 
+
       return;
+
     }
 
 
@@ -1830,25 +2343,33 @@ async function startActivation(token) {
       data.username;
 
 
-    form.classList.remove(
-      "hidden"
-    );
+    form.classList
+      .remove(
+        "hidden"
+      );
 
-  } catch {
+  }
+
+  catch {
 
     intro.textContent =
       "Could not connect to server.";
+
   }
+
 }
 
 
 document
-  .getElementById("activationForm")
+  .getElementById(
+    "activationForm"
+  )
   .addEventListener(
     "submit",
     async event => {
 
-      event.preventDefault();
+      event
+        .preventDefault();
 
 
       const password =
@@ -1868,73 +2389,140 @@ document
 
 
       const message =
-        document.getElementById(
-          "activationMessage"
-        );
+        document
+          .getElementById(
+            "activationMessage"
+          );
 
 
       if (
-        password !== confirmPassword
+        password !==
+        confirmPassword
       ) {
 
         message.className =
           "message error";
+
 
         message.textContent =
           "Passwords do not match.";
 
+
         return;
+
       }
 
 
-      const {
-        response,
-        data
-      } =
-        await apiFetch(
-          "/activate",
-          {
-            method: "POST",
-
-            body:
-              JSON.stringify({
-                token:
-                  activationToken,
-
-                password
-              })
-          }
-        );
-
-
       if (
-        !response.ok ||
-        !data.ok
+        password.length < 12 ||
+        password.length > 128
       ) {
 
         message.className =
           "message error";
 
+
         message.textContent =
-          data.error ||
-          "Activation failed.";
+          "Password must be between 12 and 128 characters.";
+
 
         return;
+
       }
 
 
-      message.className =
-        "message success";
+      try {
 
-      message.textContent =
-        "ACCOUNT ACTIVATED. You may now log in.";
+        const {
+          response,
+          data
+        } =
+          await apiFetch(
+            "/activate",
+            {
+              method:
+                "POST",
 
+              body:
+                JSON.stringify({
+                  token:
+                    activationToken,
+
+                  password
+                })
+            }
+          );
+
+
+        if (
+          !response.ok ||
+          !data.ok
+        ) {
+
+          message.className =
+            "message error";
+
+
+          message.textContent =
+            data.error ||
+            "Activation failed.";
+
+
+          return;
+
+        }
+
+
+        message.className =
+          "message success";
+
+
+        message.textContent =
+          "ACCOUNT ACTIVATED. You may now log in.";
+
+
+        history.replaceState(
+          {},
+          "",
+          window.location.pathname
+        );
+
+      }
+
+      catch {
+
+        message.className =
+          "message error";
+
+
+        message.textContent =
+          "Could not connect to server.";
+
+      }
+
+    }
+  );
+
+
+document
+  .getElementById(
+    "activationBackButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
 
       history.replaceState(
         {},
         "",
         window.location.pathname
       );
+
+
+      showScreen(
+        "login"
+      );
+
     }
   );
 
@@ -1944,73 +2532,118 @@ document
 // =============================================
 
 const chatMessages =
-  document.getElementById(
-    "chatMessages"
-  );
+  document
+    .getElementById(
+      "chatMessages"
+    );
+
 
 const chatInput =
-  document.getElementById(
-    "chatInput"
-  );
+  document
+    .getElementById(
+      "chatInput"
+    );
+
 
 const chatSendButton =
-  document.getElementById(
-    "chatSendButton"
-  );
+  document
+    .getElementById(
+      "chatSendButton"
+    );
+
 
 const chatConnectionStatus =
-  document.getElementById(
-    "chatConnectionStatus"
-  );
+  document
+    .getElementById(
+      "chatConnectionStatus"
+    );
+
+
+const clearRoomButton =
+  document
+    .getElementById(
+      "clearRoomButton"
+    );
 
 
 function scrollChatToBottom() {
 
   chatMessages.scrollTop =
-    chatMessages.scrollHeight;
+    chatMessages
+      .scrollHeight;
+
 }
 
 
-function addSystemLine(text) {
+function addSystemLine(
+  text
+) {
 
   const line =
-    document.createElement("div");
+    document
+      .createElement(
+        "div"
+      );
+
 
   line.className =
     "chat-line system-line";
+
 
   line.textContent =
     "*** " +
     text +
     " ***";
 
-  chatMessages.appendChild(line);
+
+  chatMessages
+    .appendChild(
+      line
+    );
+
 
   scrollChatToBottom();
+
 }
 
 
-function addChatLine(message) {
+function addChatLine(
+  message
+) {
 
   const line =
-    document.createElement("div");
+    document
+      .createElement(
+        "div"
+      );
+
 
   line.className =
     "chat-line";
 
 
   const username =
-    document.createElement("span");
+    document
+      .createElement(
+        "span"
+      );
+
 
   username.className =
     "chat-user";
 
+
   username.textContent =
-    message.user + ": ";
+    message.user +
+    ": ";
 
 
   const content =
-    document.createElement("span");
+    document
+      .createElement(
+        "span"
+      );
+
 
   content.textContent =
     message.content;
@@ -2022,87 +2655,123 @@ function addChatLine(message) {
   );
 
 
-  chatMessages.appendChild(line);
-
-  scrollChatToBottom();
-}
-
-
-// =============================================
-// PRESENCE
-// =============================================
-
-function renderOnlineUsers(users) {
-
-  const container =
-    document.getElementById(
-      "onlineUsers"
+  chatMessages
+    .appendChild(
+      line
     );
 
 
-  container.innerHTML = "";
+  scrollChatToBottom();
+
+}
+
+
+function renderOnlineUsers(
+  users
+) {
+
+  const container =
+    document
+      .getElementById(
+        "onlineUsers"
+      );
+
+
+  container.innerHTML =
+    "";
 
 
   if (
-    !Array.isArray(users) ||
+    !Array.isArray(
+      users
+    ) ||
     users.length === 0
   ) {
 
     container.innerHTML =
-      '<div class="small">Nobody online.</div>';
+      '<div class="small">' +
+      'Nobody online.' +
+      '</div>';
+
 
     return;
+
   }
 
 
-  users.forEach(username => {
+  users.forEach(
+    username => {
 
-    const row =
-      document.createElement("div");
+      const row =
+        document
+          .createElement(
+            "div"
+          );
 
-    row.className =
-      "chat-user-card";
 
-    row.textContent =
-      "● " + username;
+      row.className =
+        "chat-user-card";
 
-    container.appendChild(row);
-  });
+
+      row.textContent =
+        "● " +
+        username;
+
+
+      container
+        .appendChild(
+          row
+        );
+
+    }
+  );
+
 }
 
 
-function handleSystemEvent(data) {
+function handleSystemEvent(
+  data
+) {
 
-  if (!data.username) {
+  if (
+    !data.username
+  ) {
+
     return;
+
   }
 
 
   if (
-    data.event === "join"
+    data.event ===
+    "join"
   ) {
 
     addSystemLine(
       data.username +
       " has entered the room"
     );
+
   }
 
 
   if (
-    data.event === "leave"
+    data.event ===
+    "leave"
   ) {
 
     addSystemLine(
       data.username +
       " has left the room"
     );
+
   }
+
 }
 
 
 // =============================================
-// ENTER CHATROOM
+// ENTER CHAT
 // =============================================
 
 async function enterChatroom() {
@@ -2113,9 +2782,13 @@ async function enterChatroom() {
 
   if (!token) {
 
-    showScreen("login");
+    showScreen(
+      "login"
+    );
+
 
     return;
+
   }
 
 
@@ -2128,7 +2801,8 @@ async function enterChatroom() {
       await apiFetch(
         "/me",
         {
-          method: "GET"
+          method:
+            "GET"
         },
         true
       );
@@ -2141,29 +2815,53 @@ async function enterChatroom() {
 
       clearSession();
 
-      showScreen("login");
+
+      showScreen(
+        "login"
+      );
+
 
       return;
+
     }
 
 
     currentUser =
       data.user;
 
-  } catch {
+  }
+
+  catch {
 
     return;
+
   }
 
 
-  chatIntentionalClose = false;
-
-  chatReconnectAttempts = 0;
-
-  chatMessages.innerHTML = "";
+  chatIntentionalClose =
+    false;
 
 
-  showScreen("chat");
+  chatReconnectAttempts =
+    0;
+
+
+  chatMessages.innerHTML =
+    "";
+
+
+  clearRoomButton
+    .classList
+    .toggle(
+      "hidden",
+      currentUser?.role !==
+      "admin"
+    );
+
+
+  showScreen(
+    "chat"
+  );
 
 
   addSystemLine(
@@ -2172,11 +2870,12 @@ async function enterChatroom() {
 
 
   connectChatSocket();
+
 }
 
 
 // =============================================
-// WEBSOCKET CONNECTION
+// WEBSOCKET
 // =============================================
 
 function connectChatSocket() {
@@ -2189,7 +2888,9 @@ function connectChatSocket() {
     !token ||
     chatIntentionalClose
   ) {
+
     return;
+
   }
 
 
@@ -2213,17 +2914,21 @@ function connectChatSocket() {
       : "Connecting...";
 
 
-  chatInput.disabled = true;
+  chatInput.disabled =
+    true;
 
-  chatSendButton.disabled = true;
+
+  chatSendButton.disabled =
+    true;
 
 
   const socketUrl =
     "wss://" +
     LIVE_HOST +
-    "/parties/chat/lobby" +
-    "?token=" +
-    encodeURIComponent(token);
+    "/parties/chat/lobby?token=" +
+    encodeURIComponent(
+      token
+    );
 
 
   const socket =
@@ -2232,235 +2937,330 @@ function connectChatSocket() {
     );
 
 
-  chatSocket = socket;
+  chatSocket =
+    socket;
 
 
-  socket.addEventListener(
-    "open",
-    () => {
+  socket
+    .addEventListener(
+      "open",
+      () => {
 
-      if (
-        socket !== chatSocket
-      ) {
-        return;
-      }
+        if (
+          socket !==
+          chatSocket
+        ) {
 
+          return;
 
-      const wasReconnect =
-        chatReconnectAttempts > 0;
+        }
 
 
-      chatReconnectAttempts = 0;
+        const wasReconnect =
+          chatReconnectAttempts >
+          0;
 
 
-      chatConnectionStatus.className =
-        "connected";
+        chatReconnectAttempts =
+          0;
 
-
-      chatConnectionStatus.textContent =
-        "Connected";
-
-
-      chatInput.disabled = false;
-
-      chatSendButton.disabled = false;
-
-
-      chatInput.focus();
-
-
-      if (wasReconnect) {
-
-        addSystemLine(
-          "Reconnected to #lobby"
-        );
-
-      } else {
-
-        addSystemLine(
-          "Welcome to #lobby, " +
-          currentUser.username
-        );
-      }
-
-
-      startChatHeartbeat();
-    }
-  );
-
-
-  socket.addEventListener(
-    "message",
-    event => {
-
-      if (
-        socket !== chatSocket
-      ) {
-        return;
-      }
-
-
-      let data;
-
-
-      try {
-
-        data =
-          JSON.parse(
-            event.data
-          );
-
-      } catch {
-
-        return;
-      }
-
-
-      if (
-        data.type === "pong"
-      ) {
-        return;
-      }
-
-
-      if (
-        data.type === "all" &&
-        Array.isArray(
-          data.messages
-        )
-      ) {
-
-        chatMessages.innerHTML =
-          "";
-
-
-        data.messages.forEach(
-          addChatLine
-        );
-
-
-        addSystemLine(
-          "You have entered #lobby"
-        );
-
-
-        return;
-      }
-
-
-      if (
-        data.type === "presence"
-      ) {
-
-        renderOnlineUsers(
-          data.users
-        );
-
-        return;
-      }
-
-
-      if (
-        data.type === "system"
-      ) {
-
-        handleSystemEvent(
-          data
-        );
-
-        return;
-      }
-
-
-      if (
-        data.type === "add"
-      ) {
-
-        addChatLine(data);
-
-        return;
-      }
-    }
-  );
-
-
-  socket.addEventListener(
-    "close",
-    event => {
-
-      if (
-        socket !== chatSocket
-      ) {
-        return;
-      }
-
-
-      stopChatHeartbeat();
-
-
-      chatInput.disabled = true;
-
-      chatSendButton.disabled = true;
-
-
-      if (
-        chatIntentionalClose
-      ) {
 
         chatConnectionStatus.className =
-          "disconnected";
+          "connected";
+
 
         chatConnectionStatus.textContent =
-          "Disconnected";
+          "Connected";
 
-        return;
+
+        chatInput.disabled =
+          false;
+
+
+        chatSendButton.disabled =
+          false;
+
+
+        chatInput.focus();
+
+
+        if (
+          wasReconnect
+        ) {
+
+          addSystemLine(
+            "Reconnected to #lobby"
+          );
+
+        }
+
+        else {
+
+          addSystemLine(
+            "Welcome to #lobby, " +
+            currentUser.username
+          );
+
+        }
+
+
+        startChatHeartbeat();
+
       }
+    );
 
 
-      chatConnectionStatus.className =
-        "reconnecting";
+  socket
+    .addEventListener(
+      "message",
+      event => {
+
+        if (
+          socket !==
+          chatSocket
+        ) {
+
+          return;
+
+        }
 
 
-      chatConnectionStatus.textContent =
-        "Reconnecting...";
+        let data;
 
 
-      let text =
-        "Connection lost (code " +
-        event.code +
-        ")";
+        try {
+
+          data =
+            JSON.parse(
+              event.data
+            );
+
+        }
+
+        catch {
+
+          return;
+
+        }
 
 
-      if (event.reason) {
+        if (
+          data.type ===
+          "pong"
+        ) {
+
+          return;
+
+        }
+
+
+        if (
+          data.type === "all" &&
+          Array.isArray(
+            data.messages
+          )
+        ) {
+
+          chatMessages.innerHTML =
+            "";
+
+
+          data.messages
+            .forEach(
+              addChatLine
+            );
+
+
+          addSystemLine(
+            "You have entered #lobby"
+          );
+
+
+          return;
+
+        }
+
+
+        if (
+          data.type ===
+          "presence"
+        ) {
+
+          renderOnlineUsers(
+            data.users
+          );
+
+
+          return;
+
+        }
+
+
+        if (
+          data.type ===
+          "system"
+        ) {
+
+          handleSystemEvent(
+            data
+          );
+
+
+          return;
+
+        }
+
+
+        if (
+          data.type ===
+          "add"
+        ) {
+
+          addChatLine(
+            data
+          );
+
+
+          return;
+
+        }
+
+
+        if (
+          data.type ===
+          "clear_room"
+        ) {
+
+          chatMessages.innerHTML =
+            "";
+
+
+          addSystemLine(
+            "Room history was cleared by " +
+            (
+              data.username ||
+              "an administrator"
+            )
+          );
+
+
+          return;
+
+        }
+
+
+        if (
+          data.type ===
+          "error"
+        ) {
+
+          addSystemLine(
+            data.message ||
+            "Server error"
+          );
+
+        }
+
+      }
+    );
+
+
+  socket
+    .addEventListener(
+      "close",
+      event => {
+
+        if (
+          socket !==
+          chatSocket
+        ) {
+
+          return;
+
+        }
+
+
+        stopChatHeartbeat();
+
+
+        chatInput.disabled =
+          true;
+
+
+        chatSendButton.disabled =
+          true;
+
+
+        if (
+          chatIntentionalClose
+        ) {
+
+          chatConnectionStatus.className =
+            "disconnected";
+
+
+          chatConnectionStatus.textContent =
+            "Disconnected";
+
+
+          return;
+
+        }
+
+
+        chatConnectionStatus.className =
+          "reconnecting";
+
+
+        chatConnectionStatus.textContent =
+          "Reconnecting...";
+
+
+        let text =
+          "Connection lost (code " +
+          event.code +
+          ")";
+
+
+        if (
+          event.reason
+        ) {
+
+          text +=
+            " — " +
+            event.reason;
+
+        }
+
 
         text +=
-          " — " +
-          event.reason;
+          ". Reconnecting...";
+
+
+        addSystemLine(
+          text
+        );
+
+
+        scheduleChatReconnect();
+
       }
+    );
 
 
-      text +=
-        ". Reconnecting...";
+  socket
+    .addEventListener(
+      "error",
+      error => {
 
+        console.error(
+          "WebSocket error:",
+          error
+        );
 
-      addSystemLine(text);
+      }
+    );
 
-
-      scheduleChatReconnect();
-    }
-  );
-
-
-  socket.addEventListener(
-    "error",
-    error => {
-
-      console.error(
-        "WebSocket error:",
-        error
-      );
-    }
-  );
 }
 
 
@@ -2474,7 +3274,9 @@ function scheduleChatReconnect() {
     chatIntentionalClose ||
     !getToken()
   ) {
+
     return;
+
   }
 
 
@@ -2483,7 +3285,8 @@ function scheduleChatReconnect() {
   );
 
 
-  chatReconnectAttempts++;
+  chatReconnectAttempts +=
+    1;
 
 
   const delay =
@@ -2491,7 +3294,8 @@ function scheduleChatReconnect() {
       1000 *
       Math.pow(
         2,
-        chatReconnectAttempts - 1
+        chatReconnectAttempts -
+        1
       ),
       10000
     );
@@ -2502,6 +3306,7 @@ function scheduleChatReconnect() {
       connectChatSocket,
       delay
     );
+
 }
 
 
@@ -2521,20 +3326,25 @@ function startChatHeartbeat() {
         if (
           chatSocket &&
           chatSocket.readyState ===
-            WebSocket.OPEN
+          WebSocket.OPEN
         ) {
 
           chatSocket.send(
             JSON.stringify({
-              type: "ping",
+              type:
+                "ping",
+
               time:
                 Date.now()
             })
           );
+
         }
+
       },
       20000
     );
+
 }
 
 
@@ -2551,17 +3361,20 @@ function stopChatHeartbeat() {
 
     chatHeartbeatTimer =
       null;
+
   }
+
 }
 
 
 // =============================================
-// CLOSE SOCKET
+// CLOSE CHAT SOCKET
 // =============================================
 
 function closeChatSocket() {
 
-  chatIntentionalClose = true;
+  chatIntentionalClose =
+    true;
 
 
   clearTimeout(
@@ -2569,33 +3382,58 @@ function closeChatSocket() {
   );
 
 
-  chatReconnectTimer = null;
+  chatReconnectTimer =
+    null;
 
 
   stopChatHeartbeat();
 
 
-  if (chatSocket) {
+  const socket =
+    chatSocket;
+
+
+  chatSocket =
+    null;
+
+
+  if (
+    socket
+  ) {
 
     try {
 
-      chatSocket.close(
+      socket.close(
         1000,
         "User left room"
       );
 
-    } catch {
-      // Ignore.
     }
 
+    catch {
 
-    chatSocket = null;
+      // Ignore.
+
+    }
+
   }
 
 
-  chatInput.disabled = true;
+  chatInput.disabled =
+    true;
 
-  chatSendButton.disabled = true;
+
+  chatSendButton.disabled =
+    true;
+
+
+  chatConnectionStatus.className =
+    "disconnected";
+
+
+  chatConnectionStatus.textContent =
+    "Disconnected";
+
 }
 
 
@@ -2604,61 +3442,158 @@ function closeChatSocket() {
 // =============================================
 
 document
-  .getElementById("chatForm")
+  .getElementById(
+    "chatForm"
+  )
   .addEventListener(
     "submit",
     event => {
 
-      event.preventDefault();
+      event
+        .preventDefault();
 
 
       if (
         !chatSocket ||
         chatSocket.readyState !==
-          WebSocket.OPEN
+        WebSocket.OPEN
       ) {
+
         return;
+
       }
 
 
       const content =
-        chatInput.value.trim();
+        chatInput
+          .value
+          .trim();
 
 
-      if (!content) {
+      if (
+        !content
+      ) {
+
         return;
+
       }
 
 
       chatSocket.send(
         JSON.stringify({
-          type: "add",
+          type:
+            "add",
 
           id:
             crypto.randomUUID(),
 
-          content,
-
-          user:
-            currentUser?.username ||
-            "",
-
-          role:
-            currentUser?.role ||
-            "user"
+          content
         })
       );
 
 
-      chatInput.value = "";
+      chatInput.value =
+        "";
+
 
       chatInput.focus();
+
     }
   );
 
 
 // =============================================
-// LEAVE CHAT
+// CLEAR MY SCREEN
+// =============================================
+
+document
+  .getElementById(
+    "clearScreenButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      chatMessages.innerHTML =
+        "";
+
+
+      addSystemLine(
+        "Your screen was cleared"
+      );
+
+    }
+  );
+
+
+// =============================================
+// CLEAR ROOM HISTORY - ADMIN ONLY
+// =============================================
+
+document
+  .getElementById(
+    "clearRoomButton"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      if (
+        currentUser?.role !==
+        "admin"
+      ) {
+
+        return;
+
+      }
+
+
+      if (
+        !chatSocket ||
+        chatSocket.readyState !==
+        WebSocket.OPEN
+      ) {
+
+        alert(
+          "You must be connected before clearing the room history."
+        );
+
+
+        return;
+
+      }
+
+
+      const confirmed =
+        confirm(
+          "CLEAR ROOM HISTORY?\n\n" +
+          "This permanently deletes all stored messages in #lobby for EVERYONE.\n\n" +
+          "This cannot be undone."
+        );
+
+
+      if (
+        !confirmed
+      ) {
+
+        return;
+
+      }
+
+
+      chatSocket.send(
+        JSON.stringify({
+          type:
+            "clear_room"
+        })
+      );
+
+    }
+  );
+
+
+// =============================================
+// LEAVE ROOM
 // =============================================
 
 function leaveChatroom() {
@@ -2666,12 +3601,11 @@ function leaveChatroom() {
   closeChatSocket();
 
 
-  const user =
+  routeLoggedInUser(
     currentUser ||
-    getStoredUser();
+    getStoredUser()
+  );
 
-
-  routeLoggedInUser(user);
 }
 
 
@@ -2749,27 +3683,8 @@ document
   );
 
 
-document
-  .getElementById(
-    "activationBackButton"
-  )
-  .addEventListener(
-    "click",
-    () => {
-
-      history.replaceState(
-        {},
-        "",
-        window.location.pathname
-      );
-
-      showScreen("login");
-    }
-  );
-
-
 // =============================================
-// START
+// STARTUP
 // =============================================
 
 (async function init() {
@@ -2786,13 +3701,17 @@ document
     );
 
 
-  if (activation) {
+  if (
+    activation
+  ) {
 
     await startActivation(
       activation
     );
 
+
     return;
+
   }
 
 
@@ -2800,9 +3719,14 @@ document
     await restoreSession();
 
 
-  if (!restored) {
+  if (
+    !restored
+  ) {
 
-    showScreen("login");
+    showScreen(
+      "login"
+    );
+
   }
 
 })();
@@ -2810,4 +3734,5 @@ document
 </script>
 
 </body>
+
 </html>
