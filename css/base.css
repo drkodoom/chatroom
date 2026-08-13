@@ -524,6 +524,12 @@ button:disabled {
   font-size: 11px;
 }
 
+.chat-toolbar-actions button.is-active {
+  border-color: var(--accent) !important;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface)) !important;
+  color: var(--accent-strong) !important;
+}
+
 .chat-shell {
   flex: 1 1 auto;
   min-height: 0;
@@ -582,8 +588,16 @@ button:disabled {
   padding: 12px;
 }
 
-.chat-sidebar-title {
+.chat-sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin-bottom: 10px;
+}
+
+.chat-sidebar-title {
+  margin-bottom: 0;
   color: var(--muted);
   font-size: 11px;
   font-weight: 850;
@@ -591,20 +605,17 @@ button:disabled {
   text-transform: uppercase;
 }
 
+.sidebar-toggle-button {
+  padding: 4px 8px !important;
+  font-size: 10px !important;
+}
+
 .chat-user-card {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 0;
+  padding: 4px 0;
   font-size: 13px;
-}
-
-.online-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #13a463;
-  box-shadow: 0 0 0 2px rgba(19, 164, 99, 0.14);
 }
 
 .chat-compose {
@@ -989,8 +1000,10 @@ button:disabled {
 
 .format-toolbar {
   flex: 0 0 auto;
-  padding: 6px 9px;
-  border-top: 1px solid var(--border);
+  margin: 0 9px 9px;
+  padding: 8px 9px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
   background: var(--surface-2);
   display: flex;
   align-items: center;
@@ -1177,7 +1190,7 @@ body.show-timestamps .chat-timestamp {
 .message-size-large { font-size: 1.18em; }
 
 .presence-controls {
-  margin-top: 18px;
+  margin-top: 8px;
   padding-top: 12px;
   border-top: 1px solid var(--border);
 }
@@ -1207,7 +1220,7 @@ body.show-timestamps .chat-timestamp {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 2px 0 0 13px;
+  margin: 2px 0 0;
 }
 
 .presence-note {
@@ -1244,7 +1257,7 @@ body.show-timestamps .chat-timestamp {
 
 .presence-clear-button-standalone {
   display: block;
-  margin: 1px 0 5px 13px;
+  margin: 1px 0 5px;
 }
 
 #roomModeStatus {
@@ -1910,5 +1923,37 @@ body.theme-newsroom .werewolf-role-card {
 
   .staff-tools-grid {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+
+/* v0.15.2 — minimalist cleanup */
+.online-user-button,
+.chat-sidebar #onlineUsers > span,
+.chat-sidebar #onlineUsers > button {
+  line-height: 1.2;
+}
+
+#onlineUsers {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chat-sidebar .user-chat-badge,
+.chat-sidebar .mod-badge {
+  margin-left: auto;
+}
+
+.presence-controls {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+@media (max-width: 700px) {
+  .chat-sidebar-head {
+    display: none;
   }
 }

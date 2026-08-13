@@ -1,8 +1,8 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.15.1";
-import { apiFetch } from "./api.js?v=0.15.1";
-import { getToken, state } from "./state.js?v=0.15.1";
-import { openMemberByUsername } from "./admin.js?v=0.15.1";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.15.1";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.15.2";
+import { apiFetch } from "./api.js?v=0.15.2";
+import { getToken, state } from "./state.js?v=0.15.2";
+import { openMemberByUsername } from "./admin.js?v=0.15.2";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.15.2";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -383,10 +383,6 @@ function renderOnlineUsers(users) {
 
     const row = document.createElement("div");
     row.className = "chat-user-card";
-
-    const dot = document.createElement("span");
-    dot.className = "online-dot";
-    row.appendChild(dot);
 
     const canInteract = isAdmin() || isMod();
     const name = document.createElement(canInteract ? "button" : "span");
@@ -1408,6 +1404,36 @@ function updatePresence() {
   sendSocket({ type: "presence_status", status, statusText });
 }
 
+function applyFormatToolbarPreference() {
+  const open = localStorage.getItem("chatroom_formatbar_open") === "1";
+  const toolbar = el("formatToolbar");
+  const button = el("formatToggleButton");
+  toolbar.classList.toggle("hidden", !open);
+  button.classList.toggle("is-active", open);
+  button.textContent = open ? "FORMAT: ON" : "FORMAT";
+}
+
+function toggleFormatToolbar() {
+  const nextOpen = el("formatToolbar").classList.contains("hidden");
+  localStorage.setItem("chatroom_formatbar_open", nextOpen ? "1" : "0");
+  applyFormatToolbarPreference();
+}
+
+function applyPresenceControlsPreference() {
+  const open = localStorage.getItem("chatroom_presence_open") === "1";
+  const panel = el("presenceControls");
+  const button = el("presenceToggleButton");
+  panel.classList.toggle("hidden", !open);
+  button.classList.toggle("is-active", open);
+  button.textContent = open ? "HIDE STATUS" : "MY STATUS";
+}
+
+function togglePresenceControls() {
+  const nextOpen = el("presenceControls").classList.contains("hidden");
+  localStorage.setItem("chatroom_presence_open", nextOpen ? "1" : "0");
+  applyPresenceControlsPreference();
+}
+
 function toggleFormat(key) {
   state.draftFormat[key] = !state.draftFormat[key];
   const map = {
@@ -1486,8 +1512,10 @@ export function initChatUI() {
   el("adminLockRoomButton").addEventListener("click", toggleRoomLock);
   el("adminKickButton").addEventListener("click", kickUserFromToolbar);
   el("updatePresenceButton").addEventListener("click", updatePresence);
+  el("presenceToggleButton").addEventListener("click", togglePresenceControls);
   el("timestampsButton").addEventListener("click", toggleTimestamps);
   el("searchChatButton").addEventListener("click", toggleSearch);
+  el("formatToggleButton").addEventListener("click", toggleFormatToolbar);
   el("closeChatSearchButton").addEventListener("click", () => { el("chatSearchBar").classList.add("hidden"); clearSearch(); });
   el("chatSearchInput").addEventListener("input", (event) => { state.searchQuery = event.target.value; applySearchFilter(); });
   el("newMessagesButton").addEventListener("click", scrollChatToBottom);
@@ -1542,4 +1570,6 @@ export function initChatUI() {
 
   updateGameSetupFields();
   applyTimestampsPreference();
+  applyFormatToolbarPreference();
+  applyPresenceControlsPreference();
 }

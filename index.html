@@ -4,16 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0b0f17">
-  <title>DRKODOOM Chatroom v0.15.1</title>
-  <link rel="stylesheet" href="./css/base.css?v=0.15.1">
-  <link rel="stylesheet" href="./css/themes.css?v=0.15.1">
+  <title>DRKODOOM Chatroom v0.15.2</title>
+  <link rel="stylesheet" href="./css/base.css?v=0.15.2">
+  <link rel="stylesheet" href="./css/themes.css?v=0.15.2">
 </head>
 <body class="theme-modern">
   <main class="app-window" id="appWindow">
     <header class="titlebar">
       <div class="titlebar-copy">
         <span id="clientTitle">DRK CHAT</span>
-        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.15.1</button>
+        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.15.2</button>
       </div>
       <span class="classic-window-controls aol-only" aria-hidden="true">[_][□][X]</span>
     </header>
@@ -245,6 +245,7 @@
         <div class="chat-toolbar-actions">
           <button id="themeSwitcherButton" type="button">MY THEME</button>
           <button id="searchChatButton" type="button">SEARCH</button>
+          <button id="formatToggleButton" type="button">FORMAT</button>
           <button id="timestampsButton" type="button">TIMESTAMPS: OFF</button>
           <button id="clearScreenButton" type="button">CLEAR SCREEN</button>
           <button id="staffToolsButton" type="button" class="hidden staff-tools-toggle">ADMIN MENU</button>
@@ -302,7 +303,7 @@
               <button id="cancelReplyButton" type="button">×</button>
             </div>
 
-            <div class="format-toolbar" aria-label="Message formatting">
+            <div id="formatToolbar" class="format-toolbar hidden" aria-label="Message formatting">
               <button id="formatBoldButton" type="button" class="format-button" aria-pressed="false"><strong>B</strong></button>
               <button id="formatItalicButton" type="button" class="format-button" aria-pressed="false"><em>I</em></button>
               <button id="formatUnderlineButton" type="button" class="format-button" aria-pressed="false"><u>U</u></button>
@@ -323,9 +324,12 @@
           </div>
 
           <aside class="chat-sidebar">
-            <div class="chat-sidebar-title" id="onlineTitle">ONLINE</div>
+            <div class="chat-sidebar-head">
+              <div class="chat-sidebar-title" id="onlineTitle">ONLINE</div>
+              <button id="presenceToggleButton" type="button" class="sidebar-toggle-button">MY STATUS</button>
+            </div>
             <div id="onlineUsers"><div class="small">Connecting...</div></div>
-            <div class="presence-controls">
+            <div id="presenceControls" class="presence-controls hidden">
               <label for="presenceStatusSelect">Your status</label>
               <select id="presenceStatusSelect">
                 <option value="online">Online</option>
@@ -498,6 +502,6 @@
 
   <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
 
-  <script type="module" src="./js/app.js?v=0.15.1"></script>
+  <script type="module" src="./js/app.js?v=0.15.2"></script>
 </body>
 </html>
