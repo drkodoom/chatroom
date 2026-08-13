@@ -1,8 +1,8 @@
-import { APP_VERSION } from "./config.js?v=0.15.0";
+import { APP_VERSION } from "./config.js?v=0.15.1";
 
 const CLIENTS = {
-  modern: { name: "DRK Modern", bodyClass: "theme-modern", title: "DRK CHAT", online: "ONLINE", send: "SEND", clear: "CLEAR SCREEN", clearRoom: "CLEAR ROOM", leave: "LEAVE" },
-  modernDark: { name: "DRK Modern Dark", bodyClass: "theme-modern-dark", title: "DRK CHAT // DARK", online: "ONLINE", send: "SEND", clear: "CLEAR SCREEN", clearRoom: "CLEAR ROOM", leave: "LEAVE" },
+  modern: { name: "Default - Light", bodyClass: "theme-modern", title: "DRK CHAT", online: "ONLINE", send: "SEND", clear: "CLEAR SCREEN", clearRoom: "CLEAR ROOM", leave: "LEAVE" },
+  modernDark: { name: "Default", bodyClass: "theme-modern-dark", title: "DRK CHAT", online: "ONLINE", send: "SEND", clear: "CLEAR SCREEN", clearRoom: "CLEAR ROOM", leave: "LEAVE" },
   aol90: { name: "Acirema Online", bodyClass: "theme-aol90", title: "Acirema Online - Chatroom", online: "PEOPLE HERE", send: "SEND", clear: "CLEAR MY SCREEN", clearRoom: "CLEAR ROOM HISTORY", leave: "LEAVE ROOM" },
   terminal: { name: "Phosphor", bodyClass: "theme-terminal", title: "PHOSPHOR IRC", online: "WHO", send: "TRANSMIT", clear: "CLEAR LOCAL", clearRoom: "PURGE ROOM", leave: "/PART" },
   future: { name: "One More Thing", bodyClass: "theme-future", title: "DRK FUTURE", online: "PEOPLE", send: "SEND", clear: "CLEAR VIEW", clearRoom: "CLEAR CONVERSATION", leave: "LEAVE" },
@@ -23,7 +23,7 @@ const CLIENTS = {
 };
 
 const CLIENT_CODES = {
-  DRK2026: "modern", DEFAULT: "modern",
+  DRK2026: "modern", LIGHTMODE: "modern", DEFAULT: "modernDark",
   WELCOME: "aol90", AOL90: "aol90",
   TERMINAL: "terminal", PHOSPHOR: "terminal",
   FUTURE: "future", APPLEFUTURE: "future",
@@ -46,7 +46,7 @@ const CLIENT_CODES = {
 
 const THEME_KEY = "chatroom_theme";
 const UNLOCKED_KEY = "chatroom_unlocked_clients";
-let activeClient = "modern";
+let activeClient = "modernDark";
 let forcedRoomTheme = null;
 let clickCount = 0;
 let clickTimer = null;
@@ -55,11 +55,11 @@ const el = (id) => document.getElementById(id);
 function isAdminUI() { return document.body.classList.contains("admin-mode"); }
 
 function getUnlockedClients() {
-  let unlocked = ["modern"];
+  let unlocked = ["modernDark", "modern"];
   try {
     const stored = JSON.parse(localStorage.getItem(UNLOCKED_KEY) || "[]");
-    if (Array.isArray(stored)) unlocked = Array.from(new Set(["modern", ...stored.filter((id) => CLIENTS[id])]));
-  } catch { unlocked = ["modern"]; }
+    if (Array.isArray(stored)) unlocked = Array.from(new Set(["modernDark", "modern", ...stored.filter((id) => CLIENTS[id])]));
+  } catch { unlocked = ["modernDark", "modern"]; }
   return unlocked;
 }
 
@@ -70,7 +70,7 @@ function unlockClient(clientId) {
 }
 
 function applyClient(clientId, persist = true, bypassForce = false) {
-  if (!CLIENTS[clientId]) clientId = "modern";
+  if (!CLIENTS[clientId]) clientId = "modernDark";
   if (forcedRoomTheme && !isAdminUI() && persist && !bypassForce) {
     const notice = el("forcedThemeNotice");
     if (notice) {
@@ -101,8 +101,22 @@ function applyClient(clientId, persist = true, bypassForce = false) {
 
 function restoreClient() {
   const unlocked = getUnlockedClients();
-  let stored = localStorage.getItem(THEME_KEY) || "modern";
-  if (!unlocked.includes(stored)) stored = "modern";
+  const migrationKey = "chatroom_default_dark_migrated_v0151";
+  let stored = localStorage.getItem(THEME_KEY);
+
+  // v0.15.1 changes the global default from the old light client to the new dark client.
+  // Existing browsers that were still on the former default are migrated once; users can
+  // immediately switch back to Default - Light from MY THEME.
+  if (!localStorage.getItem(migrationKey)) {
+    if (!stored || stored === "modern") {
+      stored = "modernDark";
+      localStorage.setItem(THEME_KEY, stored);
+    }
+    localStorage.setItem(migrationKey, "1");
+  }
+
+  if (!stored) stored = "modernDark";
+  if (!unlocked.includes(stored)) stored = "modernDark";
   applyClient(stored, false, true);
 }
 

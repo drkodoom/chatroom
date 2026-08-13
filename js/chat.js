@@ -1,8 +1,8 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.15.0";
-import { apiFetch } from "./api.js?v=0.15.0";
-import { getToken, state } from "./state.js?v=0.15.0";
-import { openMemberByUsername } from "./admin.js?v=0.15.0";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.15.0";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.15.1";
+import { apiFetch } from "./api.js?v=0.15.1";
+import { getToken, state } from "./state.js?v=0.15.1";
+import { openMemberByUsername } from "./admin.js?v=0.15.1";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.15.1";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -538,7 +538,6 @@ function updateRoomSettings(settings = {}) {
   if (state.roomSettings.locked) modes.push("LOCKED");
   if (state.roomSettings.slowModeSeconds > 0) modes.push(`SLOW ${state.roomSettings.slowModeSeconds}s`);
   if (state.roomSettings.modUsername) modes.push(`MOD ${state.roomSettings.modUsername}`);
-  if (state.roomSettings.roomTheme) modes.push(`THEME ${getClientName(state.roomSettings.roomTheme).toUpperCase()}`);
   el("roomModeStatus").textContent = modes.length ? `• ${modes.join(" • ")}` : "";
   el("adminLockRoomButton").textContent = state.roomSettings.locked ? "UNLOCK ROOM" : "LOCK ROOM";
   toggleAdminChatControls();
@@ -788,8 +787,7 @@ function connectChatSocket() {
       if (state.roomSettings.locked) modes.push("LOCKED");
       if (state.roomSettings.slowModeSeconds > 0) modes.push(`SLOW ${state.roomSettings.slowModeSeconds}s`);
       if (state.roomSettings.modUsername) modes.push(`MOD ${state.roomSettings.modUsername}`);
-      if (state.roomSettings.roomTheme) modes.push(`THEME ${getClientName(state.roomSettings.roomTheme).toUpperCase()}`);
-      el("roomModeStatus").textContent = modes.length ? `• ${modes.join(" • ")}` : "";
+          el("roomModeStatus").textContent = modes.length ? `• ${modes.join(" • ")}` : "";
       toggleAdminChatControls();
       updatePinnedBar();
       renderAllMessages();
