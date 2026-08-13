@@ -1,4 +1,4 @@
-import { APP_VERSION } from "./config.js";
+import { APP_VERSION } from "./config.js?v=0.13.3";
 
 const CLIENTS = {
   modern: { name: "DRK Modern", bodyClass: "theme-modern", title: "DRK CHAT", online: "ONLINE", send: "SEND", clear: "CLEAR SCREEN", clearRoom: "CLEAR ROOM", leave: "LEAVE" },
@@ -56,7 +56,6 @@ function applyClient(clientId, persist = true, bypassForce = false) {
   activeClient = clientId;
 
   el("clientTitle").textContent = client.title;
-  el("clientNameStatus").textContent = client.name;
   el("onlineTitle").textContent = client.online;
   el("chatSendButton").textContent = client.send;
   el("clearScreenButton").textContent = client.clear;
@@ -124,12 +123,19 @@ function renderRoomThemeList() {
   });
 }
 
-export function syncRoomTheme(themeId, { admin = false } = {}) {
+export function syncRoomTheme(themeId, { admin = false, applyToAdmin = false } = {}) {
   forcedRoomTheme = CLIENTS[themeId] ? themeId : null;
+
   if (!admin) {
     if (forcedRoomTheme) applyClient(forcedRoomTheme, false, true);
     else restoreClient();
+  } else if (applyToAdmin) {
+    // ROOM THEME gives the administrator immediate visual confirmation too.
+    // Afterward, MY THEME can still change only the admin's own view while the room remains forced.
+    if (forcedRoomTheme) applyClient(forcedRoomTheme, false, true);
+    else restoreClient();
   }
+
   renderClientList();
   renderRoomThemeList();
 }
@@ -169,12 +175,10 @@ function submitCode(event) {
 }
 
 export function initThemeSystem() {
-  el("versionBadge").textContent = `v${APP_VERSION}`;
-  el("statusVersionBadge").textContent = `v${APP_VERSION}`;
-  [el("versionBadge"), el("statusVersionBadge")].forEach((badge) => {
-    badge.addEventListener("mousedown", (event) => event.preventDefault());
-    badge.addEventListener("click", handleVersionClick);
-  });
+  const versionBadge = el("versionBadge");
+  versionBadge.textContent = `v${APP_VERSION}`;
+  versionBadge.addEventListener("mousedown", (event) => event.preventDefault());
+  versionBadge.addEventListener("click", handleVersionClick);
   const themeButton = el("themeSwitcherButton");
   if (themeButton) themeButton.addEventListener("click", openClientDialog);
   const roomThemeButton = el("adminRoomThemeButton");

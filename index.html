@@ -4,16 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0b0f17">
-  <title>DRKODOOM Chatroom v0.13.2</title>
-  <link rel="stylesheet" href="./css/base.css">
-  <link rel="stylesheet" href="./css/themes.css">
+  <title>DRKODOOM Chatroom v0.13.3</title>
+  <link rel="stylesheet" href="./css/base.css?v=0.13.3">
+  <link rel="stylesheet" href="./css/themes.css?v=0.13.3">
 </head>
 <body class="theme-modern">
   <main class="app-window" id="appWindow">
     <header class="titlebar">
       <div class="titlebar-copy">
         <span id="clientTitle">DRK CHAT</span>
-        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.13.2</button>
+        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.13.3</button>
       </div>
       <span class="classic-window-controls aol-only" aria-hidden="true">[_][□][X]</span>
     </header>
@@ -242,7 +242,6 @@
     <section class="screen chat-screen hidden" id="chatScreen">
       <div class="chat-toolbar">
         <span class="classic-menu aol-only">File &nbsp; Edit &nbsp; People &nbsp; Rooms &nbsp; Help</span>
-        <span class="non-aol-toolbar-label" id="clientNameStatus">DRK Modern</span>
         <div class="chat-toolbar-actions">
           <button id="themeSwitcherButton" type="button">MY THEME</button>
           <button id="adminRoomThemeButton" type="button" class="hidden admin-chat-action">ROOM THEME</button>
@@ -333,8 +332,6 @@
           <div class="status-left">
             <span>#lobby</span>
             <span id="roomModeStatus"></span>
-            <span>•</span>
-            <button class="version-badge status-version" id="statusVersionBadge" type="button">v0.13.2</button>
           </div>
           <span id="chatConnectionStatus" class="disconnected">Disconnected</span>
         </div>
@@ -485,6 +482,6 @@
 
   <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
 
-  <script type="module" src="./js/app.js"></script>
+  <script type="module" src="./js/app.js?v=0.13.3"></script>
 </body>
 </html>

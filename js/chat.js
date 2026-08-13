@@ -1,8 +1,8 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js";
-import { apiFetch } from "./api.js";
-import { getToken, state } from "./state.js";
-import { openMemberByUsername } from "./admin.js";
-import { syncRoomTheme, getClientName } from "./themes.js";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.13.3";
+import { apiFetch } from "./api.js?v=0.13.3";
+import { getToken, state } from "./state.js?v=0.13.3";
+import { openMemberByUsername } from "./admin.js?v=0.13.3";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.13.3";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -705,8 +705,24 @@ function connectChatSocket() {
     }
     if (data.type === "room_theme") {
       state.roomSettings.roomTheme = data.theme || null;
-      syncRoomTheme(state.roomSettings.roomTheme, { admin: isAdmin() });
-      updateRoomSettings(state.roomSettings);
+      syncRoomTheme(state.roomSettings.roomTheme, { admin: isAdmin(), applyToAdmin: true });
+      // Refresh room status without immediately overriding the admin's independent MY THEME choice.
+      const banner = el("roomBanner");
+      if (state.roomSettings.banner) {
+        banner.textContent = state.roomSettings.banner;
+        banner.classList.remove("hidden");
+      } else {
+        banner.classList.add("hidden");
+      }
+      const modes = [];
+      if (state.roomSettings.locked) modes.push("LOCKED");
+      if (state.roomSettings.slowModeSeconds > 0) modes.push(`SLOW ${state.roomSettings.slowModeSeconds}s`);
+      if (state.roomSettings.modUsername) modes.push(`MOD ${state.roomSettings.modUsername}`);
+      if (state.roomSettings.roomTheme) modes.push(`THEME ${getClientName(state.roomSettings.roomTheme).toUpperCase()}`);
+      el("roomModeStatus").textContent = modes.length ? `• ${modes.join(" • ")}` : "";
+      toggleAdminChatControls();
+      updatePinnedBar();
+      renderAllMessages();
       if (data.actor) addSystemLine(data.theme ? `${data.actor} changed the room theme to ${getClientName(data.theme)}` : `${data.actor} released the room theme`);
       return;
     }
