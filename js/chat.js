@@ -2,6 +2,7 @@ import { LIVE_HOST, ROOM_NAME } from "./config.js";
 import { apiFetch } from "./api.js";
 import { getToken, state } from "./state.js";
 import { openMemberByUsername } from "./admin.js";
+import { syncRoomTheme, getClientName } from "./themes.js";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -20,6 +21,15 @@ function isMod() {
 
 function isStaff() {
   return isAdmin() || isMod();
+}
+
+function currentDisplayName() {
+  return String(state.adminIdentity?.displayName || state.currentUser?.username || "");
+}
+
+function isOwnDisplayedUsername(username) {
+  const value = String(username || "").toLowerCase();
+  return Boolean(value && [String(state.currentUser?.username || "").toLowerCase(), currentDisplayName().toLowerCase()].includes(value));
 }
 
 function userIsCurrentMod(username) {
@@ -62,7 +72,7 @@ function addAnnouncement(data) {
   const wasBottom = isNearBottom();
   const line = document.createElement("div");
   line.className = "chat-line admin-announcement";
-  const label = data.role === "mod" ? "MOD ANNOUNCEMENT" : "ADMIN ANNOUNCEMENT";
+  const label = data.role === "mod" ? "MOD ANNOUNCEMENT" : (data.role === "admin" ? "ADMIN ANNOUNCEMENT" : "ROOM ANNOUNCEMENT");
   line.textContent = `${label} — ${data.username}: ${data.content}`;
   el("chatMessages").appendChild(line);
   if (wasBottom) scrollChatToBottom(); else bumpUnread();
@@ -122,9 +132,9 @@ function applyTextFormat(content, format = {}) {
 }
 
 function hasMention(content) {
-  const username = String(state.currentUser?.username || "").trim();
-  if (!username || !content) return false;
-  return new RegExp(`(^|\\s)@${username.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}(?=\\s|$|[.,!?;:])`, "i").test(content);
+  if (!content) return false;
+  const names = new Set([String(state.currentUser?.username || "").trim(), currentDisplayName().trim()].filter(Boolean));
+  return Array.from(names).some((username) => new RegExp(`(^|\\s)@${username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?=\\s|$|[.,!?;:])`, "i").test(content));
 }
 
 function buildUsername(message) {
@@ -135,8 +145,8 @@ function buildUsername(message) {
   button.textContent = message.user;
   if (profile.nameColor) button.style.color = profile.nameColor;
   if (isAdmin()) {
-    button.title = `View ${message.user}`;
-    button.addEventListener("click", () => openMemberByUsername(message.user));
+    button.title = isOwnDisplayedUsername(message.user) ? "Your disguised chat identity" : `View ${message.user}`;
+    button.addEventListener("click", () => openMemberByUsername(isOwnDisplayedUsername(message.user) ? state.currentUser.username : message.user));
   } else if (isMod()) {
     button.title = `Change ${message.user}'s chat name color`;
     button.addEventListener("click", () => promptStaffNameColor(message.user));
@@ -204,7 +214,7 @@ function editMessage(message) {
 }
 
 function deleteMessage(message) {
-  const own = String(message.user).toLowerCase() === String(state.currentUser?.username || "").toLowerCase();
+  const own = isOwnDisplayedUsername(message.user);
   const wording = own ? "Delete this message?" : `Delete ${message.user}'s message as administrator?`;
   if (!confirm(wording)) return;
   sendSocket({ type: "delete", id: message.id });
@@ -229,7 +239,7 @@ function highlightMessage(message) {
 }
 
 function moderateUser(username) {
-  if (!username || String(username).toLowerCase() === String(state.currentUser?.username || "").toLowerCase()) return;
+  if (!username || isOwnDisplayedUsername(username)) return;
   const command = prompt(
     `Moderate ${username}:\n\nType one of:\n5m  = mute 5 minutes\n1h  = mute 1 hour\n1d  = mute 1 day\nforever = mute until you remove it\noff = unmute\nkick = remove from room`,
     "5m"
@@ -252,7 +262,7 @@ function buildActions(message) {
 
   REACTIONS.forEach((emoji) => actions.appendChild(makeAction(emoji, () => sendReaction(message.id, emoji))));
 
-  const own = String(message.user).toLowerCase() === String(state.currentUser?.username || "").toLowerCase();
+  const own = isOwnDisplayedUsername(message.user);
   if (own) {
     actions.appendChild(makeAction("EDIT", () => editMessage(message)));
     actions.appendChild(makeAction("DELETE", () => deleteMessage(message)));
@@ -462,6 +472,7 @@ function updatePinnedBar() {
 
 function updateRoomSettings(settings = {}) {
   state.roomSettings = { ...state.roomSettings, ...settings };
+  syncRoomTheme(state.roomSettings.roomTheme, { admin: isAdmin() });
   const banner = el("roomBanner");
   if (state.roomSettings.banner) {
     banner.textContent = state.roomSettings.banner;
@@ -474,6 +485,7 @@ function updateRoomSettings(settings = {}) {
   if (state.roomSettings.locked) modes.push("LOCKED");
   if (state.roomSettings.slowModeSeconds > 0) modes.push(`SLOW ${state.roomSettings.slowModeSeconds}s`);
   if (state.roomSettings.modUsername) modes.push(`MOD ${state.roomSettings.modUsername}`);
+  if (state.roomSettings.roomTheme) modes.push(`THEME ${getClientName(state.roomSettings.roomTheme).toUpperCase()}`);
   el("roomModeStatus").textContent = modes.length ? `• ${modes.join(" • ")}` : "";
   el("adminLockRoomButton").textContent = state.roomSettings.locked ? "UNLOCK ROOM" : "LOCK ROOM";
   toggleAdminChatControls();
@@ -482,7 +494,7 @@ function updateRoomSettings(settings = {}) {
 }
 
 function updateTypingIndicator() {
-  const names = Array.from(state.typingUsers).filter((name) => String(name).toLowerCase() !== String(state.currentUser?.username || "").toLowerCase());
+  const names = Array.from(state.typingUsers).filter((name) => !isOwnDisplayedUsername(name));
   if (!names.length) {
     el("typingIndicator").textContent = "";
     return;
@@ -554,6 +566,35 @@ export async function enterChatroom(showScreen) {
   connectChatSocket();
 }
 
+function rainConfetti(actor = "") {
+  const layer = el("confettiLayer");
+  if (!layer) return;
+  layer.innerHTML = "";
+  layer.classList.add("active");
+  const colors = ["#ff3b30", "#ffcc00", "#34c759", "#0a84ff", "#bf5af2", "#ff9f0a", "#ff2d55"];
+  const count = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? 28 : 130;
+  for (let i = 0; i < count; i += 1) {
+    const piece = document.createElement("i");
+    piece.className = "confetti-piece";
+    piece.style.setProperty("--x", `${Math.random() * 100}vw`);
+    piece.style.setProperty("--drift", `${(Math.random() * 34 - 17).toFixed(1)}vw`);
+    piece.style.setProperty("--spin", `${Math.floor(Math.random() * 1080 + 360)}deg`);
+    piece.style.setProperty("--duration", `${(Math.random() * 2.2 + 2.8).toFixed(2)}s`);
+    piece.style.setProperty("--delay", `${(Math.random() * 1.2).toFixed(2)}s`);
+    piece.style.setProperty("--confetti", colors[i % colors.length]);
+    piece.style.setProperty("--w", `${Math.floor(Math.random() * 7 + 6)}px`);
+    piece.style.setProperty("--h", `${Math.floor(Math.random() * 10 + 8)}px`);
+    layer.appendChild(piece);
+  }
+  if (actor) addSystemLine(`${actor} made it rain confetti!`);
+  setTimeout(() => { layer.classList.remove("active"); layer.innerHTML = ""; }, 6500);
+}
+
+function launchConfetti() {
+  if (!isAdmin()) return;
+  sendSocket({ type: "admin_confetti" });
+}
+
 function connectChatSocket() {
   const token = getToken();
   if (!token || state.chatIntentionalClose) return;
@@ -596,9 +637,11 @@ function connectChatSocket() {
       state.profiles = data.profiles || {};
       state.roomSettings = { ...state.roomSettings, ...(data.settings || {}) };
       state.game = data.game || null;
+      state.adminIdentity = { ...state.adminIdentity, ...(data.identity || {}) };
       renderAllMessages({ forceBottom: true });
       updateRoomSettings(state.roomSettings);
       renderGame(state.game);
+      updateAdminIdentityButton();
       addSystemLine(`You have entered #${ROOM_NAME}`);
       return;
     }
@@ -658,6 +701,22 @@ function connectChatSocket() {
       el("chatMessages").innerHTML = "";
       updatePinnedBar();
       addSystemLine(`Room history was cleared by ${data.username || "an administrator"}`);
+      return;
+    }
+    if (data.type === "room_theme") {
+      state.roomSettings.roomTheme = data.theme || null;
+      syncRoomTheme(state.roomSettings.roomTheme, { admin: isAdmin() });
+      updateRoomSettings(state.roomSettings);
+      if (data.actor) addSystemLine(data.theme ? `${data.actor} changed the room theme to ${getClientName(data.theme)}` : `${data.actor} released the room theme`);
+      return;
+    }
+    if (data.type === "confetti") {
+      rainConfetti(data.actor || "");
+      return;
+    }
+    if (data.type === "admin_identity") {
+      state.adminIdentity = { displayName: data.displayName || state.currentUser?.username || null, hideAdminBadge: Boolean(data.hideAdminBadge) };
+      updateAdminIdentityButton();
       return;
     }
     if (data.type === "error") addSystemLine(data.message || "Server error");
@@ -799,6 +858,41 @@ function sendAdminAnnouncement() {
   if (content?.trim()) sendSocket({ type: "admin_announcement", content: content.trim() });
 }
 
+function updateAdminIdentityButton() {
+  const button = el("adminIdentityButton");
+  if (!button) return;
+  const masked = Boolean(state.adminIdentity?.displayName && String(state.adminIdentity.displayName).toLowerCase() !== String(state.currentUser?.username || "").toLowerCase());
+  const hidden = Boolean(state.adminIdentity?.hideAdminBadge);
+  button.textContent = masked || hidden ? "DISGUISE: ON" : "ADMIN IDENTITY";
+}
+
+function openAdminIdentity() {
+  if (!isAdmin()) return;
+  const activeDisplay = String(state.adminIdentity?.displayName || "");
+  el("adminMaskNameInput").value = activeDisplay && activeDisplay.toLowerCase() !== String(state.currentUser?.username || "").toLowerCase() ? activeDisplay : "";
+  el("adminHideBadgeCheckbox").checked = Boolean(state.adminIdentity?.hideAdminBadge);
+  el("adminIdentityMessage").textContent = "";
+  el("adminIdentityOverlay").classList.remove("hidden");
+  el("adminMaskNameInput").focus();
+}
+
+function closeAdminIdentity() {
+  el("adminIdentityOverlay").classList.add("hidden");
+}
+
+function applyAdminIdentity() {
+  if (!isAdmin()) return;
+  const maskName = el("adminMaskNameInput").value.trim();
+  sendSocket({ type: "admin_identity", maskName: maskName || null, hideAdminBadge: el("adminHideBadgeCheckbox").checked });
+  closeAdminIdentity();
+}
+
+function restoreAdminIdentity() {
+  if (!isAdmin()) return;
+  sendSocket({ type: "admin_identity", maskName: null, hideAdminBadge: false });
+  closeAdminIdentity();
+}
+
 function setRoomBanner() {
   if (state.currentUser?.role !== "admin") return;
   const content = prompt("Room banner (leave blank to remove):", state.roomSettings.banner || "");
@@ -825,7 +919,7 @@ function kickUserFromToolbar() {
   if (state.currentUser?.role !== "admin") return;
   const choices = state.latestPresence
     .map((entry) => typeof entry === "string" ? entry : entry.username)
-    .filter((name) => String(name).toLowerCase() !== String(state.currentUser?.username || "").toLowerCase());
+    .filter((name) => !isOwnDisplayedUsername(name));
   if (!choices.length) return alert("No other users are currently online.");
   const target = prompt(`Who should be kicked from #${ROOM_NAME}?\n\nOnline: ${choices.join(", ")}`);
   if (target?.trim()) sendSocket({ type: "admin_kick", username: target.trim() });
@@ -915,7 +1009,13 @@ function startSelectedGame() {
 
 function endCurrentGame() {
   if (!isStaff() || !state.game) return;
-  if (confirm("End the current game for everyone?")) sendSocket({ type: "game_end" });
+  const verb = state.game.status === "active" ? "End" : "Clear";
+  if (confirm(`${verb} the current game for everyone?`)) sendSocket({ type: "game_end" });
+}
+
+function skipBossTurn() {
+  if (!isStaff() || state.game?.type !== "boss" || state.game.status !== "active") return;
+  if (confirm(`Skip ${state.game.currentTurn || "the current player"}'s turn?`)) sendSocket({ type: "game_boss_skip" });
 }
 
 function gameLogNode(log = []) {
@@ -973,9 +1073,14 @@ function renderGame(game) {
   subtitle.textContent = `Host: ${state.game.host} • ${String(state.game.status).toUpperCase()}`;
   left.append(title, subtitle);
   header.appendChild(left);
-  if (isStaff() && state.game.status === "active") {
-    const end = makeAction("END GAME", endCurrentGame, "danger");
-    header.appendChild(end);
+  if (isStaff()) {
+    const gameControls = document.createElement("div");
+    gameControls.className = "game-header-actions";
+    if (state.game.type === "boss" && state.game.status === "active") {
+      gameControls.appendChild(makeAction("SKIP TURN", skipBossTurn));
+    }
+    gameControls.appendChild(makeAction(state.game.status === "active" ? "END GAME" : "CLEAR GAME", endCurrentGame, "danger"));
+    header.appendChild(gameControls);
   }
   panel.appendChild(header);
 
@@ -1038,7 +1143,7 @@ function renderGame(game) {
   bossTrack.appendChild(bossFill);
   bossLeft.append(bossName, bossHp, bossTrack);
 
-  const me = (boss.players || []).find((player) => String(player.username).toLowerCase() === String(state.currentUser?.username || "").toLowerCase());
+  const me = (boss.players || []).find((player) => String(player.username).toLowerCase() === currentDisplayName().toLowerCase());
   const self = document.createElement("div");
   self.className = "game-player-stats";
   self.textContent = me ? `Your HP: ${me.hp}/${me.maxHp} • Attacks: ${me.attacks} • Damage: ${me.damageDealt} • Crits: ${me.crits}` : "You have not joined the battle yet.";
@@ -1058,12 +1163,17 @@ function renderGame(game) {
   panel.appendChild(bossCard);
 
   if (boss.status === "active") {
+    const turn = document.createElement("div");
+    turn.className = `boss-turn-banner${String(boss.currentTurn || "").toLowerCase() === currentDisplayName().toLowerCase() ? " your-turn" : ""}`;
+    turn.textContent = `ROUND ${boss.round || 1} • TURN: ${boss.currentTurn || "Waiting..."}`;
+    panel.appendChild(turn);
     const actions = document.createElement("div");
     actions.className = "game-actions boss-roll-instruction";
     const instruction = document.createElement("strong");
+    const myTurn = String(boss.currentTurn || "").toLowerCase() === currentDisplayName().toLowerCase();
     instruction.textContent = me?.hp === 0
       ? "You are knocked out."
-      : "Type /roll in the chat box to roll a d20 and attack.";
+      : (myTurn ? "YOUR TURN — type /roll in the chat box to roll a d20 and attack." : `Wait for ${boss.currentTurn || "the current player"} to take their turn.`);
     actions.appendChild(instruction);
     panel.appendChild(actions);
   }
@@ -1120,6 +1230,7 @@ function toggleTimestamps() {
   localStorage.setItem("chatroom_timestamps", state.timestampsEnabled ? "1" : "0");
   updateGameSetupFields();
   applyTimestampsPreference();
+  updateAdminIdentityButton();
 }
 
 function toggleSearch() {
@@ -1153,6 +1264,8 @@ export function initChatUI() {
   el("clearScreenButton").addEventListener("click", clearMyScreen);
   el("clearRoomButton").addEventListener("click", clearRoomHistory);
   el("adminModeratorButton").addEventListener("click", manageModerator);
+  el("adminConfettiButton").addEventListener("click", launchConfetti);
+  el("adminIdentityButton").addEventListener("click", openAdminIdentity);
   el("staffNameColorButton").addEventListener("click", () => promptStaffNameColor());
   el("adminAnnouncementButton").addEventListener("click", sendAdminAnnouncement);
   el("startGameButton").addEventListener("click", openGameSetup);
@@ -1171,6 +1284,10 @@ export function initChatUI() {
   el("gameStartConfirmButton").addEventListener("click", startSelectedGame);
   el("gameDialogCancel").addEventListener("click", closeGameSetup);
   el("gameOverlay").addEventListener("click", (event) => { if (event.target === el("gameOverlay")) closeGameSetup(); });
+  el("adminIdentityApplyButton").addEventListener("click", applyAdminIdentity);
+  el("adminIdentityRestoreButton").addEventListener("click", restoreAdminIdentity);
+  el("adminIdentityCancelButton").addEventListener("click", closeAdminIdentity);
+  el("adminIdentityOverlay").addEventListener("click", (event) => { if (event.target === el("adminIdentityOverlay")) closeAdminIdentity(); });
 
   el("formatBoldButton").addEventListener("click", () => toggleFormat("bold"));
   el("formatItalicButton").addEventListener("click", () => toggleFormat("italic"));
@@ -1188,6 +1305,13 @@ export function initChatUI() {
     }
     clearTimeout(state.typingTimer);
     state.typingTimer = setTimeout(stopTyping, 1200);
+  });
+
+
+  window.addEventListener("drk:set-room-theme", (event) => {
+    if (!isAdmin()) return;
+    const theme = event.detail?.theme || null;
+    sendSocket({ type: "admin_room_theme", theme });
   });
 
   window.addEventListener("drk:admin-kick", (event) => {

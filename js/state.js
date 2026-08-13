@@ -16,9 +16,11 @@ export const state = {
     slowModeSeconds: 0,
     locked: false,
     banner: "",
-    modUsername: null
+    modUsername: null,
+    roomTheme: null
   },
   game: null,
+  adminIdentity: { displayName: null, hideAdminBadge: false },
   replyingTo: null,
   draftFormat: {
     bold: false,

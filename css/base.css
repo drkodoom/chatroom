@@ -1246,7 +1246,7 @@ body.show-timestamps .chat-timestamp {
 }
 
 /* =====================================================
-   v0.13.0 — temporary MOD role + interactive games
+   v0.13.1 — room-wide theme control + confetti
    ===================================================== */
 
 body.mod-mode .chat-user-button,
@@ -1543,4 +1543,95 @@ body.theme-comic .game-event-line {
   font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: auto;
   text-rendering: geometricPrecision;
+}
+
+
+/* v0.13.1 — admin room theme + room-wide confetti */
+.room-theme-release-row { margin-top: 10px; }
+.confetti-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  overflow: hidden;
+  pointer-events: none;
+  display: none;
+}
+.confetti-layer.active { display: block; }
+.confetti-piece {
+  position: absolute;
+  top: -24px;
+  left: 0;
+  width: var(--w, 8px);
+  height: var(--h, 12px);
+  background: var(--confetti, #ff3b30);
+  border-radius: 2px;
+  opacity: .98;
+  transform: translate3d(var(--x), -30px, 0) rotate(0deg);
+  animation: drk-confetti-fall var(--duration, 4s) cubic-bezier(.18,.75,.32,1) var(--delay, 0s) forwards;
+  will-change: transform, opacity;
+}
+.confetti-piece:nth-child(3n) { border-radius: 50%; }
+.confetti-piece:nth-child(4n) { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+@keyframes drk-confetti-fall {
+  0% { transform: translate3d(var(--x), -30px, 0) rotate(0deg); opacity: 0; }
+  8% { opacity: .98; }
+  100% { transform: translate3d(calc(var(--x) + var(--drift)), 112vh, 0) rotate(var(--spin)); opacity: .9; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .confetti-piece { animation-duration: 1.4s !important; }
+}
+
+/* v0.13.2 — turn order, completed-game controls, admin disguise */
+.game-header-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.boss-turn-banner {
+  margin: 10px 0 8px;
+  padding: 9px 12px;
+  border: 1px solid currentColor;
+  border-radius: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.boss-turn-banner.your-turn {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08) inset;
+  transform: translateZ(0);
+}
+
+.admin-identity-dialog {
+  width: min(520px, calc(100vw - 28px));
+}
+
+.admin-identity-dialog .modal-content {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-identity-dialog input[type="text"],
+.admin-identity-dialog input:not([type]) {
+  width: 100%;
+}
+
+.identity-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.identity-check input {
+  width: auto;
+  min-width: auto;
+}
+
+body.theme-future .boss-turn-banner,
+body.theme-future .admin-identity-dialog {
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
 }
