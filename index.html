@@ -4,16 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0b0f17">
-  <title>DRKODOOM Chatroom v0.13.4</title>
-  <link rel="stylesheet" href="./css/base.css?v=0.13.4">
-  <link rel="stylesheet" href="./css/themes.css?v=0.13.4">
+  <title>DRKODOOM Chatroom v0.14.0</title>
+  <link rel="stylesheet" href="./css/base.css?v=0.14.0">
+  <link rel="stylesheet" href="./css/themes.css?v=0.14.0">
 </head>
 <body class="theme-modern">
   <main class="app-window" id="appWindow">
     <header class="titlebar">
       <div class="titlebar-copy">
         <span id="clientTitle">DRK CHAT</span>
-        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.13.4</button>
+        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.14.0</button>
       </div>
       <span class="classic-window-controls aol-only" aria-hidden="true">[_][□][X]</span>
     </header>
@@ -387,6 +387,7 @@
         <select id="gameTypeSelect">
           <option value="hangman">Hangman</option>
           <option value="boss">D&amp;D-Style Boss Battle</option>
+          <option value="werewolf">Werewolf</option>
         </select>
 
         <div id="hangmanSetupFields">
@@ -402,6 +403,11 @@
             <option value="evil_wizard">Evil Wizard</option>
           </select>
           <p class="field-note">Boss health scales with the number of people online. Every player attack is followed by a boss counterattack.</p>
+        </div>
+
+        <div id="werewolfSetupFields" class="hidden">
+          <p class="field-note"><strong>Werewolf:</strong> all people online when the game begins become players. One werewolf is chosen at random with 4–6 players; two are chosen with 7 or more. Roles are sent privately by the server.</p>
+          <p class="field-note">At night, werewolves secretly type <strong>/kill Name</strong>. During the day, living players discuss in chat and type <strong>/vote Name</strong>. Villagers win by eliminating every werewolf. Werewolves win when they equal or outnumber the remaining villagers.</p>
         </div>
 
         <div id="gameSetupMessage" class="message"></div>
@@ -482,6 +488,6 @@
 
   <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
 
-  <script type="module" src="./js/app.js?v=0.13.4"></script>
+  <script type="module" src="./js/app.js?v=0.14.0"></script>
 </body>
 </html>

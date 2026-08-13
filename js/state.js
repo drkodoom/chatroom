@@ -20,6 +20,7 @@ export const state = {
     roomTheme: null
   },
   game: null,
+  werewolfSecret: null,
   adminIdentity: { displayName: null, hideAdminBadge: false },
   replyingTo: null,
   draftFormat: {

@@ -542,3 +542,402 @@ body.theme-arcade .chat-search-bar {
   border-color: #00f3ff;
   background: #1c1030;
 }
+
+/* =====================================================
+   SPACE STATION — ORBITAL COMMUNICATIONS CONSOLE
+   ===================================================== */
+body.theme-space {
+  --bg: #020711;
+  --window-bg: #07111f;
+  --text: #d8f5ff;
+  --muted: #7695a5;
+  --border: #24485a;
+  --surface: #081522;
+  --surface-2: #0d2030;
+  --accent: #36d9ff;
+  --accent-strong: #ffb13b;
+  --radius: 10px;
+  font-family: "Arial Narrow", "Segoe UI", Arial, sans-serif;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255,255,255,.65) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 74% 31%, rgba(255,255,255,.5) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 43% 76%, rgba(99,216,255,.55) 0 1px, transparent 1.5px),
+    linear-gradient(180deg, #01040a, #06111e 60%, #020711);
+  background-size: 170px 170px, 230px 230px, 310px 310px, auto;
+}
+body.theme-space .app-window {
+  border: 1px solid #2d6075;
+  box-shadow: 0 0 0 1px rgba(54,217,255,.08), 0 28px 80px rgba(0,0,0,.56), inset 0 0 40px rgba(28,142,174,.05);
+}
+body.theme-space .titlebar,
+body.theme-space .modal-titlebar {
+  background: linear-gradient(90deg, #0a2636, #0b1624 52%, #211a11);
+  color: #e9fbff;
+  border-bottom: 1px solid #36d9ff;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+body.theme-space .chat-toolbar,
+body.theme-space .chat-statusbar,
+body.theme-space .format-toolbar {
+  background: linear-gradient(180deg, #0b1c2b, #07131e);
+}
+body.theme-space .chat-sidebar {
+  background:
+    linear-gradient(90deg, transparent 0 96%, rgba(54,217,255,.1) 96%),
+    #091825;
+}
+body.theme-space .chat-sidebar-title,
+body.theme-space .game-panel-title {
+  color: #72e7ff;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+body.theme-space .chat-line {
+  border-left: 2px solid transparent;
+}
+body.theme-space .chat-line:hover {
+  border-left-color: #36d9ff;
+  background: rgba(54,217,255,.055);
+}
+body.theme-space button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab) {
+  border: 1px solid #315f72;
+  background: linear-gradient(180deg, #102638, #081823);
+  color: #e7faff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+  letter-spacing: .04em;
+}
+body.theme-space .room-banner,
+body.theme-space .pinned-message-item,
+body.theme-space .game-panel {
+  border-color: #36768c;
+  background: linear-gradient(135deg, rgba(54,217,255,.08), rgba(255,177,59,.035)), #071521;
+  box-shadow: inset 3px 0 0 #36d9ff;
+}
+body.theme-space .admin-announcement {
+  border: 1px solid #ffb13b;
+  background: rgba(255,177,59,.08);
+  color: #ffe0a3;
+}
+
+/* =====================================================
+   FANTASY TAVERN — PARCHMENT & WOOD
+   ===================================================== */
+body.theme-tavern {
+  --bg: #21130b;
+  --window-bg: #ead8ad;
+  --text: #2a180d;
+  --muted: #765b3c;
+  --border: #8b6137;
+  --surface: #f5e8c7;
+  --surface-2: #dfc694;
+  --accent: #8f2f1f;
+  --accent-strong: #5d1d13;
+  --radius: 8px;
+  font-family: Georgia, "Times New Roman", serif;
+  background:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.045) 0 2px, transparent 2px 72px),
+    linear-gradient(120deg, #2b170d, #492818 48%, #26140b);
+}
+body.theme-tavern .app-window {
+  border: 5px solid #5a321b;
+  box-shadow: 0 0 0 2px #b98545, 0 18px 50px rgba(0,0,0,.5);
+}
+body.theme-tavern .titlebar,
+body.theme-tavern .modal-titlebar {
+  background: linear-gradient(#6c3b1f, #492512);
+  color: #f5d98d;
+  border-bottom: 2px solid #c79a53;
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: .06em;
+}
+body.theme-tavern .chat-toolbar,
+body.theme-tavern .chat-statusbar,
+body.theme-tavern .format-toolbar,
+body.theme-tavern .chat-sidebar {
+  background: #d8bd87;
+}
+body.theme-tavern .chat-messages {
+  background:
+    radial-gradient(circle at 20% 10%, rgba(94,54,25,.05), transparent 28%),
+    #f0e0b8;
+}
+body.theme-tavern .chat-line {
+  border-bottom: 1px dashed rgba(100,67,34,.14);
+  border-radius: 0;
+}
+body.theme-tavern button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab) {
+  border: 1px solid #6e4528;
+  background: linear-gradient(#f0d49b, #c99d60);
+  color: #2a180d;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 2px 0 #704223;
+  font-family: Georgia, "Times New Roman", serif;
+}
+body.theme-tavern .room-banner,
+body.theme-tavern .pinned-message-item,
+body.theme-tavern .game-panel {
+  border: 2px solid #8c5c31;
+  background: #f6e8c4;
+  box-shadow: inset 0 0 22px rgba(128,80,36,.07);
+}
+body.theme-tavern .game-panel-title::before { content: "⚔ "; }
+body.theme-tavern .admin-announcement {
+  border: 2px solid #8f2f1f;
+  background: #efd99d;
+  color: #591c13;
+}
+
+/* =====================================================
+   80s CARTOON — SATURDAY MORNING ACTION
+   ===================================================== */
+body.theme-cartoon80 {
+  --bg: #4a178a;
+  --window-bg: #fff8df;
+  --text: #172044;
+  --muted: #6d4d83;
+  --border: #39206d;
+  --surface: #fffef6;
+  --surface-2: #e7d5ff;
+  --accent: #f12681;
+  --accent-strong: #6126b8;
+  --radius: 16px;
+  font-family: "Trebuchet MS", Arial, sans-serif;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(255,244,66,.92) 0 4px, transparent 5px),
+    linear-gradient(135deg, #5c20a8 0 35%, #168bd7 35% 58%, #f13c8d 58% 78%, #ffb43c 78%);
+  background-size: 42px 42px, auto;
+}
+body.theme-cartoon80 .app-window {
+  border: 4px solid #23194e;
+  box-shadow: 9px 9px 0 #ffcf36, -5px -5px 0 #19d4f4;
+}
+body.theme-cartoon80 .titlebar,
+body.theme-cartoon80 .modal-titlebar {
+  background: linear-gradient(90deg, #6324b4, #e92983 55%, #ff9630);
+  color: #fff;
+  text-shadow: 2px 2px 0 #302066;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+body.theme-cartoon80 .chat-toolbar,
+body.theme-cartoon80 .format-toolbar {
+  background: #ffe868;
+}
+body.theme-cartoon80 .chat-sidebar {
+  background: #d9f5ff;
+}
+body.theme-cartoon80 .chat-line {
+  border-radius: 13px;
+}
+body.theme-cartoon80 .chat-line:hover {
+  background: #fff2a8;
+}
+body.theme-cartoon80 button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab) {
+  border: 2px solid #31205f;
+  background: linear-gradient(#fff, #eddcff);
+  color: #28194d;
+  box-shadow: 3px 3px 0 #f02c83;
+}
+body.theme-cartoon80 .game-panel,
+body.theme-cartoon80 .room-banner,
+body.theme-cartoon80 .pinned-message-item {
+  border: 3px solid #342060;
+  background: linear-gradient(135deg, #fff7bb, #f4dfff);
+  box-shadow: 4px 4px 0 #16b4d8;
+}
+body.theme-cartoon80 .game-event-line.critical {
+  background: #ffe245;
+  color: #3b176d;
+}
+
+/* =====================================================
+   VHS HORROR — ANALOG NIGHTMARE
+   ===================================================== */
+body.theme-vhs {
+  --bg: #070707;
+  --window-bg: #111;
+  --text: #e7e3df;
+  --muted: #928b86;
+  --border: #4d3232;
+  --surface: #0d0d0d;
+  --surface-2: #181313;
+  --accent: #d42b35;
+  --accent-strong: #ff4d57;
+  --radius: 2px;
+  font-family: "Courier New", monospace;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 4px),
+    radial-gradient(circle at 50% 30%, #251010, #050505 58%);
+}
+body.theme-vhs::after {
+  content: "PLAY ▶  SP";
+  position: fixed;
+  right: 18px;
+  top: 14px;
+  color: rgba(255,255,255,.33);
+  font: 12px "Courier New", monospace;
+  pointer-events: none;
+  z-index: 0;
+}
+body.theme-vhs .app-window {
+  border: 1px solid #74363b;
+  box-shadow: 0 0 40px rgba(189,29,40,.15), 8px 0 30px rgba(0,150,180,.04);
+}
+body.theme-vhs .titlebar,
+body.theme-vhs .modal-titlebar {
+  background: #160909;
+  color: #ff5c64;
+  border-bottom: 1px solid #7d272e;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  text-shadow: 1px 0 rgba(0,200,255,.35), -1px 0 rgba(255,0,60,.35);
+}
+body.theme-vhs .chat-messages,
+body.theme-vhs input,
+body.theme-vhs textarea {
+  background: #090909;
+  color: #e9e3df;
+}
+body.theme-vhs .chat-line {
+  border-radius: 0;
+  border-bottom: 1px solid rgba(255,255,255,.035);
+  text-shadow: none;
+}
+body.theme-vhs .system-line { color: #d44d55; }
+body.theme-vhs button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab) {
+  border-radius: 0;
+  border: 1px solid #633239;
+  background: #181010;
+  color: #f1dddd;
+  box-shadow: none;
+}
+body.theme-vhs .game-panel,
+body.theme-vhs .room-banner,
+body.theme-vhs .pinned-message-item {
+  border-radius: 0;
+  border-color: #7f3138;
+  background: #110b0b;
+  box-shadow: inset 4px 0 0 #bc2b35;
+}
+body.theme-vhs .game-log { background: #080808; }
+
+/* =====================================================
+   NEWSROOM — LIVE BROADCAST DESK
+   ===================================================== */
+body.theme-newsroom {
+  --bg: #09162b;
+  --window-bg: #f4f6f9;
+  --text: #121b2b;
+  --muted: #667182;
+  --border: #ccd2db;
+  --surface: #fff;
+  --surface-2: #edf1f6;
+  --accent: #d71920;
+  --accent-strong: #941015;
+  --radius: 6px;
+  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(135deg, #081a36, #122b53 55%, #071426);
+}
+body.theme-newsroom .app-window {
+  border: 1px solid #708098;
+  box-shadow: 0 22px 70px rgba(0,0,0,.35);
+}
+body.theme-newsroom .titlebar,
+body.theme-newsroom .modal-titlebar {
+  background: linear-gradient(90deg, #071b3c 0 68%, #c91820 68%);
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+body.theme-newsroom .chat-toolbar {
+  border-bottom: 3px solid #d71920;
+}
+body.theme-newsroom .chat-sidebar-title,
+body.theme-newsroom .game-panel-title {
+  color: #0c346d;
+  text-transform: uppercase;
+}
+body.theme-newsroom .admin-announcement {
+  border: 0;
+  border-left: 7px solid #d71920;
+  border-radius: 0;
+  background: #fff;
+  color: #101928;
+  box-shadow: 0 2px 8px rgba(20,32,50,.1);
+}
+body.theme-newsroom .admin-announcement::before {
+  content: "BREAKING  ";
+  color: #d71920;
+  font-weight: 900;
+}
+body.theme-newsroom .room-banner,
+body.theme-newsroom .pinned-message-item,
+body.theme-newsroom .game-panel {
+  border-radius: 2px;
+  border-top: 4px solid #d71920;
+  background: #fff;
+}
+body.theme-newsroom button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab) {
+  border-radius: 3px;
+  background: #fff;
+  border: 1px solid #b9c2cf;
+  color: #12223b;
+  box-shadow: 0 1px 2px rgba(0,0,0,.08);
+}
+
+/* =====================================================
+   COFFEE SHOP — WARM COMMUNITY CAFE
+   ===================================================== */
+body.theme-coffee {
+  --bg: #40352f;
+  --window-bg: #f5eee4;
+  --text: #2e2925;
+  --muted: #7f6f63;
+  --border: #cbb9a7;
+  --surface: #fffaf3;
+  --surface-2: #e8ddd0;
+  --accent: #43705b;
+  --accent-strong: #2e5443;
+  --radius: 18px;
+  font-family: "Trebuchet MS", Arial, sans-serif;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(235,209,168,.2), transparent 24%),
+    linear-gradient(135deg, #3b302b, #5d493e 52%, #332b27);
+}
+body.theme-coffee .app-window {
+  border: 1px solid #9e8878;
+  box-shadow: 0 24px 70px rgba(20,13,9,.34);
+}
+body.theme-coffee .titlebar,
+body.theme-coffee .modal-titlebar {
+  background: linear-gradient(90deg, #315342, #3d6b55);
+  color: #fff9ed;
+}
+body.theme-coffee .chat-toolbar,
+body.theme-coffee .chat-sidebar,
+body.theme-coffee .format-toolbar {
+  background: #eadfd2;
+}
+body.theme-coffee .chat-messages {
+  background:
+    linear-gradient(90deg, rgba(107,80,58,.025) 1px, transparent 1px),
+    #fffaf3;
+  background-size: 28px 28px;
+}
+body.theme-coffee .chat-line {
+  border-radius: 12px;
+}
+body.theme-coffee button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab) {
+  border: 1px solid #bca998;
+  background: #fffaf3;
+  color: #3b302a;
+  box-shadow: 0 2px 5px rgba(68,50,38,.08);
+}
+body.theme-coffee .room-banner,
+body.theme-coffee .pinned-message-item,
+body.theme-coffee .game-panel {
+  border-color: #b7a08d;
+  background: #fff7ec;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+}
+body.theme-coffee .game-panel-title { color: #315b48; }

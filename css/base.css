@@ -1680,3 +1680,162 @@ body.theme-future .admin-identity-dialog {
   backdrop-filter: blur(20px) saturate(150%);
   -webkit-backdrop-filter: blur(20px) saturate(150%);
 }
+
+/* =====================================================
+   v0.14.0 — Werewolf game
+   ===================================================== */
+.werewolf-phase-card {
+  margin: 8px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  display: grid;
+  gap: 4px;
+}
+
+.werewolf-phase-card strong {
+  font-size: 14px;
+  letter-spacing: .05em;
+}
+
+.werewolf-phase-card.werewolf-night {
+  border-color: color-mix(in srgb, #6957d8 55%, var(--border));
+  background: color-mix(in srgb, #241b55 12%, var(--surface));
+}
+
+.werewolf-phase-card.werewolf-day {
+  border-color: color-mix(in srgb, #e2a82e 55%, var(--border));
+  background: color-mix(in srgb, #ffd86a 10%, var(--surface));
+}
+
+.werewolf-role-card {
+  margin: 8px 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  display: grid;
+  gap: 4px;
+  background: var(--surface-2);
+}
+
+.werewolf-role-card.role-werewolf {
+  border-color: #9b1c26;
+  background: color-mix(in srgb, #9b1c26 10%, var(--surface));
+}
+
+.werewolf-role-card.role-villager {
+  border-color: #3f7f4f;
+  background: color-mix(in srgb, #4c9b5d 9%, var(--surface));
+}
+
+.werewolf-role-card.spectator {
+  opacity: .82;
+}
+
+.werewolf-command-help {
+  margin: 8px 0;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--accent-strong);
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.werewolf-roster {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.werewolf-player {
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.werewolf-player strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.werewolf-player.dead {
+  opacity: .46;
+  text-decoration: line-through;
+}
+
+.werewolf-life {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .07em;
+}
+
+.werewolf-revealed-role {
+  padding: 1px 5px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.werewolf-revealed-role.werewolf {
+  background: #8f1d27;
+  color: #fff;
+}
+
+.werewolf-revealed-role.villager {
+  background: #3e7d4d;
+  color: #fff;
+}
+
+.werewolf-counts {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+body.theme-vhs .werewolf-role-card,
+body.theme-vhs .werewolf-phase-card,
+body.theme-vhs .werewolf-player,
+body.theme-vhs .werewolf-command-help {
+  border-radius: 0;
+}
+
+body.theme-tavern .werewolf-role-card,
+body.theme-tavern .werewolf-phase-card,
+body.theme-tavern .werewolf-player {
+  border-color: #8c5c31;
+  background: #f6e8c4;
+}
+
+body.theme-space .werewolf-role-card,
+body.theme-space .werewolf-phase-card,
+body.theme-space .werewolf-player,
+body.theme-space .werewolf-command-help {
+  background: #071521;
+  border-color: #2e6175;
+}
+
+body.theme-cartoon80 .werewolf-role-card,
+body.theme-cartoon80 .werewolf-phase-card,
+body.theme-cartoon80 .werewolf-player {
+  border: 2px solid #342060;
+  box-shadow: 2px 2px 0 #16b4d8;
+}
+
+body.theme-newsroom .werewolf-phase-card,
+body.theme-newsroom .werewolf-role-card {
+  border-radius: 2px;
+  border-left: 5px solid #d71920;
+}

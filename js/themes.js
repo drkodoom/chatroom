@@ -1,4 +1,4 @@
-import { APP_VERSION } from "./config.js?v=0.13.4";
+import { APP_VERSION } from "./config.js?v=0.14.0";
 
 const CLIENTS = {
   modern: { name: "DRK Modern", bodyClass: "theme-modern", title: "DRK CHAT", online: "ONLINE", send: "SEND", clear: "CLEAR SCREEN", clearRoom: "CLEAR ROOM", leave: "LEAVE" },
@@ -6,12 +6,28 @@ const CLIENTS = {
   terminal: { name: "Phosphor", bodyClass: "theme-terminal", title: "PHOSPHOR IRC", online: "WHO", send: "TRANSMIT", clear: "CLEAR LOCAL", clearRoom: "PURGE ROOM", leave: "/PART" },
   future: { name: "One More Thing", bodyClass: "theme-future", title: "DRK FUTURE", online: "PEOPLE", send: "SEND", clear: "CLEAR VIEW", clearRoom: "CLEAR CONVERSATION", leave: "LEAVE" },
   comic: { name: "PanelChat", bodyClass: "theme-comic", title: "PANELCHAT", online: "CAST", send: "SEND!", clear: "WIPE PANEL", clearRoom: "WIPE THE ROOM", leave: "EXIT PANEL" },
-  arcade: { name: "Pixel Lobby", bodyClass: "theme-arcade", title: "PIXEL LOBBY", online: "PLAYERS", send: "SEND", clear: "ERASE LOG", clearRoom: "ERASE ROOM LOG", leave: "EXIT LOBBY" }
+  arcade: { name: "Pixel Lobby", bodyClass: "theme-arcade", title: "PIXEL LOBBY", online: "PLAYERS", send: "SEND", clear: "ERASE LOG", clearRoom: "ERASE ROOM LOG", leave: "EXIT LOBBY" },
+  space: { name: "Space Station", bodyClass: "theme-space", title: "ORBITAL STATION // COMMS", online: "CREW", send: "TRANSMIT", clear: "CLEAR CONSOLE", clearRoom: "PURGE COMMS", leave: "AIRLOCK OUT" },
+  tavern: { name: "Fantasy Tavern", bodyClass: "theme-tavern", title: "THE LANTERN & DRAGON", online: "PATRONS", send: "SPEAK", clear: "CLEAR TABLE", clearRoom: "BURN LEDGER", leave: "LEAVE TAVERN" },
+  cartoon80: { name: "80s Cartoon", bodyClass: "theme-cartoon80", title: "SATURDAY POWER CHAT", online: "HEROES", send: "BLAST IT!", clear: "CLEAR FRAME", clearRoom: "RESET EPISODE", leave: "ROLL CREDITS" },
+  vhs: { name: "VHS Horror", bodyClass: "theme-vhs", title: "CHANNEL 13 // AFTER MIDNIGHT", online: "STILL HERE", send: "TRANSMIT", clear: "ERASE TAPE", clearRoom: "WIPE TAPE", leave: "STOP TAPE" },
+  newsroom: { name: "Newsroom", bodyClass: "theme-newsroom", title: "DRK NEWS NETWORK", online: "NEWS DESK", send: "FILE", clear: "CLEAR WIRE", clearRoom: "CLEAR ARCHIVE", leave: "SIGN OFF" },
+  coffee: { name: "Coffee Shop", bodyClass: "theme-coffee", title: "THE COMMON CUP", online: "IN THE SHOP", send: "SEND", clear: "CLEAR TABLE", clearRoom: "CLOSE TAB", leave: "HEAD OUT" }
 };
 
 const CLIENT_CODES = {
-  DRK2026: "modern", DEFAULT: "modern", WELCOME: "aol90", AOL90: "aol90", TERMINAL: "terminal", PHOSPHOR: "terminal",
-  FUTURE: "future", APPLEFUTURE: "future", POW: "comic", COMICBLAST: "comic", UPUPDOWNDOWN: "arcade", PIXELPOWER: "arcade"
+  DRK2026: "modern", DEFAULT: "modern",
+  WELCOME: "aol90", AOL90: "aol90",
+  TERMINAL: "terminal", PHOSPHOR: "terminal",
+  FUTURE: "future", APPLEFUTURE: "future",
+  POW: "comic", COMICBLAST: "comic",
+  UPUPDOWNDOWN: "arcade", PIXELPOWER: "arcade",
+  ORBIT: "space", SPACESTATION: "space",
+  TAVERN: "tavern", ROLLFORALE: "tavern",
+  RADICAL: "cartoon80", SATURDAY: "cartoon80",
+  TRACKING: "vhs", VHSHORROR: "vhs",
+  BREAKING: "newsroom", NEWSROOM: "newsroom",
+  LATTE: "coffee", COFFEESHOP: "coffee"
 };
 
 const THEME_KEY = "chatroom_theme";
@@ -81,7 +97,8 @@ function renderClientList() {
   if (!list) return;
   list.innerHTML = "";
   const lockedByRoom = Boolean(forcedRoomTheme && !isAdminUI());
-  getUnlockedClients().forEach((id) => {
+  const availableClients = isAdminUI() ? Object.keys(CLIENTS) : getUnlockedClients();
+  availableClients.forEach((id) => {
     const client = CLIENTS[id];
     const button = document.createElement("button");
     button.type = "button";
@@ -117,7 +134,7 @@ function renderRoomThemeList() {
     button.addEventListener("click", () => {
       window.dispatchEvent(new CustomEvent("drk:set-room-theme", { detail: { theme: id } }));
       const message = el("roomThemeMessage");
-      if (message) { message.className = "message success"; message.textContent = `Setting everyone else to ${client.name}…`; }
+      if (message) { message.className = "message success"; message.textContent = `Setting the room to ${client.name}…`; }
     });
     list.appendChild(button);
   });
@@ -130,8 +147,6 @@ export function syncRoomTheme(themeId, { admin = false, applyToAdmin = false } =
     if (forcedRoomTheme) applyClient(forcedRoomTheme, false, true);
     else restoreClient();
   } else if (applyToAdmin) {
-    // ROOM THEME gives the administrator immediate visual confirmation too.
-    // Afterward, MY THEME can still change only the admin's own view while the room remains forced.
     if (forcedRoomTheme) applyClient(forcedRoomTheme, false, true);
     else restoreClient();
   }

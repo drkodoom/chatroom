@@ -1,8 +1,8 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.13.4";
-import { apiFetch } from "./api.js?v=0.13.4";
-import { getToken, state } from "./state.js?v=0.13.4";
-import { openMemberByUsername } from "./admin.js?v=0.13.4";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.13.4";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.14.0";
+import { apiFetch } from "./api.js?v=0.14.0";
+import { getToken, state } from "./state.js?v=0.14.0";
+import { openMemberByUsername } from "./admin.js?v=0.14.0";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.14.0";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -664,6 +664,7 @@ function connectChatSocket() {
       state.profiles = data.profiles || {};
       state.roomSettings = { ...state.roomSettings, ...(data.settings || {}) };
       state.game = data.game || null;
+      if (state.game?.type !== "werewolf") state.werewolfSecret = null;
       state.adminIdentity = { ...state.adminIdentity, ...(data.identity || {}) };
       renderAllMessages({ forceBottom: true });
       updateRoomSettings(state.roomSettings);
@@ -717,7 +718,17 @@ function connectChatSocket() {
       return;
     }
     if (data.type === "game_state") {
+      if (!data.game || data.game.type !== "werewolf") state.werewolfSecret = null;
       renderGame(data.game || null);
+      return;
+    }
+    if (data.type === "werewolf_secret") {
+      state.werewolfSecret = data.secret || null;
+      if (state.game?.type === "werewolf") renderGame(state.game);
+      return;
+    }
+    if (data.type === "werewolf_action") {
+      addSystemLine(data.message || "Werewolf action received.");
       return;
     }
     if (data.type === "admin_announcement") {
@@ -1032,9 +1043,10 @@ function closeGameSetup() {
 }
 
 function updateGameSetupFields() {
-  const hangman = el("gameTypeSelect").value === "hangman";
-  el("hangmanSetupFields").classList.toggle("hidden", !hangman);
-  el("bossSetupFields").classList.toggle("hidden", hangman);
+  const game = el("gameTypeSelect").value;
+  el("hangmanSetupFields").classList.toggle("hidden", game !== "hangman");
+  el("bossSetupFields").classList.toggle("hidden", game !== "boss");
+  el("werewolfSetupFields").classList.toggle("hidden", game !== "werewolf");
 }
 
 function startSelectedGame() {
@@ -1050,8 +1062,10 @@ function startSelectedGame() {
       return;
     }
     sendSocket({ type: "game_start", game: "hangman", phrase });
-  } else {
+  } else if (game === "boss") {
     sendSocket({ type: "game_start", game: "boss", boss: el("bossSelect").value });
+  } else if (game === "werewolf") {
+    sendSocket({ type: "game_start", game: "werewolf" });
   }
   closeGameSetup();
 }
@@ -1065,6 +1079,12 @@ function endCurrentGame() {
 function skipBossTurn() {
   if (!isStaff() || state.game?.type !== "boss" || state.game.status !== "active") return;
   if (confirm(`Skip ${state.game.currentTurn || "the current player"}'s turn?`)) sendSocket({ type: "game_boss_skip" });
+}
+
+function forceWerewolfPhase() {
+  if (!isStaff() || state.game?.type !== "werewolf" || state.game.status !== "active") return;
+  const label = state.game.phase === "night" ? "end the night with the actions currently submitted" : "close voting with the votes currently submitted";
+  if (confirm(`Force the Werewolf phase now? This will ${label}.`)) sendSocket({ type: "game_werewolf_force" });
 }
 
 function gameLogNode(log = []) {
@@ -1090,6 +1110,13 @@ function updateComposerForGame() {
     input.placeholder = "Type /roll to roll a d20 and attack, or type a normal message...";
   } else if (state.game?.type === "hangman" && state.game.status === "active") {
     input.placeholder = "Chat normally here — use the Hangman box above to guess...";
+  } else if (state.game?.type === "werewolf" && state.game.status === "active") {
+    const secret = state.werewolfSecret;
+    if (!secret?.participant) input.placeholder = "Werewolf is in progress — you are observing this round.";
+    else if (!secret.alive) input.placeholder = "You have been eliminated — watch the village finish the round.";
+    else if (state.game.phase === "night" && secret.role === "werewolf") input.placeholder = "Night — secretly type /kill Name";
+    else if (state.game.phase === "night") input.placeholder = "Night — the village is asleep. Wait for daybreak.";
+    else input.placeholder = "Day — discuss, then type /vote Name when ready.";
   } else {
     input.placeholder = "Type a message...";
   }
@@ -1101,6 +1128,7 @@ function renderGame(game) {
   panel.innerHTML = "";
 
   if (!state.game) {
+    state.werewolfSecret = null;
     panel.classList.add("hidden");
     el("startGameButton").textContent = "START GAME";
     updateComposerForGame();
@@ -1116,17 +1144,24 @@ function renderGame(game) {
   const left = document.createElement("div");
   const title = document.createElement("div");
   title.className = "game-panel-title";
-  title.textContent = state.game.type === "hangman" ? "HANGMAN" : `BOSS BATTLE — ${state.game.bossName}`;
+  if (state.game.type === "hangman") title.textContent = "HANGMAN";
+  else if (state.game.type === "boss") title.textContent = `BOSS BATTLE — ${state.game.bossName}`;
+  else title.textContent = `WEREWOLF — ${String(state.game.phase || "ended").toUpperCase()} ${state.game.day || ""}`.trim();
+
   const subtitle = document.createElement("div");
   subtitle.className = "game-panel-subtitle";
-  subtitle.textContent = `Host: ${state.game.host} • ${String(state.game.status).toUpperCase()}`;
+  subtitle.textContent = `Host: ${state.game.host} • ${String(state.game.status).replaceAll("_", " ").toUpperCase()}`;
   left.append(title, subtitle);
   header.appendChild(left);
+
   if (isStaff()) {
     const gameControls = document.createElement("div");
     gameControls.className = "game-header-actions";
     if (state.game.type === "boss" && state.game.status === "active") {
       gameControls.appendChild(makeAction("SKIP TURN", skipBossTurn));
+    }
+    if (state.game.type === "werewolf" && state.game.status === "active") {
+      gameControls.appendChild(makeAction("FORCE PHASE", forceWerewolfPhase));
     }
     gameControls.appendChild(makeAction(state.game.status === "active" ? "END GAME" : "CLEAR GAME", endCurrentGame, "danger"));
     header.appendChild(gameControls);
@@ -1172,6 +1207,103 @@ function renderGame(game) {
     }
 
     panel.appendChild(gameLogNode(state.game.log));
+    return;
+  }
+
+  if (state.game.type === "werewolf") {
+    const wolf = state.game;
+    const secret = state.werewolfSecret;
+
+    const phaseCard = document.createElement("div");
+    phaseCard.className = `werewolf-phase-card werewolf-${wolf.phase || "ended"}`;
+    const phaseTitle = document.createElement("strong");
+    if (wolf.status !== "active") {
+      phaseTitle.textContent = wolf.status === "villagers_win" ? "THE VILLAGERS WIN" : (wolf.status === "werewolves_win" ? "THE WEREWOLVES WIN" : "GAME ENDED");
+    } else if (wolf.phase === "night") {
+      phaseTitle.textContent = `NIGHT ${wolf.day} — THE VILLAGE SLEEPS`;
+    } else {
+      phaseTitle.textContent = `DAY ${wolf.day} — DISCUSS AND VOTE`;
+    }
+    const phaseText = document.createElement("div");
+    if (wolf.status !== "active") {
+      phaseText.textContent = "All roles are revealed below. Staff can clear the game when everyone is ready.";
+    } else if (wolf.phase === "night") {
+      phaseText.textContent = `Werewolves are choosing a victim. ${wolf.actionsCast || 0}/${wolf.requiredActions || 0} required night action${wolf.requiredActions === 1 ? "" : "s"} submitted.`;
+    } else {
+      phaseText.textContent = `Living players should discuss in chat, then type /vote Name. ${wolf.votesCast || 0}/${wolf.requiredVotes || 0} required votes submitted.`;
+    }
+    phaseCard.append(phaseTitle, phaseText);
+    panel.appendChild(phaseCard);
+
+    const roleCard = document.createElement("div");
+    roleCard.className = "werewolf-role-card";
+    if (!secret) {
+      roleCard.classList.add("spectator");
+      roleCard.innerHTML = "<strong>ROLE ASSIGNMENT</strong><span>Waiting for the server to deliver your private role…</span>";
+    } else if (!secret.participant) {
+      roleCard.classList.add("spectator");
+      roleCard.innerHTML = "<strong>OBSERVER</strong><span>You joined after this round began. You can watch, but you cannot influence the game.</span>";
+    } else {
+      roleCard.classList.add(secret.role === "werewolf" ? "role-werewolf" : "role-villager");
+      const roleName = document.createElement("strong");
+      roleName.textContent = secret.role === "werewolf" ? "YOUR ROLE: WEREWOLF" : "YOUR ROLE: VILLAGER";
+      const roleInfo = document.createElement("span");
+      if (!secret.alive) {
+        roleInfo.textContent = "You have been eliminated. Do not influence the surviving players.";
+      } else if (secret.role === "werewolf") {
+        const pack = Array.isArray(secret.teammates) && secret.teammates.length ? ` Your fellow werewolf: ${secret.teammates.join(", ")}.` : "";
+        roleInfo.textContent = wolf.phase === "night"
+          ? `Secretly choose a living villager by typing /kill Name.${pack}`
+          : `Blend in, discuss, and vote like everyone else.${pack}`;
+      } else {
+        roleInfo.textContent = wolf.phase === "night"
+          ? "You have no night action. Wait for daybreak."
+          : "Figure out who is lying. Discuss, then type /vote Name.";
+      }
+      roleCard.append(roleName, roleInfo);
+    }
+    panel.appendChild(roleCard);
+
+    const commandHelp = document.createElement("div");
+    commandHelp.className = "werewolf-command-help";
+    if (wolf.status === "active" && secret?.participant && secret.alive) {
+      if (wolf.phase === "night" && secret.role === "werewolf") commandHelp.textContent = "COMMAND: /kill ScreenName";
+      else if (wolf.phase === "day") commandHelp.textContent = "COMMAND: /vote ScreenName";
+      else commandHelp.textContent = "The village is asleep.";
+    } else if (wolf.status === "active") {
+      commandHelp.textContent = "Watch the round unfold.";
+    } else {
+      commandHelp.textContent = "Round complete.";
+    }
+    panel.appendChild(commandHelp);
+
+    const roster = document.createElement("div");
+    roster.className = "werewolf-roster";
+    (wolf.players || []).forEach((player) => {
+      const row = document.createElement("div");
+      row.className = `werewolf-player${player.alive ? " alive" : " dead"}`;
+      const name = document.createElement("strong");
+      name.textContent = player.username;
+      const stateLabel = document.createElement("span");
+      stateLabel.className = "werewolf-life";
+      stateLabel.textContent = player.alive ? "ALIVE" : "DEAD";
+      row.append(name, stateLabel);
+      if (player.role) {
+        const revealed = document.createElement("span");
+        revealed.className = `werewolf-revealed-role ${player.role}`;
+        revealed.textContent = player.role === "werewolf" ? "WEREWOLF" : "VILLAGER";
+        row.appendChild(revealed);
+      }
+      roster.appendChild(row);
+    });
+    panel.appendChild(roster);
+
+    const counts = document.createElement("div");
+    counts.className = "werewolf-counts";
+    counts.textContent = `${wolf.aliveCount || 0} alive • ${wolf.wolfCount || 0} werewolf${wolf.wolfCount === 1 ? "" : "s"} began the game`;
+    panel.appendChild(counts);
+
+    panel.appendChild(gameLogNode(wolf.log));
     return;
   }
 
