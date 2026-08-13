@@ -336,7 +336,9 @@ body.theme-comic {
   --accent: #e72b2b;
   --accent-strong: #a80000;
   --radius: 4px;
-  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   background:
     radial-gradient(circle, rgba(0,0,0,.10) 1px, transparent 1px),
     #ffd92f;
@@ -373,6 +375,32 @@ body.theme-comic .system-line {
   border-radius: 0;
   font-style: normal;
   text-transform: uppercase;
+}
+
+body.theme-comic h1,
+body.theme-comic h2,
+body.theme-comic h3,
+body.theme-comic .titlebar,
+body.theme-comic .modal-titlebar {
+  font-family: "Arial Black", "Trebuchet MS", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body.theme-comic .chat-line,
+body.theme-comic input,
+body.theme-comic textarea,
+body.theme-comic button,
+body.theme-comic .chat-sidebar,
+body.theme-comic .chat-statusbar {
+  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  letter-spacing: 0;
+}
+
+body.theme-comic .chat-line {
+  font-weight: 700;
 }
 
 /* =====================================================
@@ -427,4 +455,90 @@ body.theme-terminal .modal-window,
 body.theme-comic .modal-window,
 body.theme-arcade .modal-window {
   border-radius: 0;
+}
+
+/* =====================================================
+   v0.12.0 — theme-specific rich chat polish
+   ===================================================== */
+
+body.theme-future .format-toolbar,
+body.theme-future .reply-preview,
+body.theme-future .pinned-message-bar,
+body.theme-future .room-banner,
+body.theme-future .chat-search-bar {
+  border-color: rgba(255,255,255,.45);
+  background: rgba(255,255,255,.16);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.52);
+}
+
+body.theme-future .reaction-chip,
+body.theme-future .message-actions button {
+  border-color: rgba(255,255,255,.44);
+  background: rgba(255,255,255,.24);
+  backdrop-filter: blur(14px) saturate(170%);
+  -webkit-backdrop-filter: blur(14px) saturate(170%);
+}
+
+/* Keep PanelChat text crisp: no filter/blur/transforms on text-bearing nodes. */
+body.theme-comic,
+body.theme-comic .app-window,
+body.theme-comic .chat-layout,
+body.theme-comic .chat-messages,
+body.theme-comic .chat-line,
+body.theme-comic .chat-user,
+body.theme-comic .chat-compose,
+body.theme-comic .chat-sidebar,
+body.theme-comic input,
+body.theme-comic textarea,
+body.theme-comic button,
+body.theme-comic select {
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transform: none;
+  text-shadow: none !important;
+  -webkit-font-smoothing: auto;
+  text-rendering: geometricPrecision;
+}
+
+body.theme-comic .chat-line {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 600;
+}
+
+body.theme-comic .message-actions button,
+body.theme-comic .reaction-chip {
+  border: 2px solid #111 !important;
+  border-radius: 0 !important;
+  box-shadow: 2px 2px 0 #111 !important;
+}
+
+body.theme-aol90 .format-toolbar,
+body.theme-aol90 .reply-preview,
+body.theme-aol90 .pinned-message-bar,
+body.theme-aol90 .room-banner,
+body.theme-aol90 .chat-search-bar {
+  border-radius: 0;
+  background: #c0c0c0;
+}
+
+body.theme-terminal .format-toolbar,
+body.theme-terminal .reply-preview,
+body.theme-terminal .pinned-message-bar,
+body.theme-terminal .room-banner,
+body.theme-terminal .chat-search-bar {
+  border-color: #1a6e3c;
+  background: #04170c;
+}
+
+body.theme-arcade .format-toolbar,
+body.theme-arcade .reply-preview,
+body.theme-arcade .pinned-message-bar,
+body.theme-arcade .room-banner,
+body.theme-arcade .chat-search-bar {
+  border-radius: 0;
+  border-color: #00f3ff;
+  background: #1c1030;
 }
