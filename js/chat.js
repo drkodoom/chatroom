@@ -1,8 +1,8 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.14.0";
-import { apiFetch } from "./api.js?v=0.14.0";
-import { getToken, state } from "./state.js?v=0.14.0";
-import { openMemberByUsername } from "./admin.js?v=0.14.0";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.14.0";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.15.0";
+import { apiFetch } from "./api.js?v=0.15.0";
+import { getToken, state } from "./state.js?v=0.15.0";
+import { openMemberByUsername } from "./admin.js?v=0.15.0";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.15.0";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -461,6 +461,22 @@ function handleSystemEvent(data) {
   if (data.event === "mod_removed") addSystemLine(`${data.username}'s MOD powers were removed${data.actor && data.actor !== "system" ? ` by ${data.actor}` : ""}`);
 }
 
+function closeStaffToolsMenu() {
+  const menu = el("staffToolsMenu");
+  if (menu) menu.classList.add("hidden");
+  const button = el("staffToolsButton");
+  if (button) button.setAttribute("aria-expanded", "false");
+}
+
+function toggleStaffToolsMenu() {
+  if (!isStaff()) return;
+  const menu = el("staffToolsMenu");
+  if (!menu) return;
+  const opening = menu.classList.contains("hidden");
+  menu.classList.toggle("hidden", !opening);
+  el("staffToolsButton")?.setAttribute("aria-expanded", String(opening));
+}
+
 function toggleAdminChatControls() {
   const admin = isAdmin();
   const staff = isStaff();
@@ -469,6 +485,16 @@ function toggleAdminChatControls() {
   document.body.classList.toggle("staff-mode", staff);
   document.querySelectorAll(".admin-chat-action").forEach((node) => node.classList.toggle("hidden", !admin));
   document.querySelectorAll(".staff-chat-action").forEach((node) => node.classList.toggle("hidden", !staff));
+  const toolsButton = el("staffToolsButton");
+  if (toolsButton) {
+    toolsButton.classList.toggle("hidden", !staff);
+    toolsButton.textContent = admin ? "ADMIN MENU" : "MOD TOOLS";
+    toolsButton.setAttribute("aria-expanded", "false");
+    toolsButton.setAttribute("aria-controls", "staffToolsMenu");
+  }
+  const toolsTitle = el("staffToolsTitle");
+  if (toolsTitle) toolsTitle.textContent = admin ? "ADMIN CONTROLS" : "MOD CONTROLS";
+  if (!staff) closeStaffToolsMenu();
   el("adminModeratorButton").textContent = state.roomSettings.modUsername ? `MOD: ${state.roomSettings.modUsername}` : "MODERATOR";
 }
 
@@ -865,6 +891,7 @@ export function closeChatSocket() {
   el("chatConnectionStatus").textContent = "Disconnected";
   state.typingUsers.clear();
   renderOnlineUsers([]);
+  closeStaffToolsMenu();
   document.body.classList.remove("admin-mode", "mod-mode", "staff-mode");
 }
 
@@ -1442,6 +1469,12 @@ function applySearchFilter() {
 
 export function initChatUI() {
   el("chatForm").addEventListener("submit", sendMessage);
+  el("staffToolsButton").addEventListener("click", toggleStaffToolsMenu);
+  el("staffToolsCloseButton").addEventListener("click", closeStaffToolsMenu);
+  el("staffToolsMenu").addEventListener("click", (event) => {
+    const control = event.target.closest("button");
+    if (control && control.id !== "staffToolsCloseButton") setTimeout(closeStaffToolsMenu, 0);
+  });
   el("clearScreenButton").addEventListener("click", clearMyScreen);
   el("clearRoomButton").addEventListener("click", clearRoomHistory);
   el("adminModeratorButton").addEventListener("click", manageModerator);

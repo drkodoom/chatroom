@@ -1682,7 +1682,7 @@ body.theme-future .admin-identity-dialog {
 }
 
 /* =====================================================
-   v0.14.0 — Werewolf game
+   v0.15.0 — Werewolf game
    ===================================================== */
 .werewolf-phase-card {
   margin: 8px 0;
@@ -1838,4 +1838,77 @@ body.theme-newsroom .werewolf-phase-card,
 body.theme-newsroom .werewolf-role-card {
   border-radius: 2px;
   border-left: 5px solid #d71920;
+}
+
+/* =====================================================
+   v0.15.0 — collapsible staff controls
+   ===================================================== */
+.chat-screen {
+  position: relative;
+}
+
+.staff-tools-toggle {
+  font-weight: 850;
+}
+
+.staff-tools-menu {
+  position: absolute;
+  z-index: 80;
+  top: 50px;
+  right: 12px;
+  width: min(360px, calc(100% - 24px));
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--window-bg) 94%, transparent);
+  color: var(--text);
+  box-shadow: 0 20px 60px rgba(0,0,0,.28);
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+}
+
+.staff-tools-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 2px 9px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 9px;
+  letter-spacing: .04em;
+  font-size: 12px;
+}
+
+.staff-tools-close {
+  width: 30px;
+  height: 30px;
+  padding: 0 !important;
+  display: grid;
+  place-items: center;
+  font-size: 20px !important;
+  line-height: 1;
+}
+
+.staff-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.staff-tools-grid > button {
+  width: 100%;
+  min-height: 36px;
+  white-space: normal;
+}
+
+@media (max-width: 520px) {
+  .staff-tools-menu {
+    top: 86px;
+    right: 8px;
+    width: calc(100% - 16px);
+  }
+
+  .staff-tools-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }

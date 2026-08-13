@@ -941,3 +941,540 @@ body.theme-coffee .game-panel {
   box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
 }
 body.theme-coffee .game-panel-title { color: #315b48; }
+
+/* =====================================================
+   DRK MODERN DARK — SLEEK DARK DEFAULT
+   ===================================================== */
+body.theme-modern-dark {
+  --bg: #05070b;
+  --window-bg: #0b0f16;
+  --text: #edf3ff;
+  --muted: #8d9aae;
+  --border: #222b38;
+  --surface: #0f151e;
+  --surface-2: #121a25;
+  --accent: #5f8cff;
+  --accent-strong: #86a7ff;
+  --radius: 22px;
+  color-scheme: dark;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(70,103,185,.18), transparent 32%),
+    radial-gradient(circle at 85% 90%, rgba(72,38,120,.12), transparent 30%),
+    linear-gradient(145deg, #05070a, #090d14 58%, #05070a);
+}
+body.theme-modern-dark .app-window {
+  background: linear-gradient(180deg, rgba(16,22,32,.98), rgba(8,12,18,.98));
+  border-color: #263142;
+  box-shadow: 0 28px 90px rgba(0,0,0,.58), inset 0 1px 0 rgba(255,255,255,.035);
+}
+body.theme-modern-dark .titlebar,
+body.theme-modern-dark .modal-titlebar {
+  background: linear-gradient(90deg, #0b111b, #131d2b);
+  color: #f6f9ff;
+  border-bottom: 1px solid #263142;
+}
+body.theme-modern-dark .chat-toolbar,
+body.theme-modern-dark .format-toolbar,
+body.theme-modern-dark .chat-statusbar,
+body.theme-modern-dark .chat-sidebar {
+  background: #101722;
+}
+body.theme-modern-dark .chat-messages,
+body.theme-modern-dark input,
+body.theme-modern-dark textarea,
+body.theme-modern-dark select {
+  background: #0b1119;
+  color: #eef4ff;
+  border-color: #283344;
+}
+body.theme-modern-dark .chat-line:hover { background: rgba(95,140,255,.07); }
+body.theme-modern-dark button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab) {
+  background: linear-gradient(#172131, #111925);
+  color: #f3f7ff;
+  border-color: #2c394d;
+  box-shadow: 0 2px 8px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.035);
+}
+body.theme-modern-dark .room-banner,
+body.theme-modern-dark .pinned-message-item,
+body.theme-modern-dark .game-panel,
+body.theme-modern-dark .staff-tools-menu {
+  background: rgba(15,21,30,.96);
+  border-color: #2c394d;
+}
+
+/* =====================================================
+   NIGHT CLUB — NEON FLOOR
+   ===================================================== */
+body.theme-nightclub {
+  --bg: #05000b;
+  --window-bg: #0d0716;
+  --text: #f7efff;
+  --muted: #b69bc8;
+  --border: #43255a;
+  --surface: #10081a;
+  --surface-2: #160b22;
+  --accent: #ff3bd4;
+  --accent-strong: #62e8ff;
+  --radius: 16px;
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, Arial, sans-serif;
+  background:
+    radial-gradient(circle at 13% 18%, rgba(0,225,255,.22), transparent 23%),
+    radial-gradient(circle at 83% 16%, rgba(255,0,190,.26), transparent 25%),
+    radial-gradient(circle at 52% 95%, rgba(111,40,255,.25), transparent 30%),
+    #05000b;
+}
+body.theme-nightclub::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 0 43%, rgba(0,229,255,.07) 44% 45%, transparent 46%),
+    linear-gradient(65deg, transparent 0 56%, rgba(255,0,187,.07) 57% 58%, transparent 59%);
+}
+body.theme-nightclub .app-window {
+  border-color: #5b2b75;
+  box-shadow: 0 0 32px rgba(255,0,198,.13), 0 30px 90px rgba(0,0,0,.62);
+}
+body.theme-nightclub .titlebar,
+body.theme-nightclub .modal-titlebar {
+  background: linear-gradient(90deg, #160827, #341044 50%, #0b2935);
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  text-shadow: 0 0 12px rgba(255,67,217,.65);
+}
+body.theme-nightclub .chat-toolbar,
+body.theme-nightclub .format-toolbar,
+body.theme-nightclub .chat-sidebar { background: rgba(24,10,35,.92); }
+body.theme-nightclub .chat-messages {
+  background:
+    linear-gradient(rgba(255,255,255,.012), rgba(255,255,255,.012)),
+    #09050f;
+}
+body.theme-nightclub .chat-line:hover { background: rgba(255,57,212,.07); }
+body.theme-nightclub .chat-user { text-shadow: 0 0 8px currentColor; }
+body.theme-nightclub button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab) {
+  color: #fff;
+  border-color: #623578;
+  background: linear-gradient(180deg, #2a1239, #160b21);
+  box-shadow: inset 0 1px rgba(255,255,255,.05), 0 0 9px rgba(255,59,212,.08);
+}
+body.theme-nightclub .admin-announcement,
+body.theme-nightclub .room-banner,
+body.theme-nightclub .pinned-message-item,
+body.theme-nightclub .game-panel {
+  background: linear-gradient(135deg, rgba(255,0,187,.10), rgba(0,226,255,.06)), #10081a;
+  border-color: #6a357d;
+  box-shadow: inset 4px 0 0 #ff3bd4;
+}
+
+/* =====================================================
+   PRO WRESTLING — MAIN EVENT ARENA
+   ===================================================== */
+body.theme-wrestling {
+  --bg: #090909;
+  --window-bg: #161616;
+  --text: #f7f2e8;
+  --muted: #b5aa9c;
+  --border: #57452d;
+  --surface: #1b1a18;
+  --surface-2: #24211c;
+  --accent: #d5232a;
+  --accent-strong: #f1b52c;
+  --radius: 8px;
+  color-scheme: dark;
+  font-family: Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(ellipse at top, rgba(255,210,105,.18), transparent 32%),
+    repeating-linear-gradient(90deg, #070707 0 60px, #0d0d0d 60px 62px);
+}
+body.theme-wrestling .app-window {
+  border: 2px solid #765b31;
+  box-shadow: 0 0 0 4px #090909, 0 28px 90px rgba(0,0,0,.68);
+}
+body.theme-wrestling .titlebar,
+body.theme-wrestling .modal-titlebar {
+  background: linear-gradient(90deg, #9f1117, #1b1b1b 32% 68%, #9f1117);
+  color: #fff2c3;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  border-bottom: 3px solid #d5a637;
+}
+body.theme-wrestling .chat-layout {
+  border-color: #d7b25d;
+  box-shadow: inset 0 3px 0 #c71920, inset 0 -3px 0 #c71920;
+}
+body.theme-wrestling .chat-toolbar,
+body.theme-wrestling .format-toolbar,
+body.theme-wrestling .chat-sidebar { background: #201d19; }
+body.theme-wrestling .chat-messages { background: #151412; }
+body.theme-wrestling button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab) {
+  border: 1px solid #785d32;
+  background: linear-gradient(#342b1e, #191714);
+  color: #fff3c8;
+  text-transform: uppercase;
+  font-weight: 900;
+}
+body.theme-wrestling .admin-announcement::before { content: "🎤 PROMO  "; }
+body.theme-wrestling .game-panel,
+body.theme-wrestling .room-banner,
+body.theme-wrestling .pinned-message-item {
+  border: 2px solid #aa842f;
+  background: #1c1915;
+  box-shadow: inset 5px 0 0 #c71d24;
+}
+
+/* =====================================================
+   SUPERHERO — WATCHTOWER NETWORK
+   ===================================================== */
+body.theme-superhero {
+  --bg: #071126;
+  --window-bg: #f8f3e7;
+  --text: #111b31;
+  --muted: #667089;
+  --border: #243b70;
+  --surface: #fffdf7;
+  --surface-2: #e9edf6;
+  --accent: #d3232a;
+  --accent-strong: #173d8f;
+  --radius: 10px;
+  font-family: "Trebuchet MS", Arial, sans-serif;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255,211,69,.10) 0 3px, transparent 4px),
+    linear-gradient(140deg, #06132c, #102a55 60%, #070e20);
+  background-size: 24px 24px, auto;
+}
+body.theme-superhero .app-window {
+  border: 3px solid #f1c93f;
+  box-shadow: 8px 8px 0 #0a1835, 0 30px 80px rgba(0,0,0,.45);
+}
+body.theme-superhero .titlebar,
+body.theme-superhero .modal-titlebar {
+  background: linear-gradient(105deg, #173b84 0 58%, #c71922 58% 80%, #e2b92e 80%);
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  text-shadow: 2px 2px 0 rgba(0,0,0,.26);
+}
+body.theme-superhero .chat-toolbar { border-bottom: 4px solid #d5b333; }
+body.theme-superhero .chat-sidebar { background: #e6ecf7; }
+body.theme-superhero .chat-line { border-left: 3px solid transparent; }
+body.theme-superhero .chat-line:hover { border-left-color: #d3232a; background: #fff8df; }
+body.theme-superhero button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab) {
+  border: 2px solid #173b84;
+  background: #fff;
+  color: #142650;
+  font-weight: 900;
+  box-shadow: 2px 2px 0 #e1ba31;
+}
+body.theme-superhero .admin-announcement,
+body.theme-superhero .game-panel,
+body.theme-superhero .room-banner,
+body.theme-superhero .pinned-message-item {
+  background: #fff7d6;
+  border: 2px solid #183b82;
+  box-shadow: 4px 4px 0 rgba(211,35,42,.85);
+}
+
+/* =====================================================
+   GODZILLA — TOKYO KAIJU ALERT
+   ===================================================== */
+body.theme-godzilla {
+  --bg: #040806;
+  --window-bg: #101510;
+  --text: #e4f2df;
+  --muted: #8ca08c;
+  --border: #334636;
+  --surface: #111912;
+  --surface-2: #19221a;
+  --accent: #75d43b;
+  --accent-strong: #a7ff5a;
+  --radius: 5px;
+  color-scheme: dark;
+  font-family: "Arial Narrow", Impact, Arial, sans-serif;
+  background:
+    linear-gradient(to top, rgba(3,14,7,.95), rgba(4,8,6,.85)),
+    repeating-linear-gradient(90deg, #0b120d 0 32px, #111a12 32px 34px);
+}
+body.theme-godzilla::before {
+  content: "⚠ KAIJU EMERGENCY ⚠";
+  position: fixed;
+  left: 20px;
+  bottom: 12px;
+  color: rgba(154,255,87,.18);
+  font-weight: 900;
+  letter-spacing: .18em;
+  pointer-events: none;
+}
+body.theme-godzilla .app-window {
+  border: 1px solid #526a50;
+  box-shadow: 0 0 42px rgba(118,220,61,.10), 0 28px 80px rgba(0,0,0,.7);
+}
+body.theme-godzilla .titlebar,
+body.theme-godzilla .modal-titlebar {
+  background:
+    repeating-linear-gradient(135deg, rgba(0,0,0,.20) 0 8px, transparent 8px 16px),
+    linear-gradient(90deg, #1a2f19, #0c150d);
+  color: #baff7e;
+  border-bottom: 2px solid #6b9f47;
+  text-transform: uppercase;
+  letter-spacing: .11em;
+  text-shadow: 0 0 10px rgba(122,255,65,.35);
+}
+body.theme-godzilla .chat-toolbar,
+body.theme-godzilla .format-toolbar,
+body.theme-godzilla .chat-sidebar { background: #172019; }
+body.theme-godzilla .chat-messages {
+  background:
+    repeating-linear-gradient(0deg, rgba(154,255,87,.018) 0 1px, transparent 1px 4px),
+    #0d130e;
+}
+body.theme-godzilla button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab) {
+  border-radius: 3px;
+  border: 1px solid #536d4e;
+  background: #1b251c;
+  color: #dbf7cf;
+  box-shadow: none;
+  text-transform: uppercase;
+}
+body.theme-godzilla .admin-announcement,
+body.theme-godzilla .room-banner,
+body.theme-godzilla .pinned-message-item,
+body.theme-godzilla .game-panel {
+  background: #131c14;
+  border-color: #719451;
+  box-shadow: inset 5px 0 0 #83dc49;
+}
+body.theme-godzilla .boss-card { border-color: #84c95a; }
+
+/* =====================================================
+   OFF-WHITE NEUMORPHISM — SOFT UI
+   ===================================================== */
+body.theme-neumorph {
+  --bg: #e6e3dc;
+  --window-bg: #e9e6df;
+  --text: #31343a;
+  --muted: #7c7f84;
+  --border: rgba(167,162,151,.42);
+  --surface: #e9e6df;
+  --surface-2: #e9e6df;
+  --accent: #7788a0;
+  --accent-strong: #53657d;
+  --radius: 28px;
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #e6e3dc;
+}
+body.theme-neumorph .app-window {
+  border: 0;
+  background: #e9e6df;
+  box-shadow: 18px 18px 38px #c8c5bf, -18px -18px 38px #ffffff;
+}
+body.theme-neumorph .titlebar,
+body.theme-neumorph .modal-titlebar {
+  background: #e9e6df;
+  color: #363a41;
+  border-bottom: 0;
+  box-shadow: inset 0 -1px rgba(120,120,120,.08);
+}
+body.theme-neumorph .version-badge { background: #dedbd5; }
+body.theme-neumorph .chat-toolbar,
+body.theme-neumorph .chat-sidebar,
+body.theme-neumorph .format-toolbar,
+body.theme-neumorph .chat-statusbar { background: #e9e6df; }
+body.theme-neumorph .chat-layout,
+body.theme-neumorph .room-banner,
+body.theme-neumorph .pinned-message-item,
+body.theme-neumorph .game-panel,
+body.theme-neumorph .modal-window,
+body.theme-neumorph .staff-tools-menu {
+  border: 0;
+  background: #e9e6df;
+  box-shadow: inset 5px 5px 12px #d4d1ca, inset -5px -5px 12px #ffffff;
+}
+body.theme-neumorph .chat-messages,
+body.theme-neumorph input,
+body.theme-neumorph textarea,
+body.theme-neumorph select {
+  border: 0;
+  background: #e9e6df;
+  color: #31343a;
+  box-shadow: inset 4px 4px 9px #d3d0ca, inset -4px -4px 9px #ffffff;
+}
+body.theme-neumorph button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab) {
+  border: 0;
+  background: #e9e6df;
+  color: #343840;
+  box-shadow: 5px 5px 10px #cac7c1, -5px -5px 10px #ffffff;
+}
+body.theme-neumorph button:not(.version-badge):active {
+  box-shadow: inset 3px 3px 7px #cac7c1, inset -3px -3px 7px #ffffff;
+}
+
+/* =====================================================
+   MOVIE THEATER — SCREEN ONE
+   ===================================================== */
+body.theme-cinema {
+  --bg: #090506;
+  --window-bg: #160d10;
+  --text: #f5ead7;
+  --muted: #b39f88;
+  --border: #6f4a31;
+  --surface: #171012;
+  --surface-2: #241418;
+  --accent: #d4ad55;
+  --accent-strong: #f0cb70;
+  --radius: 12px;
+  color-scheme: dark;
+  font-family: Georgia, "Times New Roman", serif;
+  background:
+    radial-gradient(ellipse at 50% -10%, rgba(255,226,156,.16), transparent 34%),
+    linear-gradient(90deg, #160508, #050304 15% 85%, #160508);
+}
+body.theme-cinema::before,
+body.theme-cinema::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 9vw;
+  min-width: 36px;
+  pointer-events: none;
+  background: repeating-linear-gradient(90deg, #3c0912 0 15px, #5a101b 15px 30px);
+  opacity: .45;
+}
+body.theme-cinema::before { left: 0; }
+body.theme-cinema::after { right: 0; }
+body.theme-cinema .app-window {
+  border: 1px solid #8a683d;
+  box-shadow: 0 30px 100px rgba(0,0,0,.74), 0 0 35px rgba(225,184,96,.08);
+}
+body.theme-cinema .titlebar,
+body.theme-cinema .modal-titlebar {
+  background: linear-gradient(#3e0b14, #22070d);
+  color: #f7d983;
+  border-bottom: 2px solid #a77a36;
+  text-align: center;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+body.theme-cinema .chat-toolbar,
+body.theme-cinema .format-toolbar,
+body.theme-cinema .chat-sidebar { background: #211317; }
+body.theme-cinema .chat-messages {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,255,240,.055), transparent 45%),
+    #0d0c0c;
+  box-shadow: inset 0 0 40px rgba(0,0,0,.55);
+}
+body.theme-cinema button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab) {
+  border: 1px solid #7b5b36;
+  background: linear-gradient(#34221b, #1b1211);
+  color: #f3ddaa;
+  box-shadow: inset 0 1px rgba(255,255,255,.04);
+  font-family: Georgia, "Times New Roman", serif;
+}
+body.theme-cinema .admin-announcement::before { content: "NOW SHOWING  "; color: #e8c267; }
+body.theme-cinema .room-banner,
+body.theme-cinema .pinned-message-item,
+body.theme-cinema .game-panel {
+  border: 1px solid #9b763d;
+  background: #1d1214;
+  box-shadow: inset 0 0 20px rgba(213,171,84,.04);
+}
+
+/* =====================================================
+   COFFEE SHOP v2 — A REAL CAFE, NOT A BEIGE SKIN
+   ===================================================== */
+body.theme-coffee {
+  --bg: #241915;
+  --window-bg: #f4eadb;
+  --text: #30251f;
+  --muted: #7d695c;
+  --border: #b99a7a;
+  --surface: #fff9ee;
+  --surface-2: #ead7bf;
+  --accent: #2f604d;
+  --accent-strong: #1f4939;
+  --radius: 16px;
+  font-family: Georgia, "Times New Roman", serif;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(214,158,92,.15), transparent 23%),
+    repeating-linear-gradient(90deg, #211713 0 46px, #2c1d18 46px 48px);
+}
+body.theme-coffee .app-window {
+  border: 2px solid #6d4a35;
+  background: #f2e6d5;
+  box-shadow: 0 28px 80px rgba(20,11,7,.55), inset 0 1px rgba(255,255,255,.65);
+}
+body.theme-coffee .titlebar,
+body.theme-coffee .modal-titlebar {
+  background:
+    linear-gradient(90deg, transparent 0 8%, rgba(255,255,255,.08) 8% 16%, transparent 16% 24%, rgba(255,255,255,.08) 24% 32%, transparent 32%),
+    linear-gradient(#315a47, #244535);
+  color: #fff6df;
+  border-bottom: 4px solid #d1a865;
+  letter-spacing: .05em;
+}
+body.theme-coffee .titlebar-copy::before { content: "☕"; font-size: 18px; }
+body.theme-coffee .chat-toolbar,
+body.theme-coffee .format-toolbar,
+body.theme-coffee .chat-statusbar {
+  background: #e2c8a7;
+  border-color: #b18a66;
+}
+body.theme-coffee .chat-sidebar {
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,.035), transparent 22%),
+    #274536;
+  color: #f7efd9;
+  border-left-color: #1e382b;
+}
+body.theme-coffee .chat-sidebar .small,
+body.theme-coffee .chat-sidebar-title,
+body.theme-coffee .presence-status-text { color: #e4d7bc; }
+body.theme-coffee .chat-sidebar button { color: inherit; }
+body.theme-coffee .chat-messages {
+  background:
+    repeating-linear-gradient(0deg, transparent 0 31px, rgba(119,87,56,.07) 31px 32px),
+    linear-gradient(90deg, rgba(177,120,77,.08) 0 2px, transparent 2px),
+    #fffaf0;
+  background-size: auto, 100% 100%, auto;
+}
+body.theme-coffee .chat-line {
+  border-radius: 7px;
+  border-bottom: 1px solid rgba(115,81,53,.08);
+}
+body.theme-coffee .chat-line:hover { background: rgba(223,188,137,.17); }
+body.theme-coffee .chat-user { color: #315b47; }
+body.theme-coffee button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab) {
+  border: 1px solid #a98260;
+  background: linear-gradient(#fff9ec, #ead8be);
+  color: #38281f;
+  box-shadow: 0 2px 0 #9a7555, inset 0 1px rgba(255,255,255,.7);
+  font-family: Georgia, "Times New Roman", serif;
+}
+body.theme-coffee input,
+body.theme-coffee textarea,
+body.theme-coffee select {
+  border-color: #b79472;
+  background: #fffaf0;
+  color: #30251f;
+}
+body.theme-coffee .room-banner,
+body.theme-coffee .pinned-message-item,
+body.theme-coffee .game-panel {
+  border: 1px solid #9f7a59;
+  background:
+    linear-gradient(rgba(255,255,255,.5), rgba(255,255,255,.1)),
+    #f7e7cc;
+  box-shadow: inset 4px 0 0 #315b47, 0 2px 7px rgba(76,48,30,.08);
+}
+body.theme-coffee .room-banner::before { content: "HOUSE BOARD  "; font-weight: 900; color: #315b47; }
+body.theme-coffee .pinned-label { color: #714a31; }
+body.theme-coffee .game-panel-title { color: #315b47; }
+body.theme-coffee .staff-tools-menu {
+  background: #f2e2cb;
+  border-color: #9e7857;
+}

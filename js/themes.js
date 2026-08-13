@@ -1,7 +1,8 @@
-import { APP_VERSION } from "./config.js?v=0.14.0";
+import { APP_VERSION } from "./config.js?v=0.15.0";
 
 const CLIENTS = {
   modern: { name: "DRK Modern", bodyClass: "theme-modern", title: "DRK CHAT", online: "ONLINE", send: "SEND", clear: "CLEAR SCREEN", clearRoom: "CLEAR ROOM", leave: "LEAVE" },
+  modernDark: { name: "DRK Modern Dark", bodyClass: "theme-modern-dark", title: "DRK CHAT // DARK", online: "ONLINE", send: "SEND", clear: "CLEAR SCREEN", clearRoom: "CLEAR ROOM", leave: "LEAVE" },
   aol90: { name: "Acirema Online", bodyClass: "theme-aol90", title: "Acirema Online - Chatroom", online: "PEOPLE HERE", send: "SEND", clear: "CLEAR MY SCREEN", clearRoom: "CLEAR ROOM HISTORY", leave: "LEAVE ROOM" },
   terminal: { name: "Phosphor", bodyClass: "theme-terminal", title: "PHOSPHOR IRC", online: "WHO", send: "TRANSMIT", clear: "CLEAR LOCAL", clearRoom: "PURGE ROOM", leave: "/PART" },
   future: { name: "One More Thing", bodyClass: "theme-future", title: "DRK FUTURE", online: "PEOPLE", send: "SEND", clear: "CLEAR VIEW", clearRoom: "CLEAR CONVERSATION", leave: "LEAVE" },
@@ -12,7 +13,13 @@ const CLIENTS = {
   cartoon80: { name: "80s Cartoon", bodyClass: "theme-cartoon80", title: "SATURDAY POWER CHAT", online: "HEROES", send: "BLAST IT!", clear: "CLEAR FRAME", clearRoom: "RESET EPISODE", leave: "ROLL CREDITS" },
   vhs: { name: "VHS Horror", bodyClass: "theme-vhs", title: "CHANNEL 13 // AFTER MIDNIGHT", online: "STILL HERE", send: "TRANSMIT", clear: "ERASE TAPE", clearRoom: "WIPE TAPE", leave: "STOP TAPE" },
   newsroom: { name: "Newsroom", bodyClass: "theme-newsroom", title: "DRK NEWS NETWORK", online: "NEWS DESK", send: "FILE", clear: "CLEAR WIRE", clearRoom: "CLEAR ARCHIVE", leave: "SIGN OFF" },
-  coffee: { name: "Coffee Shop", bodyClass: "theme-coffee", title: "THE COMMON CUP", online: "IN THE SHOP", send: "SEND", clear: "CLEAR TABLE", clearRoom: "CLOSE TAB", leave: "HEAD OUT" }
+  coffee: { name: "Coffee Shop", bodyClass: "theme-coffee", title: "THE COMMON CUP // COMMUNITY CAFE", online: "REGULARS", send: "SEND", clear: "CLEAR TABLE", clearRoom: "CLOSE TAB", leave: "HEAD OUT" },
+  nightclub: { name: "Night Club", bodyClass: "theme-nightclub", title: "AFTERDARK // MAIN FLOOR", online: "ON THE FLOOR", send: "DROP IT", clear: "CLEAR FLOOR", clearRoom: "RESET NIGHT", leave: "STEP OUT" },
+  wrestling: { name: "Pro Wrestling", bodyClass: "theme-wrestling", title: "MAIN EVENT // LIVE", online: "ROSTER", send: "CUT PROMO", clear: "CLEAR RING", clearRoom: "RESET ARENA", leave: "EXIT RING" },
+  superhero: { name: "Superhero", bodyClass: "theme-superhero", title: "HERO NETWORK // WATCHTOWER", online: "HEROES ACTIVE", send: "TRANSMIT", clear: "CLEAR FEED", clearRoom: "RESET CITY", leave: "STAND DOWN" },
+  godzilla: { name: "Godzilla", bodyClass: "theme-godzilla", title: "GODZILLA // TOKYO ALERT", online: "SURVIVORS", send: "BROADCAST", clear: "CLEAR RADIO", clearRoom: "RESET ALERT", leave: "EVACUATE" },
+  neumorph: { name: "Off-White Neumorphism", bodyClass: "theme-neumorph", title: "SOFTSPACE", online: "PRESENT", send: "SEND", clear: "CLEAR", clearRoom: "CLEAR ROOM", leave: "LEAVE" },
+  cinema: { name: "Movie Theater", bodyClass: "theme-cinema", title: "DRK CINEMA // SCREEN ONE", online: "AUDIENCE", send: "WHISPER", clear: "CLEAR SCREEN", clearRoom: "END SHOWING", leave: "EXIT THEATER" }
 };
 
 const CLIENT_CODES = {
@@ -27,7 +34,14 @@ const CLIENT_CODES = {
   RADICAL: "cartoon80", SATURDAY: "cartoon80",
   TRACKING: "vhs", VHSHORROR: "vhs",
   BREAKING: "newsroom", NEWSROOM: "newsroom",
-  LATTE: "coffee", COFFEESHOP: "coffee"
+  LATTE: "coffee", COFFEESHOP: "coffee",
+  MIDNIGHT: "modernDark", DARKMODE: "modernDark",
+  NIGHTLIFE: "nightclub", CLUBNIGHT: "nightclub",
+  MAIN_EVENT: "wrestling", RINGBELL: "wrestling",
+  HEROUP: "superhero", WATCHTOWER: "superhero",
+  KAIJU: "godzilla", ATOMICBREATH: "godzilla",
+  SOFTUI: "neumorph", NEUMORPH: "neumorph",
+  FEATURE: "cinema", MOVIENIGHT: "cinema"
 };
 
 const THEME_KEY = "chatroom_theme";
