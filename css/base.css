@@ -1927,7 +1927,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 
-/* v0.16.6 — minimalist cleanup */
+/* v0.16.7 — minimalist cleanup */
 .online-user-button,
 .chat-sidebar #onlineUsers > span,
 .chat-sidebar #onlineUsers > button {
@@ -1959,7 +1959,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 /* =====================================================
-   v0.16.6 — profiles + RPS
+   v0.16.7 — profiles + RPS
    ===================================================== */
 
 .profile-dialog {
@@ -2470,7 +2470,7 @@ body.theme-newsroom .werewolf-role-card {
   .rps-choice-row button { min-width: 0; flex: 1 1 90px; }
 }
 
-/* v0.16.6 avatar builder expansion */
+/* v0.16.7 avatar builder expansion */
 .avatar-earring-control {
   display: grid !important;
   grid-template-columns: 1fr;
@@ -2484,7 +2484,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 /* =====================================================
-   v0.16.6 — admin room effects
+   v0.16.7 — admin room effects
    ===================================================== */
 .effects-menu-wrap {
   position: relative;
@@ -2495,9 +2495,15 @@ body.theme-newsroom .werewolf-role-card {
   white-space: nowrap;
 }
 
+/* Open toward the room instead of extending left past the bottom-action area. */
+.chat-bottom-actions {
+  overflow: visible;
+}
+
 .effects-menu {
   position: absolute;
-  right: 0;
+  left: 0;
+  right: auto;
   bottom: calc(100% + 8px);
   z-index: 6200;
   width: min(440px, calc(100vw - 28px));

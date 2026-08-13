@@ -1,6 +1,6 @@
-import { apiFetch } from "./api.js?v=0.16.6";
-import { state } from "./state.js?v=0.16.6";
-import { openMemberByUsername } from "./admin.js?v=0.16.6";
+import { apiFetch } from "./api.js?v=0.16.7";
+import { state } from "./state.js?v=0.16.7";
+import { openMemberByUsername } from "./admin.js?v=0.16.7";
 
 const el = (id) => document.getElementById(id);
 let activeProfile = null;
