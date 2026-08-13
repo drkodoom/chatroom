@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.16.7";
-import { apiFetch } from "./api.js?v=0.16.7";
-import { getToken, state } from "./state.js?v=0.16.7";
-import { openMemberByUsername } from "./admin.js?v=0.16.7";
-import { openProfileByUsername } from "./profile.js?v=0.16.7";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.16.7";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.16.8";
+import { apiFetch } from "./api.js?v=0.16.8";
+import { getToken, state } from "./state.js?v=0.16.8";
+import { openMemberByUsername } from "./admin.js?v=0.16.8";
+import { openProfileByUsername } from "./profile.js?v=0.16.8";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.16.8";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -438,6 +438,7 @@ function renderOnlineUsers(users) {
       container.appendChild(clearStatus);
     }
   });
+  if (isAdmin()) populateEffectsTargets();
 }
 
 function handleSystemEvent(data) {
@@ -657,22 +658,17 @@ function populateEffectsTargets() {
   if ([...select.options].some((option) => option.value === current)) select.value = current;
 }
 
-function openEffectsDialog() {
+function initializeEffectsDock() {
   if (!isAdmin()) return;
   populateEffectsTargets();
   el("effectsMessage").textContent = "";
-  el("effectsMenu").classList.remove("hidden");
-  el("adminEffectsButton").setAttribute("aria-expanded", "true");
 }
 
-function closeEffectsDialog() {
-  el("effectsMenu").classList.add("hidden");
-  el("adminEffectsButton").setAttribute("aria-expanded", "false");
-}
-
-function toggleEffectsDialog() {
-  if (el("effectsMenu").classList.contains("hidden")) openEffectsDialog();
-  else closeEffectsDialog();
+function toggleEffectsDock() {
+  const body = el("effectsMenu");
+  const collapsed = body.classList.toggle("hidden");
+  el("effectsDialogCancel").textContent = collapsed ? "+" : "−";
+  el("effectsDialogCancel").setAttribute("aria-label", collapsed ? "Expand room effects" : "Collapse room effects");
 }
 
 function stopRoomEffectsLocal() {
@@ -1754,6 +1750,7 @@ function togglePresenceControls() {
   const nextOpen = el("presenceControls").classList.contains("hidden");
   localStorage.setItem("chatroom_presence_open", nextOpen ? "1" : "0");
   applyPresenceControlsPreference();
+  initializeEffectsDock();
 }
 
 function toggleFormat(key) {
@@ -1825,15 +1822,7 @@ export function initChatUI() {
   el("clearRoomButton").addEventListener("click", clearRoomHistory);
   el("adminModeratorButton").addEventListener("click", manageModerator);
   el("adminConfettiButton").addEventListener("click", launchConfetti);
-  el("adminEffectsButton").addEventListener("click", toggleEffectsDialog);
-  el("effectsDialogCancel").addEventListener("click", closeEffectsDialog);
-  document.addEventListener("click", (event) => {
-    const wrap = el("effectsMenuWrap");
-    if (!el("effectsMenu").classList.contains("hidden") && wrap && !wrap.contains(event.target)) closeEffectsDialog();
-  });
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !el("effectsMenu").classList.contains("hidden")) closeEffectsDialog();
-  });
+  el("effectsDialogCancel").addEventListener("click", toggleEffectsDock);
   el("effectsMenu").querySelectorAll("[data-room-effect]").forEach((button) => button.addEventListener("click", () => sendAdminEffect(button.dataset.roomEffect)));
   el("stopEffectsButton").addEventListener("click", stopRoomEffectsForEveryone);
   el("adminIdentityButton").addEventListener("click", openAdminIdentity);
@@ -1910,4 +1899,5 @@ export function initChatUI() {
   applyTimestampsPreference();
   applyFormatToolbarPreference();
   applyPresenceControlsPreference();
+  initializeEffectsDock();
 }

@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0b0f17">
   <title>DRK.CHAT</title>
-  <link rel="stylesheet" href="./css/base.css?v=0.16.7">
-  <link rel="stylesheet" href="./css/themes.css?v=0.16.7">
+  <link rel="stylesheet" href="./css/base.css?v=0.16.8">
+  <link rel="stylesheet" href="./css/themes.css?v=0.16.8">
 </head>
 <body class="theme-modern">
   <main class="app-window" id="appWindow">
     <header class="titlebar">
       <div class="titlebar-copy">
         <span id="clientTitle">DRK CHAT</span>
-        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.16.7</button>
+        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.16.8</button>
       </div>
       <span class="classic-window-controls aol-only" aria-hidden="true">[_][□][X]</span>
     </header>
@@ -340,6 +340,35 @@
               <input id="presenceStatusText" maxlength="80" placeholder="Optional status message">
               <button id="updatePresenceButton" type="button">UPDATE STATUS</button>
             </div>
+
+            <section id="effectsMenuWrap" class="effects-dock hidden admin-chat-action" aria-label="Room effects">
+              <div class="effects-dock-head">
+                <strong>ROOM EFFECTS</strong>
+                <button id="effectsDialogCancel" type="button" class="effects-dock-collapse" aria-label="Collapse room effects">−</button>
+              </div>
+              <div id="effectsMenu" class="effects-dock-body">
+                <select id="effectsTargetSelect" aria-label="Target member"><option value="">Target: everyone</option></select>
+                <input id="effectsMessageInput" maxlength="180" placeholder="Broadcast message (optional)" aria-label="Broadcast message">
+                <div class="effects-grid effects-grid-scroll">
+                  <button type="button" data-room-effect="police_lights">POLICE</button>
+                  <button type="button" data-room-effect="spotlight">SPOTLIGHT</button>
+                  <button type="button" data-room-effect="glitch">GLITCH</button>
+                  <button type="button" data-room-effect="earthquake">QUAKE</button>
+                  <button type="button" data-room-effect="fireworks">FIREWORKS</button>
+                  <button type="button" data-room-effect="hearts">HEARTS</button>
+                  <button type="button" data-room-effect="emergency">EMERGENCY</button>
+                  <button type="button" data-room-effect="boo">BOO</button>
+                  <button type="button" data-room-effect="victory">VICTORY</button>
+                  <button type="button" data-room-effect="wanted">WANTED</button>
+                  <button type="button" data-room-effect="jail">JAIL</button>
+                  <button type="button" data-room-effect="disco">DISCO</button>
+                  <button type="button" data-room-effect="godzilla">GODZILLA</button>
+                  <button type="button" data-room-effect="news">NEWS</button>
+                </div>
+                <div id="effectsMessage" class="message effects-dock-message"></div>
+                <button id="stopEffectsButton" type="button" class="effects-stop-button">STOP EFFECTS</button>
+              </div>
+            </section>
           </aside>
         </div>
 
@@ -354,37 +383,6 @@
         <div class="button-row chat-bottom-actions">
           <button id="leaveChatButton" type="button">LEAVE</button>
           <button id="chatLogoutButton" type="button">LOG OUT</button>
-          <div id="effectsMenuWrap" class="effects-menu-wrap hidden admin-chat-action">
-            <button id="adminEffectsButton" type="button" class="effects-menu-trigger" aria-expanded="false" aria-controls="effectsMenu">EFFECTS</button>
-            <div id="effectsMenu" class="effects-menu hidden" role="menu" aria-label="Room effects">
-              <div class="effects-menu-head">
-                <strong>ROOM EFFECTS</strong>
-                <button id="effectsDialogCancel" type="button" class="effects-menu-close" aria-label="Close effects menu">×</button>
-              </div>
-              <label for="effectsTargetSelect">Target member</label>
-              <select id="effectsTargetSelect"><option value="">Choose someone...</option></select>
-              <label for="effectsMessageInput">Broadcast message</label>
-              <textarea id="effectsMessageInput" maxlength="180" rows="2" placeholder="For Emergency / News"></textarea>
-              <div class="effects-grid">
-                <button type="button" data-room-effect="police_lights">POLICE LIGHTS</button>
-                <button type="button" data-room-effect="spotlight">SPOTLIGHT</button>
-                <button type="button" data-room-effect="glitch">GLITCH</button>
-                <button type="button" data-room-effect="earthquake">EARTHQUAKE</button>
-                <button type="button" data-room-effect="fireworks">FIREWORKS</button>
-                <button type="button" data-room-effect="hearts">HEARTS</button>
-                <button type="button" data-room-effect="emergency">EMERGENCY</button>
-                <button type="button" data-room-effect="boo">BOO / SHAME</button>
-                <button type="button" data-room-effect="victory">VICTORY AURA</button>
-                <button type="button" data-room-effect="wanted">WANTED</button>
-                <button type="button" data-room-effect="jail">JAIL</button>
-                <button type="button" data-room-effect="disco">DISCO</button>
-                <button type="button" data-room-effect="godzilla">GODZILLA</button>
-                <button type="button" data-room-effect="news">NEWS BULLETIN</button>
-              </div>
-              <div id="effectsMessage" class="message"></div>
-              <button id="stopEffectsButton" type="button" class="effects-stop-button">STOP EFFECTS</button>
-            </div>
-          </div>
         </div>
       </div>
     </section>
@@ -425,7 +423,7 @@
   </div>
 
 
-  <!-- v0.16.7 MEMBER PROFILE -->
+  <!-- v0.16.8 MEMBER PROFILE -->
   <div class="modal-overlay hidden" id="profileOverlay" role="dialog" aria-modal="true" aria-labelledby="profileDialogTitle">
     <div class="modal-window profile-dialog">
       <div class="modal-titlebar profile-modal-titlebar">
@@ -668,6 +666,6 @@
   <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
   <div id="roomEffectLayer" class="room-effect-layer" aria-hidden="true"></div>
 
-  <script type="module" src="./js/app.js?v=0.16.7"></script>
+  <script type="module" src="./js/app.js?v=0.16.8"></script>
 </body>
 </html>

@@ -1927,7 +1927,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 
-/* v0.16.7 — minimalist cleanup */
+/* v0.16.8 — minimalist cleanup */
 .online-user-button,
 .chat-sidebar #onlineUsers > span,
 .chat-sidebar #onlineUsers > button {
@@ -1959,7 +1959,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 /* =====================================================
-   v0.16.7 — profiles + RPS
+   v0.16.8 — profiles + RPS
    ===================================================== */
 
 .profile-dialog {
@@ -2470,7 +2470,7 @@ body.theme-newsroom .werewolf-role-card {
   .rps-choice-row button { min-width: 0; flex: 1 1 90px; }
 }
 
-/* v0.16.7 avatar builder expansion */
+/* v0.16.8 avatar builder expansion */
 .avatar-earring-control {
   display: grid !important;
   grid-template-columns: 1fr;
@@ -2484,7 +2484,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 /* =====================================================
-   v0.16.7 — admin room effects
+   v0.16.8 — admin room effects
    ===================================================== */
 .effects-menu-wrap {
   position: relative;
@@ -2777,4 +2777,115 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 .room-effect-target.target-boo {
   color: #ff5b67 !important;
   filter: grayscale(.35);
+}
+
+
+/* =====================================================
+   v0.16.8 — docked admin room effects
+   ===================================================== */
+.chat-sidebar {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#onlineUsers {
+  flex: 1 1 auto;
+  min-height: 80px;
+  overflow-y: auto;
+  padding-right: 3px;
+}
+
+.presence-controls {
+  flex: 0 0 auto;
+}
+
+.effects-dock {
+  flex: 0 0 auto;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--border);
+  min-height: 0;
+}
+
+.effects-dock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.effects-dock-collapse {
+  width: 24px !important;
+  min-width: 24px !important;
+  height: 24px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: grid !important;
+  place-items: center;
+  font-size: 14px !important;
+}
+
+.effects-dock-body {
+  display: grid;
+  gap: 6px;
+  min-height: 0;
+}
+
+.effects-dock-body select,
+.effects-dock-body input {
+  width: 100%;
+  min-width: 0;
+  margin: 0 !important;
+  padding: 6px 7px !important;
+  min-height: 30px;
+  font-size: 10px !important;
+}
+
+.effects-dock .effects-grid {
+  margin-top: 0;
+}
+
+.effects-grid-scroll {
+  max-height: 150px;
+  overflow-y: auto;
+  padding-right: 3px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.effects-grid-scroll button {
+  min-height: 28px;
+  padding: 4px 6px !important;
+  font-size: 9px !important;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.effects-dock-message {
+  margin: 0 !important;
+  min-height: 0;
+  font-size: 10px !important;
+}
+
+.effects-dock .effects-stop-button {
+  margin: 0 !important;
+  min-height: 30px;
+  padding: 5px 8px !important;
+  font-size: 9px !important;
+}
+
+/* Retire the old floating/drop-up menu rules. */
+.effects-menu-wrap,
+.effects-menu-trigger {
+  position: static;
+}
+
+@media (max-width: 700px) {
+  .chat-sidebar { display: none; }
 }
