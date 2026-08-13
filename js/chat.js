@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.16.3";
-import { apiFetch } from "./api.js?v=0.16.3";
-import { getToken, state } from "./state.js?v=0.16.3";
-import { openMemberByUsername } from "./admin.js?v=0.16.3";
-import { openProfileByUsername } from "./profile.js?v=0.16.3";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.16.3";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.16.4";
+import { apiFetch } from "./api.js?v=0.16.4";
+import { getToken, state } from "./state.js?v=0.16.4";
+import { openMemberByUsername } from "./admin.js?v=0.16.4";
+import { openProfileByUsername } from "./profile.js?v=0.16.4";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.16.4";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -143,6 +143,7 @@ function buildUsername(message) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "chat-user-button";
+  button.dataset.username = message.user;
   button.textContent = message.user;
   if (profile.nameColor) button.style.color = profile.nameColor;
   button.title = `View ${message.user}'s profile`;
@@ -384,6 +385,7 @@ function renderOnlineUsers(users) {
     name.type = "button";
     name.className = "online-user-button";
     name.addEventListener("click", () => openProfileByUsername(isOwnDisplayedUsername(user.username) ? state.currentUser.username : user.username));
+    name.dataset.username = user.username;
     name.textContent = user.username;
     if (user.nameColor) name.style.color = user.nameColor;
     row.appendChild(name);
@@ -635,6 +637,160 @@ function launchConfetti() {
   sendSocket({ type: "admin_confetti" });
 }
 
+const TARGETED_EFFECTS = new Set(["spotlight", "boo", "victory", "wanted", "jail"]);
+const MESSAGE_EFFECTS = new Set(["emergency", "news"]);
+let roomEffectTimer = null;
+
+function populateEffectsTargets() {
+  const select = el("effectsTargetSelect");
+  if (!select) return;
+  const current = select.value;
+  select.innerHTML = '<option value="">Choose someone...</option>';
+  (state.latestPresence || []).forEach((entry) => {
+    const username = typeof entry === "string" ? entry : entry?.username;
+    if (!username) return;
+    const option = document.createElement("option");
+    option.value = username;
+    option.textContent = username;
+    select.appendChild(option);
+  });
+  if ([...select.options].some((option) => option.value === current)) select.value = current;
+}
+
+function openEffectsDialog() {
+  if (!isAdmin()) return;
+  populateEffectsTargets();
+  el("effectsMessage").textContent = "";
+  el("effectsOverlay").classList.remove("hidden");
+}
+
+function closeEffectsDialog() {
+  el("effectsOverlay").classList.add("hidden");
+}
+
+function stopRoomEffectsLocal() {
+  clearTimeout(roomEffectTimer);
+  roomEffectTimer = null;
+  document.body.classList.remove("room-earthquake");
+  document.querySelectorAll(".room-effect-target").forEach((node) => {
+    node.classList.remove("room-effect-target", "target-victory", "target-wanted", "target-jail", "target-spotlight", "target-boo");
+  });
+  const layer = el("roomEffectLayer");
+  if (layer) {
+    layer.className = "room-effect-layer";
+    layer.innerHTML = "";
+  }
+}
+
+function addEffectCopy(layer, text) {
+  if (!text) return;
+  const copy = document.createElement("div");
+  copy.className = "effect-copy";
+  copy.textContent = text;
+  layer.appendChild(copy);
+}
+
+function addFallingParticles(layer, glyphs, count = 60) {
+  const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  const total = reduced ? Math.min(18, count) : count;
+  for (let i = 0; i < total; i += 1) {
+    const node = document.createElement("span");
+    node.className = "effect-particle";
+    node.textContent = glyphs[i % glyphs.length];
+    node.style.setProperty("--x", `${Math.random() * 100}vw`);
+    node.style.setProperty("--drift", `${(Math.random() * 30 - 15).toFixed(1)}vw`);
+    node.style.setProperty("--spin", `${Math.floor(Math.random() * 720 - 360)}deg`);
+    node.style.setProperty("--duration", `${(Math.random() * 2.4 + 2.6).toFixed(2)}s`);
+    node.style.setProperty("--delay", `${(Math.random() * .9).toFixed(2)}s`);
+    node.style.setProperty("--size", `${Math.floor(Math.random() * 20 + 18)}px`);
+    layer.appendChild(node);
+  }
+}
+
+function markRoomEffectTarget(target, effect) {
+  if (!target) return;
+  document.querySelectorAll("[data-username]").forEach((node) => {
+    if (String(node.dataset.username || "").toLowerCase() !== String(target).toLowerCase()) return;
+    node.classList.add("room-effect-target", `target-${effect}`);
+  });
+}
+
+function renderRoomEffect(effect, target = "", message = "", actor = "") {
+  stopRoomEffectsLocal();
+  const layer = el("roomEffectLayer");
+  if (!layer) return;
+  const label = target ? `${target}` : "";
+  const copyText = message || ({
+    spotlight: label ? `${label} is in the spotlight.` : "Spotlight!",
+    boo: label ? `BOOO! Shame on ${label}.` : "BOOO!",
+    victory: label ? `${label} gets the victory aura!` : "VICTORY!",
+    wanted: label || "WANTED",
+    jail: label ? `${label} has been sent to chat jail.` : "CHAT JAIL",
+    police_lights: "ROOM ALERT",
+    glitch: "",
+    earthquake: "",
+    fireworks: actor ? `${actor} launched fireworks!` : "FIREWORKS!",
+    hearts: actor ? `${actor} sent some love.` : "",
+    disco: "DISCO MODE",
+    godzilla: "EVACUATE THE CHATROOM",
+    emergency: "ATTENTION",
+    news: "BREAKING NEWS"
+  }[effect] || "");
+
+  layer.className = `room-effect-layer active effect-${effect}`;
+  markRoomEffectTarget(target, effect);
+
+  if (effect === "earthquake") {
+    document.body.classList.add("room-earthquake");
+    setTimeout(() => document.body.classList.remove("room-earthquake"), 2200);
+  } else if (effect === "fireworks") {
+    const colors = ["#ff375f", "#ffd60a", "#64d2ff", "#bf5af2", "#30d158"];
+    for (let i = 0; i < 24; i += 1) {
+      const burst = document.createElement("i");
+      burst.className = "effect-firework";
+      burst.style.setProperty("--x", `${10 + Math.random() * 80}%`);
+      burst.style.setProperty("--y", `${8 + Math.random() * 54}%`);
+      burst.style.setProperty("--c", colors[i % colors.length]);
+      burst.style.setProperty("--delay", `${(Math.random() * 2.8).toFixed(2)}s`);
+      layer.appendChild(burst);
+    }
+  } else if (effect === "hearts") {
+    addFallingParticles(layer, ["♥", "♡", "💗"], 72);
+  } else if (effect === "boo") {
+    addFallingParticles(layer, ["BOO!", "👎", "🍅"], 38);
+  } else if (effect === "victory") {
+    addFallingParticles(layer, ["★", "✦", "🏆"], 45);
+  }
+
+  addEffectCopy(layer, copyText);
+  const duration = ["disco"].includes(effect) ? 10000 : ["emergency", "news", "wanted", "jail", "spotlight", "victory"].includes(effect) ? 8000 : 5500;
+  roomEffectTimer = setTimeout(stopRoomEffectsLocal, duration);
+}
+
+function sendAdminEffect(effect) {
+  if (!isAdmin()) return;
+  const target = el("effectsTargetSelect").value.trim();
+  const message = el("effectsMessageInput").value.trim();
+  const messageBox = el("effectsMessage");
+  if (TARGETED_EFFECTS.has(effect) && !target) {
+    messageBox.className = "message error";
+    messageBox.textContent = "Choose a target member for that effect.";
+    return;
+  }
+  if (MESSAGE_EFFECTS.has(effect) && !message) {
+    messageBox.className = "message error";
+    messageBox.textContent = "Type a broadcast message first.";
+    return;
+  }
+  messageBox.textContent = "";
+  sendSocket({ type: "admin_effect", effect, target: target || null, message: message || null });
+}
+
+function stopRoomEffectsForEveryone() {
+  if (!isAdmin()) return;
+  sendSocket({ type: "admin_effect", effect: "stop" });
+}
+
 function connectChatSocket() {
   const token = getToken();
   if (!token || state.chatIntentionalClose) return;
@@ -788,6 +944,11 @@ function connectChatSocket() {
     }
     if (data.type === "confetti") {
       rainConfetti(data.actor || "");
+      return;
+    }
+    if (data.type === "room_effect") {
+      if (data.effect === "stop") stopRoomEffectsLocal();
+      else renderRoomEffect(data.effect || "", data.target || "", data.message || "", data.actor || "");
       return;
     }
     if (data.type === "admin_identity") {
@@ -1657,6 +1818,11 @@ export function initChatUI() {
   el("clearRoomButton").addEventListener("click", clearRoomHistory);
   el("adminModeratorButton").addEventListener("click", manageModerator);
   el("adminConfettiButton").addEventListener("click", launchConfetti);
+  el("adminEffectsButton").addEventListener("click", openEffectsDialog);
+  el("effectsDialogCancel").addEventListener("click", closeEffectsDialog);
+  el("effectsOverlay").addEventListener("click", (event) => { if (event.target === el("effectsOverlay")) closeEffectsDialog(); });
+  el("effectsOverlay").querySelectorAll("[data-room-effect]").forEach((button) => button.addEventListener("click", () => sendAdminEffect(button.dataset.roomEffect)));
+  el("stopEffectsButton").addEventListener("click", stopRoomEffectsForEveryone);
   el("adminIdentityButton").addEventListener("click", openAdminIdentity);
   el("staffNameColorButton").addEventListener("click", () => promptStaffNameColor());
   el("adminAnnouncementButton").addEventListener("click", sendAdminAnnouncement);
