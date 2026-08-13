@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0b0f17">
-  <title>DRKODOOM Chatroom v0.10.0</title>
+  <title>DRKODOOM Chatroom v0.13.0</title>
   <link rel="stylesheet" href="./css/base.css">
   <link rel="stylesheet" href="./css/themes.css">
 </head>
@@ -13,7 +13,7 @@
     <header class="titlebar">
       <div class="titlebar-copy">
         <span id="clientTitle">DRK CHAT</span>
-        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.10.0</button>
+        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.13.0</button>
       </div>
       <span class="classic-window-controls aol-only" aria-hidden="true">[_][□][X]</span>
     </header>
@@ -126,6 +126,7 @@
           <div id="adminWelcome" class="small"></div>
         </div>
         <div class="button-row admin-top-actions">
+          <button type="button" id="adminMyAccountButton">MY ACCOUNT</button>
           <button type="button" id="adminEnterChatButton">ENTER CHATROOM</button>
           <button type="button" id="adminLogoutButton">LOG OUT</button>
         </div>
@@ -133,6 +134,7 @@
 
       <nav class="admin-tabs" aria-label="Admin sections">
         <button type="button" class="admin-tab is-active" data-admin-tab="requests">ACCESS REQUESTS <span id="pendingCountBadge" class="count-badge">0</span></button>
+        <button type="button" class="admin-tab" data-admin-tab="namechanges">NAME CHANGES <span id="nameChangeCountBadge" class="count-badge">0</span></button>
         <button type="button" class="admin-tab" data-admin-tab="members">MEMBERS <span id="memberCountBadge" class="count-badge">0</span></button>
       </nav>
 
@@ -147,6 +149,17 @@
           <button type="button" id="refreshRequestsButton">REFRESH</button>
         </div>
         <div id="requestList" class="card-list"></div>
+      </section>
+
+      <section id="adminNameChangesPanel" class="admin-panel hidden">
+        <div class="section-heading-row">
+          <div>
+            <h2>Pending Name Changes</h2>
+            <p class="small">Approve or deny screen-name changes requested by existing members.</p>
+          </div>
+          <button type="button" id="refreshNameChangesButton">REFRESH</button>
+        </div>
+        <div id="nameChangeList" class="card-list"></div>
       </section>
 
       <section id="adminMembersPanel" class="admin-panel hidden">
@@ -186,8 +199,41 @@
           </div>
           <div class="button-row centered-row">
             <button id="memberEnterChatButton" type="button">ENTER CHATROOM</button>
+            <button id="memberNameChangeButton" type="button">REQUEST NAME CHANGE</button>
             <button id="memberLogoutButton" type="button">LOG OUT</button>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NAME CHANGE REQUEST -->
+    <section class="screen content hidden" id="nameChangeScreen">
+      <div class="form-shell">
+        <div class="form-card">
+          <p class="eyebrow">MEMBER SETTINGS</p>
+          <h1>Request Name Change</h1>
+          <p class="small">Your current screen name will stay active until an administrator approves the request.</p>
+
+          <div class="status-box name-change-current">
+            Current screen name: <strong id="currentScreenName">—</strong>
+          </div>
+
+          <form id="nameChangeForm" class="stack-form">
+            <label for="requestedScreenName">Requested Screen Name</label>
+            <input id="requestedScreenName" minlength="3" maxlength="24" autocomplete="off" required>
+            <p class="field-note">Letters, numbers, periods, underscores and hyphens only.</p>
+
+            <label for="nameChangeReason">Why would you like to change it? <span class="small">(optional)</span></label>
+            <textarea id="nameChangeReason" maxlength="300" placeholder="Optional note for the administrator"></textarea>
+
+            <div class="button-row centered-row">
+              <button id="submitNameChangeButton" type="submit">SUBMIT REQUEST</button>
+              <button id="nameChangeBackButton" type="button">BACK</button>
+            </div>
+          </form>
+
+          <div id="nameChangeMessage" class="message" aria-live="polite"></div>
+          <div id="nameChangeStatus" class="small name-change-status"></div>
         </div>
       </div>
     </section>
@@ -198,15 +244,66 @@
         <span class="classic-menu aol-only">File &nbsp; Edit &nbsp; People &nbsp; Rooms &nbsp; Help</span>
         <span class="non-aol-toolbar-label" id="clientNameStatus">DRK Modern</span>
         <div class="chat-toolbar-actions">
+          <button id="themeSwitcherButton" type="button">CHANGE THEME</button>
+          <button id="searchChatButton" type="button">SEARCH</button>
+          <button id="timestampsButton" type="button">TIMESTAMPS: OFF</button>
           <button id="clearScreenButton" type="button">CLEAR SCREEN</button>
-          <button id="clearRoomButton" type="button" class="hidden danger">CLEAR ROOM</button>
+          <button id="adminModeratorButton" type="button" class="hidden admin-chat-action">MODERATOR</button>
+          <button id="staffNameColorButton" type="button" class="hidden staff-chat-action">NAME COLOR</button>
+          <button id="adminAnnouncementButton" type="button" class="hidden staff-chat-action">ANNOUNCE</button>
+          <button id="startGameButton" type="button" class="hidden staff-chat-action">START GAME</button>
+          <button id="adminBannerButton" type="button" class="hidden admin-chat-action">ROOM BANNER</button>
+          <button id="adminSlowModeButton" type="button" class="hidden admin-chat-action">SLOW MODE</button>
+          <button id="adminLockRoomButton" type="button" class="hidden admin-chat-action">LOCK ROOM</button>
+          <button id="adminKickButton" type="button" class="hidden admin-chat-action">KICK USER</button>
+          <button id="clearRoomButton" type="button" class="hidden danger admin-chat-action">CLEAR ROOM</button>
         </div>
       </div>
 
       <div class="chat-shell">
+        <div id="roomBanner" class="room-banner hidden"></div>
+
+        <div id="pinnedMessagesBar" class="pinned-messages-bar hidden" aria-label="Pinned messages"></div>
+
+        <section id="gamePanel" class="game-panel hidden" aria-live="polite"></section>
+
+        <div id="chatSearchBar" class="chat-search-bar hidden">
+          <input id="chatSearchInput" type="search" placeholder="Search loaded messages..." autocomplete="off">
+          <span id="chatSearchCount" class="small"></span>
+          <button id="closeChatSearchButton" type="button">CLOSE</button>
+        </div>
+
         <div class="chat-layout">
           <div class="chat-main">
-            <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
+            <div class="chat-message-stage">
+              <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
+              <button id="newMessagesButton" class="new-messages-button hidden" type="button">NEW MESSAGES ↓</button>
+            </div>
+
+            <div id="typingIndicator" class="typing-indicator" aria-live="polite"></div>
+
+            <div id="replyPreview" class="reply-preview hidden">
+              <div>
+                <strong>Replying to <span id="replyPreviewUser"></span></strong>
+                <div id="replyPreviewText" class="small"></div>
+              </div>
+              <button id="cancelReplyButton" type="button">×</button>
+            </div>
+
+            <div class="format-toolbar" aria-label="Message formatting">
+              <button id="formatBoldButton" type="button" class="format-button" aria-pressed="false"><strong>B</strong></button>
+              <button id="formatItalicButton" type="button" class="format-button" aria-pressed="false"><em>I</em></button>
+              <button id="formatUnderlineButton" type="button" class="format-button" aria-pressed="false"><u>U</u></button>
+              <button id="formatStrikeButton" type="button" class="format-button" aria-pressed="false"><s>S</s></button>
+              <label class="format-color-control" for="formatColorInput">Text <input id="formatColorInput" type="color" value="#111111"></label>
+              <select id="formatSizeSelect" aria-label="Text size">
+                <option value="small">Small</option>
+                <option value="normal" selected>Normal</option>
+                <option value="large">Large</option>
+              </select>
+              <button id="resetFormatButton" type="button">RESET FORMAT</button>
+            </div>
+
             <form id="chatForm" class="chat-compose">
               <input id="chatInput" maxlength="1000" autocomplete="off" placeholder="Type a message..." disabled required>
               <button id="chatSendButton" type="submit" disabled>SEND</button>
@@ -216,14 +313,25 @@
           <aside class="chat-sidebar">
             <div class="chat-sidebar-title" id="onlineTitle">ONLINE</div>
             <div id="onlineUsers"><div class="small">Connecting...</div></div>
+            <div class="presence-controls">
+              <label for="presenceStatusSelect">Your status</label>
+              <select id="presenceStatusSelect">
+                <option value="online">Online</option>
+                <option value="away">Away</option>
+                <option value="busy">Busy</option>
+              </select>
+              <input id="presenceStatusText" maxlength="80" placeholder="Optional status message">
+              <button id="updatePresenceButton" type="button">UPDATE STATUS</button>
+            </div>
           </aside>
         </div>
 
         <div class="chat-statusbar">
           <div class="status-left">
             <span>#lobby</span>
+            <span id="roomModeStatus"></span>
             <span>•</span>
-            <button class="version-badge status-version" id="statusVersionBadge" type="button">v0.10.0</button>
+            <button class="version-badge status-version" id="statusVersionBadge" type="button">v0.13.0</button>
           </div>
           <span id="chatConnectionStatus" class="disconnected">Disconnected</span>
         </div>
@@ -239,10 +347,10 @@
   <!-- THEME / CLIENT CHEAT CODE DIALOG -->
   <div class="modal-overlay hidden" id="clientOverlay" role="dialog" aria-modal="true" aria-labelledby="clientDialogTitle">
     <div class="modal-window client-dialog">
-      <div class="modal-titlebar client-dialog-title" id="clientDialogTitle">DRK SYSTEM — ENTER CODE</div>
+      <div class="modal-titlebar client-dialog-title" id="clientDialogTitle">DRK SYSTEM — CLIENTS / THEMES</div>
       <div class="modal-content">
         <form id="clientCodeForm">
-          <label for="clientCodeInput">Access Code</label>
+          <label for="clientCodeInput">Enter a secret code to unlock another client</label>
           <input id="clientCodeInput" autocomplete="off" spellcheck="false">
           <div id="clientCodeMessage" class="message"></div>
           <div class="button-row centered-row">
@@ -251,8 +359,44 @@
           </div>
         </form>
         <div class="unlocked-clients">
-          <h3>Unlocked Clients</h3>
+          <h3>Available Themes</h3>
+          <p class="small">Switch between any theme you have already unlocked. Your choice is saved on this device.</p>
           <div id="clientList" class="client-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME SETUP DIALOG -->
+  <div class="modal-overlay hidden" id="gameOverlay" role="dialog" aria-modal="true" aria-labelledby="gameDialogTitle">
+    <div class="modal-window game-dialog">
+      <div class="modal-titlebar" id="gameDialogTitle">START A CHAT GAME</div>
+      <div class="modal-content">
+        <label for="gameTypeSelect">Game</label>
+        <select id="gameTypeSelect">
+          <option value="hangman">Hangman</option>
+          <option value="boss">D&amp;D-Style Boss Battle</option>
+        </select>
+
+        <div id="hangmanSetupFields">
+          <label for="hangmanPhraseInput">Secret word or phrase</label>
+          <input id="hangmanPhraseInput" maxlength="80" autocomplete="off" placeholder="Only the MOD / admin setting the game should know this">
+        </div>
+
+        <div id="bossSetupFields" class="hidden">
+          <label for="bossSelect">Boss</label>
+          <select id="bossSelect">
+            <option value="mad_dragon">Mad Dragon</option>
+            <option value="goblin_king">Goblin King</option>
+            <option value="evil_wizard">Evil Wizard</option>
+          </select>
+          <p class="field-note">Boss health scales with the number of people online. Every player attack is followed by a boss counterattack.</p>
+        </div>
+
+        <div id="gameSetupMessage" class="message"></div>
+        <div class="button-row centered-row">
+          <button id="gameStartConfirmButton" type="button">START GAME</button>
+          <button id="gameDialogCancel" type="button">CANCEL</button>
         </div>
       </div>
     </div>
@@ -265,8 +409,34 @@
       <div class="modal-content">
         <div id="memberDetailLoading" class="message">Loading member...</div>
         <div id="memberDetailContent" class="hidden"></div>
+        <div class="member-admin-tools hidden" id="memberAdminTools">
+          <label for="memberRenameInput">Change Screen Name</label>
+          <div class="inline-control-row">
+            <input id="memberRenameInput" minlength="3" maxlength="24" autocomplete="off">
+            <button id="memberRenameButton" type="button">CHANGE NAME</button>
+          </div>
+          <p class="field-note">Administrator changes take effect immediately in the account system. An online user will use the new name after reconnecting to chat.</p>
+
+          <div class="member-style-tools">
+            <h3>Chat Appearance</h3>
+            <p class="field-note">Only administrators can set a member's screen-name color or badge. Members cannot override these settings.</p>
+            <div class="member-style-grid">
+              <label for="memberNameColorInput">Screen-name color
+                <input id="memberNameColorInput" type="color" value="#3267FF">
+              </label>
+              <label for="memberBadgeInput">Badge
+                <input id="memberBadgeInput" maxlength="12" placeholder="ADMIN, WATCH, MOD...">
+              </label>
+            </div>
+            <div class="button-row">
+              <button id="memberSaveStyleButton" type="button">SAVE CHAT STYLE</button>
+              <button id="memberResetColorButton" type="button">RESET NAME COLOR</button>
+            </div>
+          </div>
+        </div>
         <div id="memberDetailMessage" class="message"></div>
         <div class="button-row member-dialog-actions">
+          <button id="memberKickButton" type="button" class="hidden">KICK FROM CHAT</button>
           <button id="memberRestoreButton" type="button" class="hidden">RESTORE</button>
           <button id="memberSuspendButton" type="button" class="hidden">SUSPEND</button>
           <button id="memberBanButton" type="button" class="hidden danger">BAN</button>
