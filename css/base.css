@@ -1927,7 +1927,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 
-/* v0.16.1 — minimalist cleanup */
+/* v0.16.2 — minimalist cleanup */
 .online-user-button,
 .chat-sidebar #onlineUsers > span,
 .chat-sidebar #onlineUsers > button {
@@ -1959,7 +1959,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 /* =====================================================
-   v0.16.1 — profiles + RPS
+   v0.16.2 — profiles + RPS
    ===================================================== */
 
 .profile-dialog {
@@ -2468,4 +2468,17 @@ body.theme-newsroom .werewolf-role-card {
   .profile-avatar-accessories { grid-template-columns: 1fr; }
   .profile-avatar-builder-preview { min-height: 120px; }
   .rps-choice-row button { min-width: 0; flex: 1 1 90px; }
+}
+
+/* v0.16.2 avatar builder expansion */
+.avatar-earring-control {
+  display: grid !important;
+  grid-template-columns: 1fr;
+  align-items: stretch !important;
+  gap: 6px !important;
+}
+
+.avatar-earring-control select {
+  width: 100%;
+  margin: 0 !important;
 }

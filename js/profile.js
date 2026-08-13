@@ -1,6 +1,6 @@
-import { apiFetch } from "./api.js?v=0.16.1";
-import { state } from "./state.js?v=0.16.1";
-import { openMemberByUsername } from "./admin.js?v=0.16.1";
+import { apiFetch } from "./api.js?v=0.16.2";
+import { state } from "./state.js?v=0.16.2";
+import { openMemberByUsername } from "./admin.js?v=0.16.2";
 
 const el = (id) => document.getElementById(id);
 let activeProfile = null;
@@ -47,7 +47,9 @@ function defaultMonsterAvatar() {
     eyeglasses: false,
     sunglasses: false,
     nosePiercing: false,
-    earPiercing: false
+    earPiercing: "none",
+    eyebrowPiercing: false,
+    lipPiercing: false
   };
 }
 
@@ -57,17 +59,21 @@ function normalizeMonsterAvatar(value) {
   const pick = (key, allowed) => allowed.includes(String(raw[key] || "")) ? String(raw[key]) : defaults[key];
   const avatar = {
     skin: typeof raw.skin === "string" && /^#[0-9a-fA-F]{6}$/.test(raw.skin) ? raw.skin : defaults.skin,
-    eyes: pick("eyes", ["classic", "sleepy", "wide"]),
-    ears: pick("ears", ["round", "pointy", "floppy"]),
-    horns: pick("horns", ["curved", "spike", "nubs"]),
-    mouth: pick("mouth", ["smile", "fang", "grin"]),
-    eyebrows: pick("eyebrows", ["soft", "angry", "arched"]),
-    nose: pick("nose", ["button", "triangle", "snout"]),
-    hair: pick("hair", ["none", "mohawk", "shaggy"]),
+    eyes: pick("eyes", ["classic", "sleepy", "wide", "cyclops", "three", "four"]),
+    ears: pick("ears", ["round", "pointy", "floppy", "tiny"]),
+    horns: pick("horns", ["none", "curved", "spike", "nubs", "single", "ram"]),
+    mouth: pick("mouth", ["smile", "fang", "grin", "tongue", "frown"]),
+    eyebrows: pick("eyebrows", ["soft", "angry", "arched", "bushy"]),
+    nose: pick("nose", ["button", "triangle", "snout", "flat"]),
+    hair: pick("hair", ["none", "mohawk", "shaggy", "spikes", "swoop"]),
     eyeglasses: Boolean(raw.eyeglasses),
     sunglasses: Boolean(raw.sunglasses),
     nosePiercing: Boolean(raw.nosePiercing),
-    earPiercing: Boolean(raw.earPiercing)
+    earPiercing: ["none", "left", "right", "both"].includes(String(raw.earPiercing || ""))
+      ? String(raw.earPiercing)
+      : (raw.earPiercing === true ? "both" : defaults.earPiercing),
+    eyebrowPiercing: Boolean(raw.eyebrowPiercing),
+    lipPiercing: Boolean(raw.lipPiercing)
   };
   if (avatar.sunglasses) avatar.eyeglasses = false;
   return avatar;
@@ -100,21 +106,31 @@ function buildMonsterSvg(config, size = 112) {
   } else if (a.ears === "pointy") {
     add("path", { d: "M18 61 L9 44 L28 48 Z", fill: a.skin, stroke: "#28323d", 'stroke-width': 3, 'stroke-linejoin': 'round' });
     add("path", { d: "M102 61 L111 44 L92 48 Z", fill: a.skin, stroke: "#28323d", 'stroke-width': 3, 'stroke-linejoin': 'round' });
-  } else {
+  } else if (a.ears === "floppy") {
     add("path", { d: "M18 61 Q7 66 9 81 Q18 79 24 71", fill: a.skin, stroke: "#28323d", 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
     add("path", { d: "M102 61 Q113 66 111 81 Q102 79 96 71", fill: a.skin, stroke: "#28323d", 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+  } else {
+    add("circle", { cx: 23, cy: 58, r: 7, fill: a.skin, stroke: "#28323d", 'stroke-width': 3 });
+    add("circle", { cx: 97, cy: 58, r: 7, fill: a.skin, stroke: "#28323d", 'stroke-width': 3 });
   }
 
   // horns
-  if (a.horns === "curved") {
+  if (a.horns === "none") {
+    // intentionally hornless
+  } else if (a.horns === "curved") {
     add("path", { d: "M38 20 Q28 2 18 24", fill: "none", stroke: "#8b6b4b", 'stroke-width': 8, 'stroke-linecap': 'round' });
     add("path", { d: "M82 20 Q92 2 102 24", fill: "none", stroke: "#8b6b4b", 'stroke-width': 8, 'stroke-linecap': 'round' });
   } else if (a.horns === "spike") {
     add("path", { d: "M38 26 L31 6 L48 20 Z", fill: "#b88c61", stroke: "#6c4d31", 'stroke-width': 2, 'stroke-linejoin': 'round' });
     add("path", { d: "M82 26 L89 6 L72 20 Z", fill: "#b88c61", stroke: "#6c4d31", 'stroke-width': 2, 'stroke-linejoin': 'round' });
-  } else {
+  } else if (a.horns === "nubs") {
     add("circle", { cx: 42, cy: 21, r: 7, fill: "#b88c61", stroke: "#6c4d31", 'stroke-width': 2 });
     add("circle", { cx: 78, cy: 21, r: 7, fill: "#b88c61", stroke: "#6c4d31", 'stroke-width': 2 });
+  } else if (a.horns === "single") {
+    add("path", { d: "M60 24 L53 3 L67 3 Z", fill: "#b88c61", stroke: "#6c4d31", 'stroke-width': 2, 'stroke-linejoin':'round' });
+  } else {
+    add("path", { d: "M40 24 Q20 12 24 34 Q31 43 39 31", fill: "none", stroke: "#8b6b4b", 'stroke-width': 7, 'stroke-linecap':'round' });
+    add("path", { d: "M80 24 Q100 12 96 34 Q89 43 81 31", fill: "none", stroke: "#8b6b4b", 'stroke-width': 7, 'stroke-linecap':'round' });
   }
 
   // hair
@@ -123,6 +139,10 @@ function buildMonsterSvg(config, size = 112) {
     add("path", { d: "M60 18 L70 40 L60 36 L50 40 Z", fill: "#5a3921" });
   } else if (a.hair === "shaggy") {
     add("path", { d: "M28 32 Q40 8 60 10 Q80 8 92 32 Q84 24 76 28 Q68 21 60 27 Q52 21 44 28 Q36 23 28 32", fill: "#4e3426" });
+  } else if (a.hair === "spikes") {
+    add("path", { d: "M30 32 L36 12 L43 28 L50 8 L57 28 L64 6 L70 28 L79 11 L84 31", fill: "#4e3426", stroke: "#3b261b", 'stroke-width': 2, 'stroke-linejoin':'round' });
+  } else if (a.hair === "swoop") {
+    add("path", { d: "M30 31 Q52 5 87 20 Q67 18 50 32 Q40 39 30 31", fill: "#4e3426" });
   }
 
   // head
@@ -135,9 +155,12 @@ function buildMonsterSvg(config, size = 112) {
   } else if (a.eyebrows === "angry") {
     add("path", { d: "M36 46 L51 41", fill: "none", stroke: "#28323d", 'stroke-width': 3.5, 'stroke-linecap': 'round' });
     add("path", { d: "M69 41 L84 46", fill: "none", stroke: "#28323d", 'stroke-width': 3.5, 'stroke-linecap': 'round' });
-  } else {
+  } else if (a.eyebrows === "arched") {
     add("path", { d: "M36 43 Q44 36 51 43", fill: "none", stroke: "#28323d", 'stroke-width': 3, 'stroke-linecap': 'round' });
     add("path", { d: "M69 43 Q76 36 84 43", fill: "none", stroke: "#28323d", 'stroke-width': 3, 'stroke-linecap': 'round' });
+  } else {
+    add("path", { d: "M34 43 Q44 36 53 43", fill: "none", stroke: "#28323d", 'stroke-width': 6, 'stroke-linecap':'round' });
+    add("path", { d: "M67 43 Q76 36 86 43", fill: "none", stroke: "#28323d", 'stroke-width': 6, 'stroke-linecap':'round' });
   }
 
   // eyes
@@ -151,11 +174,18 @@ function buildMonsterSvg(config, size = 112) {
     add("path", { d: "M68 54 Q76 48 84 54", fill: "#fff", stroke: "#28323d", 'stroke-width': 2, 'stroke-linecap': 'round' });
     add("circle", { cx: 44, cy: 54, r: 2.7, fill: "#28323d" });
     add("circle", { cx: 76, cy: 54, r: 2.7, fill: "#28323d" });
-  } else {
+  } else if (a.eyes === "wide") {
     add("circle", { cx: 44, cy: 52, r: 10, fill: "#fff", stroke: "#28323d", 'stroke-width': 2 });
     add("circle", { cx: 76, cy: 52, r: 10, fill: "#fff", stroke: "#28323d", 'stroke-width': 2 });
     add("circle", { cx: 44, cy: 52, r: 4, fill: "#28323d" });
     add("circle", { cx: 76, cy: 52, r: 4, fill: "#28323d" });
+  } else if (a.eyes === "cyclops") {
+    add("ellipse", { cx: 60, cy: 51, rx: 13, ry: 11, fill: "#fff", stroke: "#28323d", 'stroke-width': 2 });
+    add("circle", { cx: 60, cy: 52, r: 4.5, fill: "#28323d" });
+  } else if (a.eyes === "three") {
+    [[40,54],[60,47],[80,54]].forEach(([cx,cy]) => { add("circle", { cx, cy, r: 7.5, fill: "#fff", stroke: "#28323d", 'stroke-width': 2 }); add("circle", { cx, cy, r: 3, fill: "#28323d" }); });
+  } else {
+    [[39,49],[54,56],[66,56],[81,49]].forEach(([cx,cy]) => { add("circle", { cx, cy, r: 6.4, fill: "#fff", stroke: "#28323d", 'stroke-width': 1.8 }); add("circle", { cx, cy, r: 2.6, fill: "#28323d" }); });
   }
 
   // glasses
@@ -171,8 +201,10 @@ function buildMonsterSvg(config, size = 112) {
     add("circle", { cx: 60, cy: 61, r: 3.5, fill: "#f2b2a4", stroke: "#28323d", 'stroke-width': 1.5 });
   } else if (a.nose === "triangle") {
     add("path", { d: "M60 57 L55 65 L65 65 Z", fill: "#f2b2a4", stroke: "#28323d", 'stroke-width': 1.5, 'stroke-linejoin':'round' });
-  } else {
+  } else if (a.nose === "snout") {
     add("ellipse", { cx: 60, cy: 62, rx: 8, ry: 5, fill: "#f2b2a4", stroke: "#28323d", 'stroke-width': 1.5 });
+  } else {
+    add("path", { d: "M55 63 Q60 66 65 63", fill: "none", stroke: "#28323d", 'stroke-width': 2, 'stroke-linecap':'round' });
   }
 
   // mouth
@@ -182,16 +214,21 @@ function buildMonsterSvg(config, size = 112) {
     add("path", { d: "M45 75 Q60 84 75 75", fill: "#fff", stroke: "#28323d", 'stroke-width': 2, 'stroke-linejoin':'round' });
     add("path", { d: "M54 76 L57 84 L60 76", fill: "#fff", stroke: "#28323d", 'stroke-width': 1.5 });
     add("path", { d: "M60 76 L63 84 L66 76", fill: "#fff", stroke: "#28323d", 'stroke-width': 1.5 });
-  } else {
+  } else if (a.mouth === "grin") {
     add("rect", { x: 47, y: 72, width: 26, height: 12, rx: 6, fill: "#7d2c35", stroke: "#28323d", 'stroke-width': 2 });
     for (const x of [52,58,64,70]) add("path", { d: `M${x} 72 V84`, fill:'none', stroke:'#ffffff', 'stroke-width': 1 });
+  } else if (a.mouth === "tongue") {
+    add("path", { d: "M47 74 Q60 84 73 74 Q70 90 60 92 Q50 90 47 74", fill: "#7d2c35", stroke: "#28323d", 'stroke-width': 2 });
+    add("path", { d: "M56 84 Q60 81 64 84 L64 91 L56 91 Z", fill: "#ef7b93" });
+  } else {
+    add("path", { d: "M46 82 Q60 72 74 82", fill: "none", stroke: "#28323d", 'stroke-width': 3, 'stroke-linecap':'round' });
   }
 
   if (a.nosePiercing) add("circle", { cx: 66, cy: 64, r: 2.2, fill: "#d9dce5", stroke: "#495566", 'stroke-width': 1 });
-  if (a.earPiercing) {
-    add("circle", { cx: 24, cy: 65, r: 2.5, fill: "#d9dce5", stroke: "#495566", 'stroke-width': 1 });
-    add("circle", { cx: 96, cy: 65, r: 2.5, fill: "#d9dce5", stroke: "#495566", 'stroke-width': 1 });
-  }
+  if (a.earPiercing === "left" || a.earPiercing === "both") add("circle", { cx: 24, cy: 65, r: 2.5, fill: "#d9dce5", stroke: "#495566", 'stroke-width': 1 });
+  if (a.earPiercing === "right" || a.earPiercing === "both") add("circle", { cx: 96, cy: 65, r: 2.5, fill: "#d9dce5", stroke: "#495566", 'stroke-width': 1 });
+  if (a.eyebrowPiercing) add("circle", { cx: 84, cy: 42, r: 2.2, fill: "#d9dce5", stroke: "#495566", 'stroke-width': 1 });
+  if (a.lipPiercing) add("circle", { cx: 73, cy: 80, r: 2.1, fill: "#d9dce5", stroke: "#495566", 'stroke-width': 1 });
 
   return svg;
 }
@@ -484,7 +521,9 @@ function openEditMode() {
   el("profileAvatarEyeglassesInput").checked = avatar.eyeglasses;
   el("profileAvatarSunglassesInput").checked = avatar.sunglasses;
   el("profileAvatarNosePiercingInput").checked = avatar.nosePiercing;
-  el("profileAvatarEarPiercingInput").checked = avatar.earPiercing;
+  el("profileAvatarEarPiercingSelect").value = avatar.earPiercing;
+  el("profileAvatarEyebrowPiercingInput").checked = avatar.eyebrowPiercing;
+  el("profileAvatarLipPiercingInput").checked = avatar.lipPiercing;
   updateAvatarEditorPreview();
   el("profileStatusInput").value = p.profile_status || "";
   el("profileAboutInput").value = p.about_me || "";
@@ -508,7 +547,9 @@ function getMonsterAvatarFromForm() {
     eyeglasses: el("profileAvatarEyeglassesInput").checked,
     sunglasses: el("profileAvatarSunglassesInput").checked,
     nosePiercing: el("profileAvatarNosePiercingInput").checked,
-    earPiercing: el("profileAvatarEarPiercingInput").checked
+    earPiercing: el("profileAvatarEarPiercingSelect").value,
+    eyebrowPiercing: el("profileAvatarEyebrowPiercingInput").checked,
+    lipPiercing: el("profileAvatarLipPiercingInput").checked
   });
   if (avatar.sunglasses) el("profileAvatarEyeglassesInput").checked = false;
   return avatar;
@@ -635,7 +676,9 @@ export function initProfiles() {
     "profileAvatarEyeglassesInput",
     "profileAvatarSunglassesInput",
     "profileAvatarNosePiercingInput",
-    "profileAvatarEarPiercingInput"
+    "profileAvatarEarPiercingSelect",
+    "profileAvatarEyebrowPiercingInput",
+    "profileAvatarLipPiercingInput"
   ].forEach((id) => el(id).addEventListener("input", updateAvatarEditorPreview));
   el("profileAvatarEyeglassesInput").addEventListener("change", () => { if (el("profileAvatarEyeglassesInput").checked) el("profileAvatarSunglassesInput").checked = false; updateAvatarEditorPreview(); });
   el("profileAvatarSunglassesInput").addEventListener("change", () => { if (el("profileAvatarSunglassesInput").checked) el("profileAvatarEyeglassesInput").checked = false; updateAvatarEditorPreview(); });
