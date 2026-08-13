@@ -1,8 +1,8 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.13.3";
-import { apiFetch } from "./api.js?v=0.13.3";
-import { getToken, state } from "./state.js?v=0.13.3";
-import { openMemberByUsername } from "./admin.js?v=0.13.3";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.13.3";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.13.4";
+import { apiFetch } from "./api.js?v=0.13.4";
+import { getToken, state } from "./state.js?v=0.13.4";
+import { openMemberByUsername } from "./admin.js?v=0.13.4";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.13.4";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -415,10 +415,37 @@ function renderOnlineUsers(users) {
 
     container.appendChild(row);
     if (user.statusText) {
+      const noteRow = document.createElement("div");
+      noteRow.className = "presence-note-row";
+
       const note = document.createElement("span");
       note.className = "presence-note";
       note.textContent = user.statusText;
-      container.appendChild(note);
+      noteRow.appendChild(note);
+
+      if (isAdmin() && !isOwnDisplayedUsername(user.username)) {
+        const clearStatus = document.createElement("button");
+        clearStatus.type = "button";
+        clearStatus.className = "presence-clear-button";
+        clearStatus.textContent = "REMOVE";
+        clearStatus.title = `Remove ${user.username}'s status update`;
+        clearStatus.addEventListener("click", () => {
+          sendSocket({ type: "admin_clear_status", username: user.username });
+        });
+        noteRow.appendChild(clearStatus);
+      }
+
+      container.appendChild(noteRow);
+    } else if (isAdmin() && !isOwnDisplayedUsername(user.username) && user.status && user.status !== "online") {
+      const clearStatus = document.createElement("button");
+      clearStatus.type = "button";
+      clearStatus.className = "presence-clear-button presence-clear-button-standalone";
+      clearStatus.textContent = "RESET STATUS";
+      clearStatus.title = `Reset ${user.username}'s status to Online`;
+      clearStatus.addEventListener("click", () => {
+        sendSocket({ type: "admin_clear_status", username: user.username });
+      });
+      container.appendChild(clearStatus);
     }
   });
 }
@@ -648,6 +675,12 @@ function connectChatSocket() {
 
     if (data.type === "presence") {
       renderOnlineUsers(data.users);
+      return;
+    }
+    if (data.type === "status_removed") {
+      el("presenceStatusSelect").value = "online";
+      el("presenceStatusText").value = "";
+      addSystemLine(`Your status was removed by ${data.actor || "an administrator"}`);
       return;
     }
     if (data.type === "system") {

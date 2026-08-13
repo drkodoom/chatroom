@@ -213,7 +213,7 @@ label {
   font-weight: 750;
 }
 
-button:not(.version-badge):not(.member-link):not(.online-user-button):not(.admin-tab) {
+button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab) {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
@@ -223,7 +223,7 @@ button:not(.version-badge):not(.member-link):not(.online-user-button):not(.admin
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 }
 
-button:not(.version-badge):not(.member-link):not(.online-user-button):not(.admin-tab):hover {
+button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab):hover {
   background: var(--surface-2);
 }
 
@@ -1064,22 +1064,33 @@ button:disabled {
 }
 
 .chat-user-button {
-  appearance: none;
-  border: 0;
-  background: transparent;
-  padding: 0;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: 0;
+  padding: 0 !important;
   margin: 0;
   color: inherit;
   font: inherit;
   font-weight: 850;
+  text-decoration: none !important;
   cursor: default;
+}
+
+.chat-user-button:hover,
+.chat-user-button:focus,
+.chat-user-button:active {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
 }
 
 body.admin-mode .chat-user-button {
   cursor: pointer;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
 }
 
 .user-chat-badge {
@@ -1192,11 +1203,48 @@ body.show-timestamps .chat-timestamp {
 .presence-status.away { color: #8a5100; }
 .presence-status.busy { color: #a11a14; }
 
+.presence-note-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0 0 13px;
+}
+
 .presence-note {
   display: block;
-  margin: 2px 0 0 13px;
+  min-width: 0;
   color: var(--muted);
   font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.presence-clear-button {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  color: var(--muted) !important;
+  font-size: 9px !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.presence-clear-button:hover,
+.presence-clear-button:focus {
+  color: var(--text) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.presence-clear-button-standalone {
+  display: block;
+  margin: 1px 0 5px 13px;
 }
 
 #roomModeStatus {
@@ -1253,9 +1301,6 @@ body.mod-mode .chat-user-button,
 body.staff-mode .chat-user-button,
 body.staff-mode .online-user-button {
   cursor: pointer;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
 }
 
 .mod-message .chat-user {

@@ -81,7 +81,7 @@ body.theme-aol90 textarea {
   box-shadow: none;
 }
 
-body.theme-aol90 button:not(.version-badge):not(.member-link):not(.online-user-button):not(.admin-tab) {
+body.theme-aol90 button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab) {
   border-radius: 0;
   border-top: 2px solid #fff;
   border-left: 2px solid #fff;
@@ -304,7 +304,7 @@ body.theme-future textarea {
     0 7px 20px rgba(70, 95, 130, .08);
 }
 
-body.theme-future button:not(.version-badge):not(.member-link):not(.online-user-button):not(.admin-tab) {
+body.theme-future button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab) {
   border: 1px solid rgba(255,255,255,.52);
   border-radius: 999px;
   background: rgba(255,255,255,.28);
@@ -441,7 +441,7 @@ body.theme-arcade .chat-user {
   color: #ffe552;
 }
 
-body.theme-arcade button:not(.version-badge):not(.member-link):not(.online-user-button):not(.admin-tab) {
+body.theme-arcade button:not(.version-badge):not(.member-link):not(.online-user-button):not(.chat-user-button):not(.presence-clear-button):not(.admin-tab) {
   border-radius: 0;
   border: 2px solid #00f3ff;
   background: #1c1030;
