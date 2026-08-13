@@ -216,6 +216,11 @@ export function initThemeSystem() {
     badge.addEventListener("click", handleVersionClick);
   });
 
+  const themeButton = el("themeSwitcherButton");
+  if (themeButton) {
+    themeButton.addEventListener("click", openClientDialog);
+  }
+
   el("clientCodeForm").addEventListener("submit", submitCode);
   el("clientDialogCancel").addEventListener("click", closeClientDialog);
   el("clientOverlay").addEventListener("click", (event) => {

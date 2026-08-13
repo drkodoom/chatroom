@@ -5,6 +5,8 @@ import {
   restoreSession,
   logoutUser,
   submitAccessRequest,
+  submitNameChangeRequest,
+  getMyNameChangeStatus,
   getActivationInfo,
   activateAccount
 } from "./auth.js";
@@ -12,6 +14,7 @@ import {
   initAdminUI,
   loadMembers,
   loadPendingRequests,
+  loadNameChangeRequests,
   closeMemberDialog
 } from "./admin.js";
 import {
@@ -30,6 +33,7 @@ const screens = {
   activation: el("activationScreen"),
   admin: el("adminScreen"),
   member: el("memberScreen"),
+  namechange: el("nameChangeScreen"),
   chat: el("chatScreen")
 };
 
@@ -45,6 +49,7 @@ function routeLoggedInUser(user) {
     el("adminWelcome").textContent = `Logged in as ${user.username} (administrator)`;
     showScreen("admin");
     loadPendingRequests();
+    loadNameChangeRequests();
     loadMembers();
     return;
   }
@@ -107,6 +112,64 @@ async function handleRequest(event) {
 
     event.target.reset();
     showScreen("submitted");
+  } catch (error) {
+    console.error(error);
+    message.className = "message error";
+    message.textContent = "Could not connect to the server.";
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function openNameChangeScreen() {
+  if (!state.currentUser) return;
+  el("currentScreenName").textContent = state.currentUser.username;
+  el("requestedScreenName").value = "";
+  el("nameChangeReason").value = "";
+  el("nameChangeMessage").textContent = "";
+  el("nameChangeStatus").textContent = "Checking your latest request...";
+  showScreen("namechange");
+
+  try {
+    const { response, data } = await getMyNameChangeStatus();
+    if (!response.ok || !data.ok || !data.request) {
+      el("nameChangeStatus").textContent = "No previous name-change request found.";
+      return;
+    }
+
+    const request = data.request;
+    el("nameChangeStatus").textContent = `Latest request: ${request.requested_username} — ${String(request.status).toUpperCase()}`;
+  } catch {
+    el("nameChangeStatus").textContent = "";
+  }
+}
+
+async function handleNameChangeRequest(event) {
+  event.preventDefault();
+  const button = el("submitNameChangeButton");
+  const message = el("nameChangeMessage");
+  button.disabled = true;
+  message.className = "message";
+  message.textContent = "Submitting name-change request...";
+
+  const payload = {
+    requested_username: el("requestedScreenName").value.trim(),
+    reason: el("nameChangeReason").value.trim()
+  };
+
+  try {
+    const { response, data } = await submitNameChangeRequest(payload);
+
+    if (!response.ok || !data.ok) {
+      message.className = "message error";
+      message.textContent = data.error || "Could not submit name-change request.";
+      return;
+    }
+
+    message.className = "message success";
+    message.textContent = data.message || "Name-change request submitted.";
+    el("nameChangeStatus").textContent = `Latest request: ${payload.requested_username} — PENDING`;
+    event.target.reset();
   } catch (error) {
     console.error(error);
     message.className = "message error";
@@ -204,6 +267,7 @@ function initNavigation() {
   el("loginForm").addEventListener("submit", handleLogin);
   el("requestForm").addEventListener("submit", handleRequest);
   el("activationForm").addEventListener("submit", handleActivation);
+  el("nameChangeForm").addEventListener("submit", handleNameChangeRequest);
 
   el("requestButton").addEventListener("click", () => {
     el("requestMessage").textContent = "";
@@ -216,12 +280,20 @@ function initNavigation() {
     showScreen("login");
   });
 
+  el("memberNameChangeButton").addEventListener("click", openNameChangeScreen);
+  el("nameChangeBackButton").addEventListener("click", () => routeLoggedInUser(state.currentUser));
+
   el("adminEnterChatButton").addEventListener("click", () => enterChatroom(showScreen));
   el("memberEnterChatButton").addEventListener("click", () => enterChatroom(showScreen));
   el("leaveChatButton").addEventListener("click", leaveChatroom);
 
   ["adminLogoutButton", "memberLogoutButton", "chatLogoutButton"].forEach((id) => {
     el(id).addEventListener("click", doLogout);
+  });
+
+  window.addEventListener("drk:kicked", () => {
+    closeChatSocket();
+    routeLoggedInUser(state.currentUser);
   });
 }
 

@@ -1,5 +1,5 @@
 import { apiFetch } from "./api.js";
-import { state } from "./state.js";
+import { getToken, saveSession, state } from "./state.js";
 
 const el = (id) => document.getElementById(id);
 
@@ -164,6 +164,108 @@ async function denyRequest(item, card, button) {
   }
 }
 
+export async function loadNameChangeRequests() {
+  const message = el("adminMessage");
+  const list = el("nameChangeList");
+  list.innerHTML = "";
+  message.className = "message";
+  message.textContent = "Loading name-change requests...";
+
+  try {
+    const { response, data } = await apiFetch("/admin/name-changes", { method: "GET" }, true);
+
+    if (!response.ok || !data.ok) {
+      message.className = "message error";
+      message.textContent = data.error || "Unable to load name-change requests.";
+      return;
+    }
+
+    const requests = Array.isArray(data.requests) ? data.requests : [];
+    el("nameChangeCountBadge").textContent = String(requests.length);
+    message.textContent = "";
+
+    if (!requests.length) {
+      list.innerHTML = '<div class="empty-state">No pending name-change requests.</div>';
+      return;
+    }
+
+    requests.forEach((item) => list.appendChild(renderNameChangeCard(item)));
+  } catch (error) {
+    console.error(error);
+    message.className = "message error";
+    message.textContent = "Could not connect to the server.";
+  }
+}
+
+function renderNameChangeCard(item) {
+  const card = document.createElement("article");
+  card.className = "name-change-card";
+
+  const title = document.createElement("h3");
+  title.textContent = item.real_name || item.current_username;
+
+  const change = document.createElement("p");
+  change.innerHTML = "";
+  const oldName = document.createElement("strong");
+  oldName.textContent = item.current_username;
+  const arrow = document.createElement("span");
+  arrow.className = "name-change-arrow";
+  arrow.textContent = "  →  ";
+  const newName = document.createElement("strong");
+  newName.textContent = item.requested_username;
+  change.append(oldName, arrow, newName);
+
+  const reason = document.createElement("p");
+  reason.textContent = item.reason ? `Reason: ${item.reason}` : "Reason: —";
+
+  const meta = document.createElement("p");
+  meta.className = "request-meta";
+  meta.textContent = `Requested: ${formatDate(item.created_at)}`;
+
+  const actions = document.createElement("div");
+  actions.className = "request-actions";
+
+  const approve = document.createElement("button");
+  approve.type = "button";
+  approve.textContent = "APPROVE";
+  approve.addEventListener("click", () => reviewNameChange(item, "approve", approve));
+
+  const deny = document.createElement("button");
+  deny.type = "button";
+  deny.textContent = "DENY";
+  deny.addEventListener("click", () => reviewNameChange(item, "deny", deny));
+
+  actions.append(approve, deny);
+  card.append(title, change, reason, meta, actions);
+  return card;
+}
+
+async function reviewNameChange(item, action, button) {
+  if (action === "deny" && !confirm(`Deny ${item.current_username}'s request to become ${item.requested_username}?`)) return;
+  button.disabled = true;
+  const message = el("adminMessage");
+
+  try {
+    const { response, data } = await apiFetch(`/admin/name-changes/${item.id}/${action}`, { method: "POST" }, true);
+
+    if (!response.ok || !data.ok) {
+      button.disabled = false;
+      message.className = "message error";
+      message.textContent = data.error || "Name-change review failed.";
+      return;
+    }
+
+    message.className = "message success";
+    message.textContent = data.message || "Name-change request updated.";
+    await Promise.all([loadNameChangeRequests(), loadMembers()]);
+  } catch (error) {
+    console.error(error);
+    button.disabled = false;
+    message.className = "message error";
+    message.textContent = "Could not connect to the server.";
+  }
+}
+
 export async function loadMembers() {
   const body = el("memberTableBody");
   const message = el("adminMessage");
@@ -242,6 +344,7 @@ export async function openMemberDetails(memberId, prefetched = null) {
   el("memberOverlay").classList.remove("hidden");
   el("memberDetailLoading").classList.remove("hidden");
   el("memberDetailContent").classList.add("hidden");
+  el("memberAdminTools").classList.add("hidden");
   el("memberDetailMessage").textContent = "";
 
   try {
@@ -264,6 +367,7 @@ export async function openMemberDetails(memberId, prefetched = null) {
 }
 
 function renderMemberDetails(member) {
+  state.selectedMemberUsername = member.username;
   el("memberDialogTitle").textContent = `${member.username} — Member Information`;
   el("memberDetailLoading").classList.add("hidden");
   const content = el("memberDetailContent");
@@ -275,13 +379,17 @@ function renderMemberDetails(member) {
 
   const fields = [
     ["Screen name", member.username],
+    ["Original screen name", member.original_username || "—"],
     ["Real name", member.real_name || "—"],
     ["Email", member.email],
     ["Role", member.role],
     ["Status", member.status],
+    ["Chat name color", member.chat_name_color || "Default"],
+    ["Chat badge", member.chat_badge || "—"],
     ["Account created", formatDate(member.created_at)],
     ["Application submitted", formatDate(member.requested_at)],
     ["Application reviewed", formatDate(member.reviewed_at)],
+    ["Last name change", formatDate(member.last_name_change_at)],
     ["Active sessions", String(member.active_sessions ?? 0)],
     ["Latest session", formatDate(member.last_session_created_at)],
     ["Latest expiry", formatDate(member.latest_session_expires_at)]
@@ -308,21 +416,32 @@ function renderMemberDetails(member) {
     content.appendChild(note);
   }
 
-  const isSelf = String(member.username).toLowerCase() === String(state.currentUser?.username || "").toLowerCase();
+  const isSelf = Number(member.id) === Number(state.currentUser?.id) || String(member.username).toLowerCase() === String(state.currentUser?.username || "").toLowerCase();
+  const isOnline = state.latestPresence.some((entry) => {
+    const name = typeof entry === "string" ? entry : entry?.username;
+    return String(name || "").toLowerCase() === String(member.username).toLowerCase();
+  });
   const restore = el("memberRestoreButton");
   const suspend = el("memberSuspendButton");
   const ban = el("memberBanButton");
   const revoke = el("memberRevokeSessionsButton");
+  const kick = el("memberKickButton");
+
+  el("memberAdminTools").classList.remove("hidden");
+  el("memberRenameInput").value = member.username;
+  el("memberNameColorInput").value = member.chat_name_color || "#3267FF";
+  el("memberBadgeInput").value = member.chat_badge || "";
 
   restore.classList.toggle("hidden", member.status === "approved");
   suspend.classList.toggle("hidden", isSelf || member.status === "suspended");
   ban.classList.toggle("hidden", isSelf || member.status === "banned");
   revoke.classList.toggle("hidden", isSelf);
+  kick.classList.toggle("hidden", isSelf || !isOnline);
 
-  restore.dataset.memberId = member.id;
-  suspend.dataset.memberId = member.id;
-  ban.dataset.memberId = member.id;
-  revoke.dataset.memberId = member.id;
+  [restore, suspend, ban, revoke, kick, el("memberRenameButton"), el("memberSaveStyleButton"), el("memberResetColorButton")].forEach((button) => {
+    button.dataset.memberId = member.id;
+    button.dataset.username = member.username;
+  });
 }
 
 async function updateMemberStatus(memberId, status) {
@@ -368,8 +487,107 @@ async function revokeMemberSessions(memberId) {
   loadMembers();
 }
 
+async function renameMember(memberId) {
+  const newUsername = el("memberRenameInput").value.trim();
+  const message = el("memberDetailMessage");
+
+  if (!newUsername) return;
+  if (!confirm(`Change this member's screen name to ${newUsername}?`)) return;
+
+  message.className = "message";
+  message.textContent = "Changing screen name...";
+
+  try {
+    const { response, data } = await apiFetch(`/admin/members/${memberId}/username`, {
+      method: "POST",
+      body: JSON.stringify({ username: newUsername })
+    }, true);
+
+    if (!response.ok || !data.ok) {
+      message.className = "message error";
+      message.textContent = data.error || "Could not change screen name.";
+      return;
+    }
+
+    if (data.self) {
+      const refreshed = await apiFetch("/me", { method: "GET" }, true);
+      if (refreshed.response.ok && refreshed.data.ok) {
+        saveSession(getToken(), refreshed.data.user);
+        el("adminWelcome").textContent = `Logged in as ${refreshed.data.user.username} (administrator)`;
+      }
+    }
+
+    message.className = "message success";
+    message.textContent = data.message || "Screen name changed.";
+    await openMemberDetails(memberId);
+    await Promise.all([loadMembers(), loadNameChangeRequests()]);
+  } catch (error) {
+    console.error(error);
+    message.className = "message error";
+    message.textContent = "Could not connect to the server.";
+  }
+}
+
+async function saveMemberChatStyle(memberId, resetColor = false) {
+  const message = el("memberDetailMessage");
+  const username = state.selectedMemberUsername;
+  const nameColor = resetColor ? null : el("memberNameColorInput").value;
+  const badge = el("memberBadgeInput").value.trim();
+
+  message.className = "message";
+  message.textContent = "Saving chat appearance...";
+
+  try {
+    const { response, data } = await apiFetch(`/admin/members/${memberId}/chat-style`, {
+      method: "POST",
+      body: JSON.stringify({ name_color: nameColor, badge })
+    }, true);
+
+    if (!response.ok || !data.ok) {
+      message.className = "message error";
+      message.textContent = data.error || "Could not update chat appearance.";
+      return;
+    }
+
+    if (data.member?.username) {
+      window.dispatchEvent(new CustomEvent("drk:user-style-updated", {
+        detail: {
+          username: data.member.username,
+          nameColor: data.member.chat_name_color || null,
+          badge: data.member.chat_badge || ""
+        }
+      }));
+    }
+
+    if (Number(memberId) === Number(state.currentUser?.id)) {
+      const refreshed = await apiFetch("/me", { method: "GET" }, true);
+      if (refreshed.response.ok && refreshed.data.ok) {
+        saveSession(getToken(), refreshed.data.user);
+        el("adminWelcome").textContent = `Logged in as ${refreshed.data.user.username} (administrator)`;
+      }
+    }
+
+    message.className = "message success";
+    message.textContent = data.message || `Chat appearance updated for ${username}.`;
+    await openMemberDetails(memberId);
+    await loadMembers();
+  } catch (error) {
+    console.error(error);
+    message.className = "message error";
+    message.textContent = "Could not connect to the server.";
+  }
+}
+
+function kickSelectedMember(username) {
+  if (!username) return;
+  if (!confirm(`Kick ${username} from the chatroom? They can re-enter unless you suspend or ban them.`)) return;
+  window.dispatchEvent(new CustomEvent("drk:admin-kick", { detail: { username } }));
+  closeMemberDialog();
+}
+
 export function closeMemberDialog() {
   state.selectedMemberId = null;
+  state.selectedMemberUsername = null;
   el("memberOverlay").classList.add("hidden");
 }
 
@@ -380,19 +598,27 @@ export function initAdminUI() {
       button.classList.add("is-active");
       const tab = button.dataset.adminTab;
       el("adminRequestsPanel").classList.toggle("hidden", tab !== "requests");
+      el("adminNameChangesPanel").classList.toggle("hidden", tab !== "namechanges");
       el("adminMembersPanel").classList.toggle("hidden", tab !== "members");
       if (tab === "members") loadMembers();
       if (tab === "requests") loadPendingRequests();
+      if (tab === "namechanges") loadNameChangeRequests();
     });
   });
 
+  el("adminMyAccountButton").addEventListener("click", () => openMemberByUsername(state.currentUser?.username));
   el("refreshRequestsButton").addEventListener("click", loadPendingRequests);
+  el("refreshNameChangesButton").addEventListener("click", loadNameChangeRequests);
   el("refreshMembersButton").addEventListener("click", loadMembers);
   el("memberDialogClose").addEventListener("click", closeMemberDialog);
   el("memberOverlay").addEventListener("click", (event) => {
     if (event.target === el("memberOverlay")) closeMemberDialog();
   });
 
+  el("memberRenameButton").addEventListener("click", (event) => renameMember(event.currentTarget.dataset.memberId));
+  el("memberSaveStyleButton").addEventListener("click", (event) => saveMemberChatStyle(event.currentTarget.dataset.memberId, false));
+  el("memberResetColorButton").addEventListener("click", (event) => saveMemberChatStyle(event.currentTarget.dataset.memberId, true));
+  el("memberKickButton").addEventListener("click", (event) => kickSelectedMember(event.currentTarget.dataset.username));
   el("memberRestoreButton").addEventListener("click", (event) => updateMemberStatus(event.currentTarget.dataset.memberId, "approved"));
   el("memberSuspendButton").addEventListener("click", (event) => updateMemberStatus(event.currentTarget.dataset.memberId, "suspended"));
   el("memberBanButton").addEventListener("click", (event) => {

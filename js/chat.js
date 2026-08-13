@@ -4,10 +4,50 @@ import { getToken, state } from "./state.js";
 import { openMemberByUsername } from "./admin.js";
 
 const el = (id) => document.getElementById(id);
+const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
+
+function isAdmin() {
+  return state.currentUser?.role === "admin";
+}
+
+function isMod() {
+  return Boolean(
+    state.currentUser?.username &&
+    state.roomSettings.modUsername &&
+    String(state.currentUser.username).toLowerCase() === String(state.roomSettings.modUsername).toLowerCase()
+  );
+}
+
+function isStaff() {
+  return isAdmin() || isMod();
+}
+
+function userIsCurrentMod(username) {
+  return Boolean(username && state.roomSettings.modUsername && String(username).toLowerCase() === String(state.roomSettings.modUsername).toLowerCase());
+}
+
+
+function isNearBottom() {
+  const box = el("chatMessages");
+  return box.scrollHeight - box.scrollTop - box.clientHeight < 70;
+}
 
 function scrollChatToBottom() {
   const messages = el("chatMessages");
   messages.scrollTop = messages.scrollHeight;
+  clearUnread();
+}
+
+function clearUnread() {
+  state.unreadCount = 0;
+  el("newMessagesButton").classList.add("hidden");
+}
+
+function bumpUnread() {
+  state.unreadCount += 1;
+  const button = el("newMessagesButton");
+  button.textContent = `${state.unreadCount} NEW MESSAGE${state.unreadCount === 1 ? "" : "S"} ↓`;
+  button.classList.remove("hidden");
 }
 
 export function addSystemLine(text) {
@@ -15,23 +55,305 @@ export function addSystemLine(text) {
   line.className = "chat-line system-line";
   line.textContent = `*** ${text} ***`;
   el("chatMessages").appendChild(line);
-  scrollChatToBottom();
+  if (isNearBottom()) scrollChatToBottom();
 }
 
-function addChatLine(message) {
+function addAnnouncement(data) {
+  const wasBottom = isNearBottom();
   const line = document.createElement("div");
-  line.className = "chat-line";
+  line.className = "chat-line admin-announcement";
+  const label = data.role === "mod" ? "MOD ANNOUNCEMENT" : "ADMIN ANNOUNCEMENT";
+  line.textContent = `${label} — ${data.username}: ${data.content}`;
+  el("chatMessages").appendChild(line);
+  if (wasBottom) scrollChatToBottom(); else bumpUnread();
+}
 
-  const username = document.createElement("span");
-  username.className = "chat-user";
-  username.textContent = `${message.user}: `;
+function addGameEvent(data) {
+  const wasBottom = isNearBottom();
+  const line = document.createElement("div");
+  const tone = ["good", "bad", "critical"].includes(String(data.tone)) ? ` ${data.tone}` : "";
+  line.className = `chat-line game-event-line${tone}`;
+  line.textContent = `🎲 ${String(data.text || "")}`;
+  el("chatMessages").appendChild(line);
+  if (wasBottom) scrollChatToBottom(); else bumpUnread();
+}
+
+function getProfile(username) {
+  if (!username) return { nameColor: null, badge: "" };
+  const direct = state.profiles[username];
+  if (direct) return direct;
+  const key = Object.keys(state.profiles).find((name) => name.toLowerCase() === String(username).toLowerCase());
+  return key ? state.profiles[key] : { nameColor: null, badge: "" };
+}
+
+function setProfile(username, profile = {}) {
+  if (!username) return;
+  const existingKey = Object.keys(state.profiles).find((name) => name.toLowerCase() === String(username).toLowerCase());
+  if (existingKey && existingKey !== username) delete state.profiles[existingKey];
+  state.profiles[username] = {
+    nameColor: profile.nameColor || null,
+    badge: profile.badge || ""
+  };
+}
+
+function formatTime(epoch) {
+  if (!epoch) return "";
+  try {
+    return new Date(Number(epoch)).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  } catch {
+    return "";
+  }
+}
+
+function messageById(id) {
+  return state.messages.find((message) => message.id === id) || null;
+}
+
+function applyTextFormat(content, format = {}) {
+  content.classList.toggle("message-size-small", format.size === "small");
+  content.classList.toggle("message-size-large", format.size === "large");
+  content.style.fontWeight = format.bold ? "800" : "";
+  content.style.fontStyle = format.italic ? "italic" : "";
+  const decorations = [];
+  if (format.underline) decorations.push("underline");
+  if (format.strike) decorations.push("line-through");
+  content.style.textDecoration = decorations.join(" ");
+  content.style.color = /^#[0-9A-Fa-f]{6}$/.test(String(format.color || "")) ? format.color : "";
+}
+
+function hasMention(content) {
+  const username = String(state.currentUser?.username || "").trim();
+  if (!username || !content) return false;
+  return new RegExp(`(^|\\s)@${username.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")}(?=\\s|$|[.,!?;:])`, "i").test(content);
+}
+
+function buildUsername(message) {
+  const profile = getProfile(message.user);
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "chat-user-button";
+  button.textContent = message.user;
+  if (profile.nameColor) button.style.color = profile.nameColor;
+  if (isAdmin()) {
+    button.title = `View ${message.user}`;
+    button.addEventListener("click", () => openMemberByUsername(message.user));
+  } else if (isMod()) {
+    button.title = `Change ${message.user}'s chat name color`;
+    button.addEventListener("click", () => promptStaffNameColor(message.user));
+  }
+  return { button, profile };
+}
+
+function makeAction(label, handler, className = "") {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.textContent = label;
+  if (className) button.className = className;
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    handler();
+  });
+  return button;
+}
+
+function renderReplyQuote(message) {
+  if (!message.replyTo) return null;
+  const original = messageById(message.replyTo);
+  const quote = document.createElement("div");
+  quote.className = "reply-quote";
+  quote.textContent = original
+    ? `${original.user}: ${original.deleted ? "Message removed" : String(original.content || "").slice(0, 120)}`
+    : "Reply to an earlier message";
+  return quote;
+}
+
+function renderReactionRow(message) {
+  const reactions = message.reactions || {};
+  const keys = Object.keys(reactions).filter((emoji) => Number(reactions[emoji]) > 0);
+  if (!keys.length || message.deleted) return null;
+  const row = document.createElement("div");
+  row.className = "reaction-row";
+  keys.forEach((emoji) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "reaction-chip";
+    chip.textContent = `${emoji} ${reactions[emoji]}`;
+    chip.addEventListener("click", () => sendReaction(message.id, emoji));
+    row.appendChild(chip);
+  });
+  return row;
+}
+
+function requestReply(message) {
+  state.replyingTo = message;
+  el("replyPreviewUser").textContent = message.user;
+  el("replyPreviewText").textContent = message.deleted ? "Message removed" : String(message.content || "").slice(0, 160);
+  el("replyPreview").classList.remove("hidden");
+  el("chatInput").focus();
+}
+
+function cancelReply() {
+  state.replyingTo = null;
+  el("replyPreview").classList.add("hidden");
+}
+
+function editMessage(message) {
+  const updated = prompt("Edit your message:", message.content || "");
+  if (updated == null || !updated.trim()) return;
+  sendSocket({ type: "edit", id: message.id, content: updated.trim(), format: message.format || {} });
+}
+
+function deleteMessage(message) {
+  const own = String(message.user).toLowerCase() === String(state.currentUser?.username || "").toLowerCase();
+  const wording = own ? "Delete this message?" : `Delete ${message.user}'s message as administrator?`;
+  if (!confirm(wording)) return;
+  sendSocket({ type: "delete", id: message.id });
+}
+
+function sendReaction(id, emoji) {
+  sendSocket({ type: "reaction", id, emoji });
+}
+
+function pinMessage(message) {
+  sendSocket({ type: "admin_pin", id: message.id });
+}
+
+function highlightMessage(message) {
+  if (message.highlightColor) {
+    sendSocket({ type: "admin_highlight", id: message.id, color: null });
+    return;
+  }
+  const color = prompt("Highlight color (hex):", "#FFD84D");
+  if (!color) return;
+  sendSocket({ type: "admin_highlight", id: message.id, color });
+}
+
+function moderateUser(username) {
+  if (!username || String(username).toLowerCase() === String(state.currentUser?.username || "").toLowerCase()) return;
+  const command = prompt(
+    `Moderate ${username}:\n\nType one of:\n5m  = mute 5 minutes\n1h  = mute 1 hour\n1d  = mute 1 day\nforever = mute until you remove it\noff = unmute\nkick = remove from room`,
+    "5m"
+  );
+  if (!command) return;
+  const value = command.trim().toLowerCase();
+  if (value === "off" || value === "unmute") return sendSocket({ type: "admin_unmute", username });
+  if (value === "kick") return sendSocket({ type: "admin_kick", username });
+  const durations = { "5m": 300, "1h": 3600, "1d": 86400, "forever": -1 };
+  if (!(value in durations)) return alert("Unknown moderation option.");
+  const reason = prompt("Optional mute reason:", "") || "";
+  sendSocket({ type: "admin_mute", username, durationSeconds: durations[value], reason });
+}
+
+function buildActions(message) {
+  if (message.deleted) return null;
+  const actions = document.createElement("div");
+  actions.className = "message-actions";
+  actions.appendChild(makeAction("REPLY", () => requestReply(message)));
+
+  REACTIONS.forEach((emoji) => actions.appendChild(makeAction(emoji, () => sendReaction(message.id, emoji))));
+
+  const own = String(message.user).toLowerCase() === String(state.currentUser?.username || "").toLowerCase();
+  if (own) {
+    actions.appendChild(makeAction("EDIT", () => editMessage(message)));
+    actions.appendChild(makeAction("DELETE", () => deleteMessage(message)));
+  }
+
+  if (isStaff()) {
+    const pinnedIds = Array.isArray(state.roomSettings.pinnedMessageIds) ? state.roomSettings.pinnedMessageIds : [];
+    actions.appendChild(makeAction(pinnedIds.includes(message.id) ? "UNPIN" : "PIN", () => pinMessage(message)));
+  }
+
+  if (isAdmin()) {
+    if (!own) {
+      actions.appendChild(makeAction(userIsCurrentMod(message.user) ? "REMOVE MOD" : "MAKE MOD", () => {
+        sendSocket({ type: "admin_set_mod", username: userIsCurrentMod(message.user) ? null : message.user });
+      }));
+      actions.appendChild(makeAction("MODERATE", () => moderateUser(message.user)));
+    }
+    actions.appendChild(makeAction(message.highlightColor ? "UNHIGHLIGHT" : "HIGHLIGHT", () => highlightMessage(message)));
+    if (!own) actions.appendChild(makeAction("ADMIN DELETE", () => deleteMessage(message), "danger"));
+  }
+  return actions;
+}
+
+function addChatLine(message, { forceBottom = false } = {}) {
+  const wasBottom = isNearBottom();
+  const line = document.createElement("div");
+  line.className = `chat-line${message.role === "admin" ? " admin-message" : ""}${message.role === "mod" ? " mod-message" : ""}`;
+  line.dataset.messageId = message.id || "";
+  line.dataset.searchText = `${message.user || ""} ${message.content || ""}`.toLowerCase();
+  line.addEventListener("click", (event) => {
+    if (event.target.closest("button, input, select, a")) return;
+    line.classList.toggle("actions-open");
+  });
+
+  if (message.highlightColor) {
+    line.classList.add("message-highlighted");
+    line.style.setProperty("--message-highlight", message.highlightColor);
+  }
+  if (!message.deleted && hasMention(message.content)) line.classList.add("mention-message");
+
+  const replyQuote = renderReplyQuote(message);
+  if (replyQuote) line.appendChild(replyQuote);
+
+  const { button: username, profile } = buildUsername(message);
+  line.appendChild(username);
+
+  const badgeText = message.role === "admin" ? "ADMIN" : (message.role === "mod" ? "MOD" : (profile.badge || ""));
+  if (badgeText) {
+    const badge = document.createElement("span");
+    badge.className = "user-chat-badge";
+    badge.textContent = badgeText;
+    line.appendChild(badge);
+  }
+
+  const timestamp = document.createElement("span");
+  timestamp.className = "chat-timestamp";
+  timestamp.textContent = formatTime(message.createdAt);
+  line.appendChild(timestamp);
+
+  line.appendChild(document.createTextNode(": "));
 
   const content = document.createElement("span");
-  content.textContent = message.content;
+  if (message.deleted) {
+    content.className = "deleted-message";
+    content.textContent = "Message removed";
+  } else {
+    content.textContent = message.content || "";
+    applyTextFormat(content, message.format || {});
+  }
+  line.appendChild(content);
 
-  line.append(username, content);
+  if (message.updatedAt && !message.deleted) {
+    const edited = document.createElement("span");
+    edited.className = "message-edited";
+    edited.textContent = "(edited)";
+    line.appendChild(edited);
+  }
+
+  const reactions = renderReactionRow(message);
+  if (reactions) line.appendChild(reactions);
+  const actions = buildActions(message);
+  if (actions) line.appendChild(actions);
+
   el("chatMessages").appendChild(line);
-  scrollChatToBottom();
+  applySearchFilter();
+
+  const own = String(message.user || "").toLowerCase() === String(state.currentUser?.username || "").toLowerCase();
+  if (forceBottom || wasBottom || own) scrollChatToBottom();
+  else bumpUnread();
+}
+
+function renderAllMessages({ forceBottom = false } = {}) {
+  const box = el("chatMessages");
+  const wasBottom = isNearBottom();
+  const previousTop = box.scrollTop;
+  box.innerHTML = "";
+  state.messages.forEach((message) => addChatLine(message, { forceBottom: false }));
+  if (forceBottom || wasBottom) scrollChatToBottom();
+  else box.scrollTop = previousTop;
+  updatePinnedBar();
+  applySearchFilter();
 }
 
 function renderOnlineUsers(users) {
@@ -44,7 +366,11 @@ function renderOnlineUsers(users) {
     return;
   }
 
-  state.latestPresence.forEach((username) => {
+  state.latestPresence.forEach((entry) => {
+    const user = typeof entry === "string" ? { username: entry, status: "online", statusText: "", nameColor: null, badge: "" } : entry;
+    if (!user?.username) return;
+    setProfile(user.username, { nameColor: user.nameColor, badge: user.badge });
+
     const row = document.createElement("div");
     row.className = "chat-user-card";
 
@@ -52,21 +378,38 @@ function renderOnlineUsers(users) {
     dot.className = "online-dot";
     row.appendChild(dot);
 
-    if (state.currentUser?.role === "admin") {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "online-user-button";
-      button.textContent = username;
-      button.title = `View information for ${username}`;
-      button.addEventListener("click", () => openMemberByUsername(username));
-      row.appendChild(button);
-    } else {
-      const text = document.createElement("span");
-      text.textContent = username;
-      row.appendChild(text);
+    const canInteract = isAdmin() || isMod();
+    const name = document.createElement(canInteract ? "button" : "span");
+    if (name.tagName === "BUTTON") {
+      name.type = "button";
+      name.className = "online-user-button";
+      if (isAdmin()) name.addEventListener("click", () => openMemberByUsername(user.username));
+      else name.addEventListener("click", () => promptStaffNameColor(user.username));
+    }
+    name.textContent = user.username;
+    if (user.nameColor) name.style.color = user.nameColor;
+    row.appendChild(name);
+
+    const roleBadge = user.role === "admin" ? "ADMIN" : (user.role === "mod" ? "MOD" : (user.badge || ""));
+    if (roleBadge) {
+      const badge = document.createElement("span");
+      badge.className = user.role === "mod" ? "mod-badge" : "user-chat-badge";
+      badge.textContent = roleBadge;
+      row.appendChild(badge);
     }
 
+    const status = document.createElement("span");
+    status.className = `presence-status ${user.status || "online"}`;
+    status.textContent = user.status && user.status !== "online" ? user.status.toUpperCase() : "";
+    row.appendChild(status);
+
     container.appendChild(row);
+    if (user.statusText) {
+      const note = document.createElement("span");
+      note.className = "presence-note";
+      note.textContent = user.statusText;
+      container.appendChild(note);
+    }
   });
 }
 
@@ -74,6 +417,107 @@ function handleSystemEvent(data) {
   if (!data.username) return;
   if (data.event === "join") addSystemLine(`${data.username} has entered the room`);
   if (data.event === "leave") addSystemLine(`${data.username} has left the room`);
+  if (data.event === "kick") addSystemLine(`${data.username} was removed from the room by ${data.actor || "an administrator"}`);
+  if (data.event === "mute") addSystemLine(`${data.username} was muted by ${data.actor || "an administrator"}`);
+  if (data.event === "unmute") addSystemLine(`${data.username} was unmuted by ${data.actor || "an administrator"}`);
+  if (data.event === "mod_granted") addSystemLine(`${data.username} is now the room MOD — granted by ${data.actor || "the administrator"}`);
+  if (data.event === "mod_removed") addSystemLine(`${data.username}'s MOD powers were removed${data.actor && data.actor !== "system" ? ` by ${data.actor}` : ""}`);
+}
+
+function toggleAdminChatControls() {
+  const admin = isAdmin();
+  const staff = isStaff();
+  document.body.classList.toggle("admin-mode", admin);
+  document.body.classList.toggle("mod-mode", isMod());
+  document.body.classList.toggle("staff-mode", staff);
+  document.querySelectorAll(".admin-chat-action").forEach((node) => node.classList.toggle("hidden", !admin));
+  document.querySelectorAll(".staff-chat-action").forEach((node) => node.classList.toggle("hidden", !staff));
+  el("adminModeratorButton").textContent = state.roomSettings.modUsername ? `MOD: ${state.roomSettings.modUsername}` : "MODERATOR";
+}
+
+function updatePinnedBar() {
+  const bar = el("pinnedMessagesBar");
+  const ids = Array.isArray(state.roomSettings.pinnedMessageIds) ? state.roomSettings.pinnedMessageIds.slice(0, 2) : [];
+  const pinned = ids.map((id) => messageById(id)).filter((message) => message && !message.deleted);
+  bar.innerHTML = "";
+  if (!pinned.length) {
+    bar.classList.add("hidden");
+    return;
+  }
+  pinned.forEach((message) => {
+    const item = document.createElement("div");
+    item.className = "pinned-message-item";
+    const text = document.createElement("div");
+    text.innerHTML = `<span class="pinned-label">PINNED</span>`;
+    text.appendChild(document.createTextNode(`${message.user}: ${String(message.content || "").slice(0, 180)}`));
+    item.appendChild(text);
+    if (isStaff()) {
+      const unpin = makeAction("UNPIN", () => sendSocket({ type: "admin_pin", id: message.id }));
+      item.appendChild(unpin);
+    }
+    bar.appendChild(item);
+  });
+  bar.classList.remove("hidden");
+}
+
+function updateRoomSettings(settings = {}) {
+  state.roomSettings = { ...state.roomSettings, ...settings };
+  const banner = el("roomBanner");
+  if (state.roomSettings.banner) {
+    banner.textContent = state.roomSettings.banner;
+    banner.classList.remove("hidden");
+  } else {
+    banner.classList.add("hidden");
+  }
+
+  const modes = [];
+  if (state.roomSettings.locked) modes.push("LOCKED");
+  if (state.roomSettings.slowModeSeconds > 0) modes.push(`SLOW ${state.roomSettings.slowModeSeconds}s`);
+  if (state.roomSettings.modUsername) modes.push(`MOD ${state.roomSettings.modUsername}`);
+  el("roomModeStatus").textContent = modes.length ? `• ${modes.join(" • ")}` : "";
+  el("adminLockRoomButton").textContent = state.roomSettings.locked ? "UNLOCK ROOM" : "LOCK ROOM";
+  toggleAdminChatControls();
+  updatePinnedBar();
+  renderAllMessages();
+}
+
+function updateTypingIndicator() {
+  const names = Array.from(state.typingUsers).filter((name) => String(name).toLowerCase() !== String(state.currentUser?.username || "").toLowerCase());
+  if (!names.length) {
+    el("typingIndicator").textContent = "";
+    return;
+  }
+  if (names.length === 1) el("typingIndicator").textContent = `${names[0]} is typing…`;
+  else if (names.length === 2) el("typingIndicator").textContent = `${names[0]} and ${names[1]} are typing…`;
+  else el("typingIndicator").textContent = `${names.length} people are typing…`;
+}
+
+function updateMessage(message) {
+  const index = state.messages.findIndex((item) => item.id === message.id);
+  if (index >= 0) state.messages[index] = { ...state.messages[index], ...message };
+  else state.messages.push(message);
+  renderAllMessages();
+}
+
+function updateReactions(id, reactions) {
+  const message = messageById(id);
+  if (!message) return;
+  message.reactions = reactions || {};
+  renderAllMessages();
+}
+
+function applyUserStyle(data) {
+  setProfile(data.username, { nameColor: data.nameColor, badge: data.badge });
+  renderAllMessages();
+  renderOnlineUsers(state.latestPresence.map((entry) => {
+    if (typeof entry === "string" || String(entry.username).toLowerCase() !== String(data.username).toLowerCase()) return entry;
+    return { ...entry, nameColor: data.nameColor || null, badge: data.badge || "" };
+  }));
+}
+
+function applyTimestampsPreference() {
+  document.body.classList.toggle("show-timestamps", state.timestampsEnabled);
+  el("timestampsButton").textContent = `TIMESTAMPS: ${state.timestampsEnabled ? "ON" : "OFF"}`;
 }
 
 export async function enterChatroom(showScreen) {
@@ -90,14 +534,21 @@ export async function enterChatroom(showScreen) {
       return;
     }
     state.currentUser = data.user;
+    localStorage.setItem("chatroom_user", JSON.stringify(data.user));
   } catch {
     return;
   }
 
   state.chatIntentionalClose = false;
   state.chatReconnectAttempts = 0;
+  state.unreadCount = 0;
+  state.messages = [];
+  state.profiles = {};
+  state.replyingTo = null;
   el("chatMessages").innerHTML = "";
-  el("clearRoomButton").classList.toggle("hidden", state.currentUser?.role !== "admin");
+  cancelReply();
+  toggleAdminChatControls();
+  applyTimestampsPreference();
   showScreen("chat");
   addSystemLine(`#${ROOM_NAME} — connecting`);
   connectChatSocket();
@@ -113,7 +564,6 @@ function connectChatSocket() {
   const status = el("chatConnectionStatus");
   status.className = state.chatReconnectAttempts > 0 ? "reconnecting" : "disconnected";
   status.textContent = state.chatReconnectAttempts > 0 ? "Reconnecting..." : "Connecting...";
-
   el("chatInput").disabled = true;
   el("chatSendButton").disabled = true;
 
@@ -123,35 +573,32 @@ function connectChatSocket() {
 
   socket.addEventListener("open", () => {
     if (socket !== state.chatSocket) return;
-
     const wasReconnect = state.chatReconnectAttempts > 0;
     state.chatReconnectAttempts = 0;
-
     status.className = "connected";
     status.textContent = "Connected";
     el("chatInput").disabled = false;
     el("chatSendButton").disabled = false;
     el("chatInput").focus();
-
     addSystemLine(wasReconnect ? `Reconnected to #${ROOM_NAME}` : `Welcome to #${ROOM_NAME}, ${state.currentUser.username}`);
     startChatHeartbeat();
   });
 
   socket.addEventListener("message", (event) => {
     if (socket !== state.chatSocket) return;
-
     let data;
-    try {
-      data = JSON.parse(event.data);
-    } catch {
-      return;
-    }
+    try { data = JSON.parse(event.data); } catch { return; }
 
     if (data.type === "pong") return;
 
     if (data.type === "all" && Array.isArray(data.messages)) {
-      el("chatMessages").innerHTML = "";
-      data.messages.forEach(addChatLine);
+      state.messages = data.messages;
+      state.profiles = data.profiles || {};
+      state.roomSettings = { ...state.roomSettings, ...(data.settings || {}) };
+      state.game = data.game || null;
+      renderAllMessages({ forceBottom: true });
+      updateRoomSettings(state.roomSettings);
+      renderGame(state.game);
       addSystemLine(`You have entered #${ROOM_NAME}`);
       return;
     }
@@ -160,34 +607,76 @@ function connectChatSocket() {
       renderOnlineUsers(data.users);
       return;
     }
-
     if (data.type === "system") {
       handleSystemEvent(data);
       return;
     }
-
-    if (data.type === "add") {
-      addChatLine(data);
+    if (data.type === "typing") {
+      if (data.active) state.typingUsers.add(data.username);
+      else state.typingUsers.delete(data.username);
+      updateTypingIndicator();
       return;
     }
-
+    if (data.type === "add") {
+      state.messages.push(data);
+      if (state.messages.length > 100) state.messages = state.messages.slice(-100);
+      addChatLine(data);
+      updatePinnedBar();
+      return;
+    }
+    if (data.type === "message_update") {
+      updateMessage(data.message);
+      return;
+    }
+    if (data.type === "reaction_update") {
+      updateReactions(data.id, data.reactions);
+      return;
+    }
+    if (data.type === "room_settings") {
+      updateRoomSettings(data.settings || {});
+      return;
+    }
+    if (data.type === "user_style") {
+      applyUserStyle(data);
+      return;
+    }
+    if (data.type === "game_state") {
+      renderGame(data.game || null);
+      return;
+    }
+    if (data.type === "admin_announcement") {
+      addAnnouncement(data);
+      return;
+    }
+    if (data.type === "game_event") {
+      addGameEvent(data);
+      return;
+    }
     if (data.type === "clear_room") {
+      state.messages = [];
+      state.roomSettings.pinnedMessageIds = [];
       el("chatMessages").innerHTML = "";
+      updatePinnedBar();
       addSystemLine(`Room history was cleared by ${data.username || "an administrator"}`);
       return;
     }
-
-    if (data.type === "error") {
-      addSystemLine(data.message || "Server error");
-    }
+    if (data.type === "error") addSystemLine(data.message || "Server error");
   });
 
   socket.addEventListener("close", (event) => {
     if (socket !== state.chatSocket) return;
-
     stopChatHeartbeat();
     el("chatInput").disabled = true;
     el("chatSendButton").disabled = true;
+
+    if (event.code === 4001 || event.code === 4002) {
+      state.chatIntentionalClose = true;
+      status.className = "disconnected";
+      status.textContent = event.code === 4001 ? "Removed" : "Locked";
+      addSystemLine(event.reason || (event.code === 4001 ? "You were removed from the room" : "The room is locked"));
+      setTimeout(() => window.dispatchEvent(new CustomEvent("drk:kicked")), 700);
+      return;
+    }
 
     if (state.chatIntentionalClose) {
       status.className = "disconnected";
@@ -197,21 +686,23 @@ function connectChatSocket() {
 
     status.className = "reconnecting";
     status.textContent = "Reconnecting...";
-
     let text = `Connection lost (code ${event.code})`;
     if (event.reason) text += ` — ${event.reason}`;
     addSystemLine(`${text}. Reconnecting...`);
     scheduleChatReconnect();
   });
 
-  socket.addEventListener("error", (error) => {
-    console.error("WebSocket error:", error);
-  });
+  socket.addEventListener("error", (error) => console.error("WebSocket error:", error));
+}
+
+function sendSocket(payload) {
+  if (!state.chatSocket || state.chatSocket.readyState !== WebSocket.OPEN) return false;
+  state.chatSocket.send(JSON.stringify(payload));
+  return true;
 }
 
 function scheduleChatReconnect() {
   if (state.chatIntentionalClose || !getToken()) return;
-
   clearTimeout(state.chatReconnectTimer);
   state.chatReconnectAttempts += 1;
   const delay = Math.min(1000 * Math.pow(2, state.chatReconnectAttempts - 1), 10000);
@@ -221,9 +712,7 @@ function scheduleChatReconnect() {
 function startChatHeartbeat() {
   stopChatHeartbeat();
   state.chatHeartbeatTimer = setInterval(() => {
-    if (state.chatSocket?.readyState === WebSocket.OPEN) {
-      state.chatSocket.send(JSON.stringify({ type: "ping", time: Date.now() }));
-    }
+    sendSocket({ type: "ping", time: Date.now() });
   }, 20000);
 }
 
@@ -234,67 +723,487 @@ function stopChatHeartbeat() {
   }
 }
 
+function stopTyping() {
+  clearTimeout(state.typingTimer);
+  if (state.typingSent) sendSocket({ type: "typing", active: false });
+  state.typingSent = false;
+}
+
 export function closeChatSocket() {
   state.chatIntentionalClose = true;
   clearTimeout(state.chatReconnectTimer);
   state.chatReconnectTimer = null;
   stopChatHeartbeat();
-
+  stopTyping();
   const socket = state.chatSocket;
   state.chatSocket = null;
-
   if (socket) {
-    try {
-      socket.close(1000, "User left room");
-    } catch {
-      // Ignore.
-    }
+    try { socket.close(1000, "User left room"); } catch { /* ignore */ }
   }
-
   el("chatInput").disabled = true;
   el("chatSendButton").disabled = true;
   el("chatConnectionStatus").className = "disconnected";
   el("chatConnectionStatus").textContent = "Disconnected";
+  state.typingUsers.clear();
   renderOnlineUsers([]);
+  document.body.classList.remove("admin-mode", "mod-mode", "staff-mode");
 }
 
 function sendMessage(event) {
   event.preventDefault();
-  if (!state.chatSocket || state.chatSocket.readyState !== WebSocket.OPEN) return;
-
   const input = el("chatInput");
   const content = input.value.trim();
   if (!content) return;
 
-  state.chatSocket.send(JSON.stringify({
+  if (content.toLowerCase() === "/roll") {
+    const sent = sendSocket({ type: "game_boss_attack" });
+    if (!sent) return;
+    input.value = "";
+    cancelReply();
+    stopTyping();
+    input.focus();
+    return;
+  }
+
+  const sent = sendSocket({
     type: "add",
     id: crypto.randomUUID(),
-    content
-  }));
-
+    content,
+    format: { ...state.draftFormat },
+    replyTo: state.replyingTo?.id || null
+  });
+  if (!sent) return;
   input.value = "";
+  cancelReply();
+  stopTyping();
   input.focus();
 }
 
 function clearMyScreen() {
+  state.messages = [];
   el("chatMessages").innerHTML = "";
+  el("pinnedMessagesBar").classList.add("hidden");
   addSystemLine("Your screen was cleared");
 }
 
 function clearRoomHistory() {
   if (state.currentUser?.role !== "admin") return;
+  if (!confirm(`CLEAR ROOM HISTORY?\n\nThis permanently deletes all stored messages in #${ROOM_NAME} for EVERYONE.\n\nThis cannot be undone.`)) return;
+  sendSocket({ type: "clear_room" });
+}
 
-  if (!state.chatSocket || state.chatSocket.readyState !== WebSocket.OPEN) {
-    alert("You must be connected before clearing the room history.");
+function sendAdminAnnouncement() {
+  if (!isStaff()) return;
+  const label = isMod() ? "MOD announcement" : "Admin announcement";
+  const content = prompt(`${label} to everyone in #${ROOM_NAME}:`);
+  if (content?.trim()) sendSocket({ type: "admin_announcement", content: content.trim() });
+}
+
+function setRoomBanner() {
+  if (state.currentUser?.role !== "admin") return;
+  const content = prompt("Room banner (leave blank to remove):", state.roomSettings.banner || "");
+  if (content == null) return;
+  sendSocket({ type: "admin_banner", content: content.trim() });
+}
+
+function setSlowMode() {
+  if (state.currentUser?.role !== "admin") return;
+  const input = prompt("Slow mode seconds between messages for regular users (0 disables):", String(state.roomSettings.slowModeSeconds || 0));
+  if (input == null) return;
+  const seconds = Math.max(0, Math.min(120, Number.parseInt(input, 10) || 0));
+  sendSocket({ type: "admin_room_settings", slowModeSeconds: seconds });
+}
+
+function toggleRoomLock() {
+  if (state.currentUser?.role !== "admin") return;
+  const next = !state.roomSettings.locked;
+  if (next && !confirm("Lock #lobby? Existing users may remain, but regular members will not be able to enter until you unlock it.")) return;
+  sendSocket({ type: "admin_room_settings", locked: next });
+}
+
+function kickUserFromToolbar() {
+  if (state.currentUser?.role !== "admin") return;
+  const choices = state.latestPresence
+    .map((entry) => typeof entry === "string" ? entry : entry.username)
+    .filter((name) => String(name).toLowerCase() !== String(state.currentUser?.username || "").toLowerCase());
+  if (!choices.length) return alert("No other users are currently online.");
+  const target = prompt(`Who should be kicked from #${ROOM_NAME}?\n\nOnline: ${choices.join(", ")}`);
+  if (target?.trim()) sendSocket({ type: "admin_kick", username: target.trim() });
+}
+
+function manageModerator() {
+  if (!isAdmin()) return;
+  const current = state.roomSettings.modUsername;
+  const choices = state.latestPresence
+    .map((entry) => typeof entry === "string" ? entry : entry.username)
+    .filter(Boolean)
+    .filter((name) => String(name).toLowerCase() !== String(state.currentUser?.username || "").toLowerCase());
+
+  const promptText = current
+    ? `Current MOD: ${current}\n\nType a different online screen name to transfer MOD powers, or type REMOVE to clear the MOD.\n\nOnline: ${choices.join(", ") || "Nobody else"}`
+    : `Type the screen name of one online person to make them temporary MOD. Their powers end when they leave or you remove them.\n\nOnline: ${choices.join(", ") || "Nobody else"}`;
+
+  const value = prompt(promptText, current || "");
+  if (value == null) return;
+  const clean = value.trim();
+  if (!clean || clean.toLowerCase() === "remove" || clean.toLowerCase() === "off") {
+    sendSocket({ type: "admin_set_mod", username: null });
+    return;
+  }
+  sendSocket({ type: "admin_set_mod", username: clean });
+}
+
+function promptStaffNameColor(username = null) {
+  if (!isStaff()) return;
+  const online = state.latestPresence
+    .map((entry) => typeof entry === "string" ? entry : entry.username)
+    .filter(Boolean);
+  const target = username || prompt(`Whose screen-name color should change?\n\nOnline: ${online.join(", ") || "Nobody"}`);
+  if (!target?.trim()) return;
+  const current = getProfile(target.trim()).nameColor || "#3267FF";
+  const color = prompt(`Color for ${target.trim()} (six-digit hex).\nType RESET to return to default.`, current);
+  if (color == null) return;
+  const clean = color.trim();
+  if (!clean || clean.toLowerCase() === "reset" || clean.toLowerCase() === "default") {
+    sendSocket({ type: "staff_user_color", username: target.trim(), nameColor: null });
+    return;
+  }
+  if (!/^#[0-9A-Fa-f]{6}$/.test(clean)) return alert("Use a six-digit hex color such as #FF3B30.");
+  sendSocket({ type: "staff_user_color", username: target.trim(), nameColor: clean });
+}
+
+function openGameSetup() {
+  if (!isStaff()) return;
+  if (state.game?.status === "active") {
+    el("gamePanel").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    return;
+  }
+  el("gameSetupMessage").textContent = "";
+  el("hangmanPhraseInput").value = "";
+  el("gameOverlay").classList.remove("hidden");
+  el("gameTypeSelect").focus();
+}
+
+function closeGameSetup() {
+  el("gameOverlay").classList.add("hidden");
+}
+
+function updateGameSetupFields() {
+  const hangman = el("gameTypeSelect").value === "hangman";
+  el("hangmanSetupFields").classList.toggle("hidden", !hangman);
+  el("bossSetupFields").classList.toggle("hidden", hangman);
+}
+
+function startSelectedGame() {
+  if (!isStaff()) return;
+  const game = el("gameTypeSelect").value;
+  const message = el("gameSetupMessage");
+  message.className = "message";
+  if (game === "hangman") {
+    const phrase = el("hangmanPhraseInput").value.trim();
+    if (phrase.length < 2) {
+      message.className = "message error";
+      message.textContent = "Enter a word or phrase first.";
+      return;
+    }
+    sendSocket({ type: "game_start", game: "hangman", phrase });
+  } else {
+    sendSocket({ type: "game_start", game: "boss", boss: el("bossSelect").value });
+  }
+  closeGameSetup();
+}
+
+function endCurrentGame() {
+  if (!isStaff() || !state.game) return;
+  if (confirm("End the current game for everyone?")) sendSocket({ type: "game_end" });
+}
+
+function gameLogNode(log = []) {
+  const wrap = document.createElement("div");
+  wrap.className = "game-log";
+  (Array.isArray(log) ? log.slice(-10) : []).forEach((text) => {
+    const line = document.createElement("div");
+    line.className = "game-log-line";
+    line.textContent = text;
+    wrap.appendChild(line);
+  });
+  return wrap;
+}
+
+function effectText(effect) {
+  return `${effect.name} (${effect.turns})`;
+}
+
+function updateComposerForGame() {
+  const input = el("chatInput");
+  if (!input) return;
+  if (state.game?.type === "boss" && state.game.status === "active") {
+    input.placeholder = "Type /roll to roll a d20 and attack, or type a normal message...";
+  } else if (state.game?.type === "hangman" && state.game.status === "active") {
+    input.placeholder = "Chat normally here — use the Hangman box above to guess...";
+  } else {
+    input.placeholder = "Type a message...";
+  }
+}
+
+function renderGame(game) {
+  state.game = game || null;
+  const panel = el("gamePanel");
+  panel.innerHTML = "";
+
+  if (!state.game) {
+    panel.classList.add("hidden");
+    el("startGameButton").textContent = "START GAME";
+    updateComposerForGame();
     return;
   }
 
-  if (!confirm(`CLEAR ROOM HISTORY?\n\nThis permanently deletes all stored messages in #${ROOM_NAME} for EVERYONE.\n\nThis cannot be undone.`)) return;
-  state.chatSocket.send(JSON.stringify({ type: "clear_room" }));
+  panel.classList.remove("hidden");
+  updateComposerForGame();
+  el("startGameButton").textContent = state.game.status === "active" ? "GAME" : "START GAME";
+
+  const header = document.createElement("div");
+  header.className = "game-panel-header";
+  const left = document.createElement("div");
+  const title = document.createElement("div");
+  title.className = "game-panel-title";
+  title.textContent = state.game.type === "hangman" ? "HANGMAN" : `BOSS BATTLE — ${state.game.bossName}`;
+  const subtitle = document.createElement("div");
+  subtitle.className = "game-panel-subtitle";
+  subtitle.textContent = `Host: ${state.game.host} • ${String(state.game.status).toUpperCase()}`;
+  left.append(title, subtitle);
+  header.appendChild(left);
+  if (isStaff() && state.game.status === "active") {
+    const end = makeAction("END GAME", endCurrentGame, "danger");
+    header.appendChild(end);
+  }
+  panel.appendChild(header);
+
+  if (state.game.type === "hangman") {
+    const phrase = document.createElement("div");
+    phrase.className = "hangman-phrase";
+    phrase.textContent = state.game.displayPhrase || "";
+    panel.appendChild(phrase);
+
+    const stats = document.createElement("div");
+    stats.className = "hangman-stats";
+    stats.textContent = `Wrong guesses: ${state.game.wrong}/${state.game.maxWrong} • Guessed: ${(state.game.guessed || []).join(" ") || "None"}`;
+    panel.appendChild(stats);
+
+    if (state.game.status === "active") {
+      const actions = document.createElement("form");
+      actions.className = "game-actions";
+      const input = document.createElement("input");
+      input.maxLength = 80;
+      input.placeholder = "Guess a letter or the whole phrase";
+      input.autocomplete = "off";
+      const submit = document.createElement("button");
+      submit.type = "submit";
+      submit.textContent = "GUESS";
+      actions.append(input, submit);
+      actions.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const guess = input.value.trim();
+        if (!guess) return;
+        sendSocket({ type: "game_hangman_guess", guess });
+        input.value = "";
+        input.focus();
+      });
+      panel.appendChild(actions);
+    } else if (state.game.winner) {
+      const result = document.createElement("div");
+      result.className = "success";
+      result.textContent = `${state.game.winner} solved the puzzle!`;
+      panel.appendChild(result);
+    }
+
+    panel.appendChild(gameLogNode(state.game.log));
+    return;
+  }
+
+  const boss = state.game;
+  const bossCard = document.createElement("div");
+  bossCard.className = "boss-card";
+  const bossLeft = document.createElement("div");
+  const bossName = document.createElement("div");
+  bossName.className = "boss-name";
+  bossName.textContent = boss.bossName;
+  const bossHp = document.createElement("div");
+  bossHp.textContent = `Boss HP: ${boss.bossHp}/${boss.bossMaxHp}`;
+  const bossTrack = document.createElement("div");
+  bossTrack.className = "hp-track";
+  const bossFill = document.createElement("div");
+  bossFill.className = "hp-fill";
+  bossFill.style.setProperty("--hp-percent", `${Math.max(0, Math.min(100, (boss.bossHp / boss.bossMaxHp) * 100))}%`);
+  bossTrack.appendChild(bossFill);
+  bossLeft.append(bossName, bossHp, bossTrack);
+
+  const me = (boss.players || []).find((player) => String(player.username).toLowerCase() === String(state.currentUser?.username || "").toLowerCase());
+  const self = document.createElement("div");
+  self.className = "game-player-stats";
+  self.textContent = me ? `Your HP: ${me.hp}/${me.maxHp} • Attacks: ${me.attacks} • Damage: ${me.damageDealt} • Crits: ${me.crits}` : "You have not joined the battle yet.";
+  if (me?.effects?.length) {
+    const effects = document.createElement("div");
+    effects.className = "game-effects";
+    me.effects.forEach((effect) => {
+      const chip = document.createElement("span");
+      chip.className = `game-effect-chip ${effect.kind}`;
+      chip.textContent = effectText(effect);
+      effects.appendChild(chip);
+    });
+    self.appendChild(document.createElement("br"));
+    self.appendChild(effects);
+  }
+  bossCard.append(bossLeft, self);
+  panel.appendChild(bossCard);
+
+  if (boss.status === "active") {
+    const actions = document.createElement("div");
+    actions.className = "game-actions boss-roll-instruction";
+    const instruction = document.createElement("strong");
+    instruction.textContent = me?.hp === 0
+      ? "You are knocked out."
+      : "Type /roll in the chat box to roll a d20 and attack.";
+    actions.appendChild(instruction);
+    panel.appendChild(actions);
+  }
+
+  const list = document.createElement("div");
+  list.className = "battle-player-list";
+  (boss.players || []).forEach((player) => {
+    const row = document.createElement("div");
+    row.className = "battle-player-row";
+    const name = document.createElement("strong");
+    name.textContent = player.username;
+    const hp = document.createElement("span");
+    hp.textContent = `${player.hp}/${player.maxHp} HP`;
+    const info = document.createElement("span");
+    info.textContent = `${player.damageDealt} dmg`;
+    row.append(name, hp, info);
+    list.appendChild(row);
+  });
+  if (boss.players?.length) panel.appendChild(list);
+  panel.appendChild(gameLogNode(boss.log));
+}
+
+function updatePresence() {
+  const status = el("presenceStatusSelect").value;
+  const statusText = el("presenceStatusText").value.trim();
+  sendSocket({ type: "presence_status", status, statusText });
+}
+
+function toggleFormat(key) {
+  state.draftFormat[key] = !state.draftFormat[key];
+  const map = {
+    bold: "formatBoldButton",
+    italic: "formatItalicButton",
+    underline: "formatUnderlineButton",
+    strike: "formatStrikeButton"
+  };
+  const button = el(map[key]);
+  button.classList.toggle("is-active", state.draftFormat[key]);
+  button.setAttribute("aria-pressed", String(state.draftFormat[key]));
+}
+
+function resetFormat() {
+  state.draftFormat = { bold: false, italic: false, underline: false, strike: false, color: null, size: "normal" };
+  ["formatBoldButton", "formatItalicButton", "formatUnderlineButton", "formatStrikeButton"].forEach((id) => {
+    el(id).classList.remove("is-active");
+    el(id).setAttribute("aria-pressed", "false");
+  });
+  el("formatColorInput").value = "#111111";
+  el("formatSizeSelect").value = "normal";
+}
+
+function toggleTimestamps() {
+  state.timestampsEnabled = !state.timestampsEnabled;
+  localStorage.setItem("chatroom_timestamps", state.timestampsEnabled ? "1" : "0");
+  updateGameSetupFields();
+  applyTimestampsPreference();
+}
+
+function toggleSearch() {
+  el("chatSearchBar").classList.toggle("hidden");
+  if (!el("chatSearchBar").classList.contains("hidden")) el("chatSearchInput").focus();
+  else clearSearch();
+}
+
+function clearSearch() {
+  state.searchQuery = "";
+  el("chatSearchInput").value = "";
+  el("chatSearchCount").textContent = "";
+  applySearchFilter();
+}
+
+function applySearchFilter() {
+  const query = String(state.searchQuery || "").trim().toLowerCase();
+  let count = 0;
+  document.querySelectorAll(".chat-line[data-message-id]").forEach((line) => {
+    line.classList.remove("search-match", "search-nonmatch");
+    if (!query) return;
+    const match = String(line.dataset.searchText || "").includes(query);
+    line.classList.add(match ? "search-match" : "search-nonmatch");
+    if (match) count += 1;
+  });
+  el("chatSearchCount").textContent = query ? `${count} match${count === 1 ? "" : "es"}` : "";
 }
 
 export function initChatUI() {
   el("chatForm").addEventListener("submit", sendMessage);
   el("clearScreenButton").addEventListener("click", clearMyScreen);
   el("clearRoomButton").addEventListener("click", clearRoomHistory);
+  el("adminModeratorButton").addEventListener("click", manageModerator);
+  el("staffNameColorButton").addEventListener("click", () => promptStaffNameColor());
+  el("adminAnnouncementButton").addEventListener("click", sendAdminAnnouncement);
+  el("startGameButton").addEventListener("click", openGameSetup);
+  el("adminBannerButton").addEventListener("click", setRoomBanner);
+  el("adminSlowModeButton").addEventListener("click", setSlowMode);
+  el("adminLockRoomButton").addEventListener("click", toggleRoomLock);
+  el("adminKickButton").addEventListener("click", kickUserFromToolbar);
+  el("updatePresenceButton").addEventListener("click", updatePresence);
+  el("timestampsButton").addEventListener("click", toggleTimestamps);
+  el("searchChatButton").addEventListener("click", toggleSearch);
+  el("closeChatSearchButton").addEventListener("click", () => { el("chatSearchBar").classList.add("hidden"); clearSearch(); });
+  el("chatSearchInput").addEventListener("input", (event) => { state.searchQuery = event.target.value; applySearchFilter(); });
+  el("newMessagesButton").addEventListener("click", scrollChatToBottom);
+  el("cancelReplyButton").addEventListener("click", cancelReply);
+  el("gameTypeSelect").addEventListener("change", updateGameSetupFields);
+  el("gameStartConfirmButton").addEventListener("click", startSelectedGame);
+  el("gameDialogCancel").addEventListener("click", closeGameSetup);
+  el("gameOverlay").addEventListener("click", (event) => { if (event.target === el("gameOverlay")) closeGameSetup(); });
+
+  el("formatBoldButton").addEventListener("click", () => toggleFormat("bold"));
+  el("formatItalicButton").addEventListener("click", () => toggleFormat("italic"));
+  el("formatUnderlineButton").addEventListener("click", () => toggleFormat("underline"));
+  el("formatStrikeButton").addEventListener("click", () => toggleFormat("strike"));
+  el("formatColorInput").addEventListener("input", (event) => { state.draftFormat.color = event.target.value; });
+  el("formatSizeSelect").addEventListener("change", (event) => { state.draftFormat.size = event.target.value; });
+  el("resetFormatButton").addEventListener("click", resetFormat);
+
+  el("chatMessages").addEventListener("scroll", () => { if (isNearBottom()) clearUnread(); });
+  el("chatInput").addEventListener("input", () => {
+    if (!state.typingSent) {
+      sendSocket({ type: "typing", active: true });
+      state.typingSent = true;
+    }
+    clearTimeout(state.typingTimer);
+    state.typingTimer = setTimeout(stopTyping, 1200);
+  });
+
+  window.addEventListener("drk:admin-kick", (event) => {
+    const username = event.detail?.username;
+    if (username) sendSocket({ type: "admin_kick", username });
+  });
+
+  window.addEventListener("drk:user-style-updated", (event) => {
+    const detail = event.detail || {};
+    if (!detail.username) return;
+    applyUserStyle({ username: detail.username, nameColor: detail.nameColor || null, badge: detail.badge || "" });
+    if (state.currentUser?.role === "admin") {
+      sendSocket({ type: "admin_user_style", username: detail.username, nameColor: detail.nameColor || null, badge: detail.badge || "" });
+    }
+  });
+
+  updateGameSetupFields();
+  applyTimestampsPreference();
 }

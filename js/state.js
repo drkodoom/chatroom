@@ -7,7 +7,33 @@ export const state = {
   chatHeartbeatTimer: null,
   chatReconnectAttempts: 0,
   latestPresence: [],
-  selectedMemberId: null
+  selectedMemberId: null,
+  selectedMemberUsername: null,
+  messages: [],
+  profiles: {},
+  roomSettings: {
+    pinnedMessageIds: [],
+    slowModeSeconds: 0,
+    locked: false,
+    banner: "",
+    modUsername: null
+  },
+  game: null,
+  replyingTo: null,
+  draftFormat: {
+    bold: false,
+    italic: false,
+    underline: false,
+    strike: false,
+    color: null,
+    size: "normal"
+  },
+  typingUsers: new Set(),
+  typingTimer: null,
+  typingSent: false,
+  unreadCount: 0,
+  timestampsEnabled: localStorage.getItem("chatroom_timestamps") === "1",
+  searchQuery: ""
 };
 
 export function getToken() {

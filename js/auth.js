@@ -34,6 +34,15 @@ export async function restoreSession() {
   }
 }
 
+export async function refreshCurrentUser() {
+  const { response, data } = await apiFetch("/me", { method: "GET" }, true);
+  if (response.ok && data.ok) {
+    state.currentUser = data.user;
+    localStorage.setItem("chatroom_user", JSON.stringify(data.user));
+  }
+  return { response, data };
+}
+
 export async function logoutUser() {
   try {
     if (getToken()) {
@@ -51,6 +60,17 @@ export async function submitAccessRequest(payload) {
     method: "POST",
     body: JSON.stringify(payload)
   });
+}
+
+export async function submitNameChangeRequest(payload) {
+  return apiFetch("/name-change/request", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  }, true);
+}
+
+export async function getMyNameChangeStatus() {
+  return apiFetch("/name-change/me", { method: "GET" }, true);
 }
 
 export async function getActivationInfo(token) {
