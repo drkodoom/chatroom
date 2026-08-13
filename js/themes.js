@@ -1,4 +1,4 @@
-import { APP_VERSION } from "./config.js?v=0.16.4";
+import { APP_VERSION } from "./config.js?v=0.16.5";
 
 const CLIENTS = {
   modern: { name: "Default - Light", bodyClass: "theme-modern", title: "DRK CHAT", online: "ONLINE", send: "SEND", clear: "CLEAR SCREEN", clearRoom: "CLEAR ROOM", leave: "LEAVE" },
@@ -104,7 +104,7 @@ function restoreClient() {
   const migrationKey = "chatroom_default_dark_migrated_v0151";
   let stored = localStorage.getItem(THEME_KEY);
 
-  // v0.16.4 changes the global default from the old light client to the new dark client.
+  // v0.16.5 changes the global default from the old light client to the new dark client.
   // Existing browsers that were still on the former default are migrated once; users can
   // immediately switch back to Default - Light from MY THEME.
   if (!localStorage.getItem(migrationKey)) {

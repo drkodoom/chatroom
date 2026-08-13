@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.16.4";
-import { apiFetch } from "./api.js?v=0.16.4";
-import { getToken, state } from "./state.js?v=0.16.4";
-import { openMemberByUsername } from "./admin.js?v=0.16.4";
-import { openProfileByUsername } from "./profile.js?v=0.16.4";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.16.4";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.16.5";
+import { apiFetch } from "./api.js?v=0.16.5";
+import { getToken, state } from "./state.js?v=0.16.5";
+import { openMemberByUsername } from "./admin.js?v=0.16.5";
+import { openProfileByUsername } from "./profile.js?v=0.16.5";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.16.5";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -784,11 +784,15 @@ function sendAdminEffect(effect) {
   }
   messageBox.textContent = "";
   sendSocket({ type: "admin_effect", effect, target: target || null, message: message || null });
+  // The effect picker is a launcher, not a viewing surface. Close it immediately
+  // after a valid trigger so the administrator can see the same room effect as everyone else.
+  closeEffectsDialog();
 }
 
 function stopRoomEffectsForEveryone() {
   if (!isAdmin()) return;
   sendSocket({ type: "admin_effect", effect: "stop" });
+  closeEffectsDialog();
 }
 
 function connectChatSocket() {
@@ -1821,6 +1825,9 @@ export function initChatUI() {
   el("adminEffectsButton").addEventListener("click", openEffectsDialog);
   el("effectsDialogCancel").addEventListener("click", closeEffectsDialog);
   el("effectsOverlay").addEventListener("click", (event) => { if (event.target === el("effectsOverlay")) closeEffectsDialog(); });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !el("effectsOverlay").classList.contains("hidden")) closeEffectsDialog();
+  });
   el("effectsOverlay").querySelectorAll("[data-room-effect]").forEach((button) => button.addEventListener("click", () => sendAdminEffect(button.dataset.roomEffect)));
   el("stopEffectsButton").addEventListener("click", stopRoomEffectsForEveryone);
   el("adminIdentityButton").addEventListener("click", openAdminIdentity);
