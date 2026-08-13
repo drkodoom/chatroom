@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0b0f17">
   <title>DRK.CHAT</title>
-  <link rel="stylesheet" href="./css/base.css?v=0.16.5">
-  <link rel="stylesheet" href="./css/themes.css?v=0.16.5">
+  <link rel="stylesheet" href="./css/base.css?v=0.16.6">
+  <link rel="stylesheet" href="./css/themes.css?v=0.16.6">
 </head>
 <body class="theme-modern">
   <main class="app-window" id="appWindow">
     <header class="titlebar">
       <div class="titlebar-copy">
         <span id="clientTitle">DRK CHAT</span>
-        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.16.5</button>
+        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.16.6</button>
       </div>
       <span class="classic-window-controls aol-only" aria-hidden="true">[_][□][X]</span>
     </header>
@@ -261,7 +261,6 @@
         <div class="staff-tools-grid">
           <button id="adminRoomThemeButton" type="button" class="hidden admin-chat-action">ROOM THEME</button>
           <button id="adminConfettiButton" type="button" class="hidden admin-chat-action">CONFETTI</button>
-          <button id="adminEffectsButton" type="button" class="hidden admin-chat-action">EFFECTS</button>
           <button id="adminIdentityButton" type="button" class="hidden admin-chat-action">ADMIN IDENTITY</button>
           <button id="adminModeratorButton" type="button" class="hidden admin-chat-action">MODERATOR</button>
           <button id="staffNameColorButton" type="button" class="hidden staff-chat-action">NAME COLOR</button>
@@ -355,6 +354,37 @@
         <div class="button-row chat-bottom-actions">
           <button id="leaveChatButton" type="button">LEAVE</button>
           <button id="chatLogoutButton" type="button">LOG OUT</button>
+          <div id="effectsMenuWrap" class="effects-menu-wrap hidden admin-chat-action">
+            <button id="adminEffectsButton" type="button" class="effects-menu-trigger" aria-expanded="false" aria-controls="effectsMenu">EFFECTS</button>
+            <div id="effectsMenu" class="effects-menu hidden" role="menu" aria-label="Room effects">
+              <div class="effects-menu-head">
+                <strong>ROOM EFFECTS</strong>
+                <button id="effectsDialogCancel" type="button" class="effects-menu-close" aria-label="Close effects menu">×</button>
+              </div>
+              <label for="effectsTargetSelect">Target member</label>
+              <select id="effectsTargetSelect"><option value="">Choose someone...</option></select>
+              <label for="effectsMessageInput">Broadcast message</label>
+              <textarea id="effectsMessageInput" maxlength="180" rows="2" placeholder="For Emergency / News"></textarea>
+              <div class="effects-grid">
+                <button type="button" data-room-effect="police_lights">POLICE LIGHTS</button>
+                <button type="button" data-room-effect="spotlight">SPOTLIGHT</button>
+                <button type="button" data-room-effect="glitch">GLITCH</button>
+                <button type="button" data-room-effect="earthquake">EARTHQUAKE</button>
+                <button type="button" data-room-effect="fireworks">FIREWORKS</button>
+                <button type="button" data-room-effect="hearts">HEARTS</button>
+                <button type="button" data-room-effect="emergency">EMERGENCY</button>
+                <button type="button" data-room-effect="boo">BOO / SHAME</button>
+                <button type="button" data-room-effect="victory">VICTORY AURA</button>
+                <button type="button" data-room-effect="wanted">WANTED</button>
+                <button type="button" data-room-effect="jail">JAIL</button>
+                <button type="button" data-room-effect="disco">DISCO</button>
+                <button type="button" data-room-effect="godzilla">GODZILLA</button>
+                <button type="button" data-room-effect="news">NEWS BULLETIN</button>
+              </div>
+              <div id="effectsMessage" class="message"></div>
+              <button id="stopEffectsButton" type="button" class="effects-stop-button">STOP EFFECTS</button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -395,7 +425,7 @@
   </div>
 
 
-  <!-- v0.16.5 MEMBER PROFILE -->
+  <!-- v0.16.6 MEMBER PROFILE -->
   <div class="modal-overlay hidden" id="profileOverlay" role="dialog" aria-modal="true" aria-labelledby="profileDialogTitle">
     <div class="modal-window profile-dialog">
       <div class="modal-titlebar profile-modal-titlebar">
@@ -635,47 +665,9 @@
 
 
 
-  <!-- ADMIN EFFECTS DIALOG -->
-  <div class="modal-overlay hidden" id="effectsOverlay" role="dialog" aria-modal="true" aria-labelledby="effectsDialogTitle">
-    <div class="modal-window effects-dialog">
-      <div class="modal-titlebar" id="effectsDialogTitle">ROOM EFFECTS</div>
-      <div class="modal-content">
-        <p class="small">Admin-only live effects. Targeted effects use the selected member; broadcast effects hit the whole room.</p>
-
-        <label for="effectsTargetSelect">Target member <span class="small">(for targeted effects)</span></label>
-        <select id="effectsTargetSelect"><option value="">Choose someone...</option></select>
-
-        <label for="effectsMessageInput">Broadcast message <span class="small">(Emergency Broadcast / News Bulletin)</span></label>
-        <textarea id="effectsMessageInput" maxlength="180" placeholder="Optional message"></textarea>
-
-        <div class="effects-grid">
-          <button type="button" data-room-effect="police_lights">POLICE LIGHTS</button>
-          <button type="button" data-room-effect="spotlight">SPOTLIGHT</button>
-          <button type="button" data-room-effect="glitch">GLITCH ATTACK</button>
-          <button type="button" data-room-effect="earthquake">EARTHQUAKE</button>
-          <button type="button" data-room-effect="fireworks">FIREWORKS</button>
-          <button type="button" data-room-effect="hearts">HEARTS</button>
-          <button type="button" data-room-effect="emergency">EMERGENCY BROADCAST</button>
-          <button type="button" data-room-effect="boo">BOO / SHAME</button>
-          <button type="button" data-room-effect="victory">VICTORY AURA</button>
-          <button type="button" data-room-effect="wanted">WANTED POSTER</button>
-          <button type="button" data-room-effect="jail">JAIL MODE</button>
-          <button type="button" data-room-effect="disco">DISCO MODE</button>
-          <button type="button" data-room-effect="godzilla">GODZILLA ALERT</button>
-          <button type="button" data-room-effect="news">NEWS BULLETIN TAKEOVER</button>
-        </div>
-        <div id="effectsMessage" class="message"></div>
-        <div class="button-row centered-row">
-          <button id="stopEffectsButton" type="button">STOP EFFECTS</button>
-          <button id="effectsDialogCancel" type="button">CLOSE</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
   <div id="roomEffectLayer" class="room-effect-layer" aria-hidden="true"></div>
 
-  <script type="module" src="./js/app.js?v=0.16.5"></script>
+  <script type="module" src="./js/app.js?v=0.16.6"></script>
 </body>
 </html>

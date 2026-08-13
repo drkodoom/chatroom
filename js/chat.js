@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.16.5";
-import { apiFetch } from "./api.js?v=0.16.5";
-import { getToken, state } from "./state.js?v=0.16.5";
-import { openMemberByUsername } from "./admin.js?v=0.16.5";
-import { openProfileByUsername } from "./profile.js?v=0.16.5";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.16.5";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.16.6";
+import { apiFetch } from "./api.js?v=0.16.6";
+import { getToken, state } from "./state.js?v=0.16.6";
+import { openMemberByUsername } from "./admin.js?v=0.16.6";
+import { openProfileByUsername } from "./profile.js?v=0.16.6";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.16.6";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -661,11 +661,18 @@ function openEffectsDialog() {
   if (!isAdmin()) return;
   populateEffectsTargets();
   el("effectsMessage").textContent = "";
-  el("effectsOverlay").classList.remove("hidden");
+  el("effectsMenu").classList.remove("hidden");
+  el("adminEffectsButton").setAttribute("aria-expanded", "true");
 }
 
 function closeEffectsDialog() {
-  el("effectsOverlay").classList.add("hidden");
+  el("effectsMenu").classList.add("hidden");
+  el("adminEffectsButton").setAttribute("aria-expanded", "false");
+}
+
+function toggleEffectsDialog() {
+  if (el("effectsMenu").classList.contains("hidden")) openEffectsDialog();
+  else closeEffectsDialog();
 }
 
 function stopRoomEffectsLocal() {
@@ -784,15 +791,11 @@ function sendAdminEffect(effect) {
   }
   messageBox.textContent = "";
   sendSocket({ type: "admin_effect", effect, target: target || null, message: message || null });
-  // The effect picker is a launcher, not a viewing surface. Close it immediately
-  // after a valid trigger so the administrator can see the same room effect as everyone else.
-  closeEffectsDialog();
 }
 
 function stopRoomEffectsForEveryone() {
   if (!isAdmin()) return;
   sendSocket({ type: "admin_effect", effect: "stop" });
-  closeEffectsDialog();
 }
 
 function connectChatSocket() {
@@ -1822,13 +1825,16 @@ export function initChatUI() {
   el("clearRoomButton").addEventListener("click", clearRoomHistory);
   el("adminModeratorButton").addEventListener("click", manageModerator);
   el("adminConfettiButton").addEventListener("click", launchConfetti);
-  el("adminEffectsButton").addEventListener("click", openEffectsDialog);
+  el("adminEffectsButton").addEventListener("click", toggleEffectsDialog);
   el("effectsDialogCancel").addEventListener("click", closeEffectsDialog);
-  el("effectsOverlay").addEventListener("click", (event) => { if (event.target === el("effectsOverlay")) closeEffectsDialog(); });
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !el("effectsOverlay").classList.contains("hidden")) closeEffectsDialog();
+  document.addEventListener("click", (event) => {
+    const wrap = el("effectsMenuWrap");
+    if (!el("effectsMenu").classList.contains("hidden") && wrap && !wrap.contains(event.target)) closeEffectsDialog();
   });
-  el("effectsOverlay").querySelectorAll("[data-room-effect]").forEach((button) => button.addEventListener("click", () => sendAdminEffect(button.dataset.roomEffect)));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !el("effectsMenu").classList.contains("hidden")) closeEffectsDialog();
+  });
+  el("effectsMenu").querySelectorAll("[data-room-effect]").forEach((button) => button.addEventListener("click", () => sendAdminEffect(button.dataset.roomEffect)));
   el("stopEffectsButton").addEventListener("click", stopRoomEffectsForEveryone);
   el("adminIdentityButton").addEventListener("click", openAdminIdentity);
   el("staffNameColorButton").addEventListener("click", () => promptStaffNameColor());

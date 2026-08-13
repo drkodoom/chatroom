@@ -1927,7 +1927,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 
-/* v0.16.5 — minimalist cleanup */
+/* v0.16.6 — minimalist cleanup */
 .online-user-button,
 .chat-sidebar #onlineUsers > span,
 .chat-sidebar #onlineUsers > button {
@@ -1959,7 +1959,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 /* =====================================================
-   v0.16.5 — profiles + RPS
+   v0.16.6 — profiles + RPS
    ===================================================== */
 
 .profile-dialog {
@@ -2470,7 +2470,7 @@ body.theme-newsroom .werewolf-role-card {
   .rps-choice-row button { min-width: 0; flex: 1 1 90px; }
 }
 
-/* v0.16.5 avatar builder expansion */
+/* v0.16.6 avatar builder expansion */
 .avatar-earring-control {
   display: grid !important;
   grid-template-columns: 1fr;
@@ -2484,22 +2484,88 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 /* =====================================================
-   v0.16.5 — admin room effects
+   v0.16.6 — admin room effects
    ===================================================== */
-.effects-dialog {
-  width: min(94vw, 760px);
+.effects-menu-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.effects-menu-trigger {
+  white-space: nowrap;
+}
+
+.effects-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  z-index: 6200;
+  width: min(440px, calc(100vw - 28px));
+  max-height: min(68dvh, 560px);
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: 0 16px 46px rgba(0,0,0,.24);
+  backdrop-filter: none;
+}
+
+.effects-menu-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.effects-menu-close {
+  margin: 0 !important;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--muted) !important;
+  font-size: 20px !important;
+}
+
+.effects-menu label {
+  margin: 7px 0 4px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.effects-menu select,
+.effects-menu textarea {
+  width: 100%;
+  margin: 0 !important;
+  font-size: 11px;
+}
+
+.effects-menu textarea {
+  min-height: 56px;
+  resize: vertical;
 }
 
 .effects-grid {
-  margin-top: 14px;
+  margin-top: 10px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0,1fr));
-  gap: 8px;
+  gap: 6px;
 }
 
 .effects-grid button {
-  min-height: 42px;
+  min-height: 34px;
+  padding: 6px 8px !important;
   text-align: left;
+  font-size: 10px !important;
+}
+
+.effects-stop-button {
+  width: 100%;
+  margin-top: 8px !important;
 }
 
 .room-effect-layer {
