@@ -1,5 +1,5 @@
-import { APP_VERSION } from "./config.js?v=0.15.2";
-import { state } from "./state.js?v=0.15.2";
+import { APP_VERSION } from "./config.js?v=0.16.0";
+import { state } from "./state.js?v=0.16.0";
 import {
   loginUser,
   restoreSession,
@@ -9,20 +9,21 @@ import {
   getMyNameChangeStatus,
   getActivationInfo,
   activateAccount
-} from "./auth.js?v=0.15.2";
+} from "./auth.js?v=0.16.0";
 import {
   initAdminUI,
   loadMembers,
   loadPendingRequests,
   loadNameChangeRequests,
   closeMemberDialog
-} from "./admin.js?v=0.15.2";
+} from "./admin.js?v=0.16.0";
 import {
   initChatUI,
   enterChatroom,
   closeChatSocket
-} from "./chat.js?v=0.15.2";
-import { initThemeSystem } from "./themes.js?v=0.15.2";
+} from "./chat.js?v=0.16.0";
+import { initThemeSystem } from "./themes.js?v=0.16.0";
+import { initProfiles } from "./profile.js?v=0.16.0";
 
 const el = (id) => document.getElementById(id);
 
@@ -302,6 +303,7 @@ async function init() {
   initThemeSystem();
   initAdminUI();
   initChatUI();
+  initProfiles();
   initNavigation();
 
   const params = new URLSearchParams(window.location.search);

@@ -4,16 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0b0f17">
-  <title>DRKODOOM Chatroom v0.15.2</title>
-  <link rel="stylesheet" href="./css/base.css?v=0.15.2">
-  <link rel="stylesheet" href="./css/themes.css?v=0.15.2">
+  <title>DRKODOOM Chatroom v0.16.0</title>
+  <link rel="stylesheet" href="./css/base.css?v=0.16.0">
+  <link rel="stylesheet" href="./css/themes.css?v=0.16.0">
 </head>
 <body class="theme-modern">
   <main class="app-window" id="appWindow">
     <header class="titlebar">
       <div class="titlebar-copy">
         <span id="clientTitle">DRK CHAT</span>
-        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.15.2</button>
+        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.16.0</button>
       </div>
       <span class="classic-window-controls aol-only" aria-hidden="true">[_][□][X]</span>
     </header>
@@ -243,6 +243,7 @@
       <div class="chat-toolbar">
         <span class="classic-menu aol-only">File &nbsp; Edit &nbsp; People &nbsp; Rooms &nbsp; Help</span>
         <div class="chat-toolbar-actions">
+          <button id="myProfileButton" type="button">MY PROFILE</button>
           <button id="themeSwitcherButton" type="button">MY THEME</button>
           <button id="searchChatButton" type="button">SEARCH</button>
           <button id="formatToggleButton" type="button">FORMAT</button>
@@ -392,6 +393,52 @@
     </div>
   </div>
 
+
+  <!-- v0.16.0 MEMBER PROFILE -->
+  <div class="modal-overlay hidden" id="profileOverlay" role="dialog" aria-modal="true" aria-labelledby="profileDialogTitle">
+    <div class="modal-window profile-dialog">
+      <div class="modal-titlebar profile-modal-titlebar">
+        <span id="profileDialogTitle">MEMBER PROFILE</span>
+        <button id="profileCloseButton" type="button" class="profile-close-button" aria-label="Close profile">×</button>
+      </div>
+      <div class="modal-content profile-modal-content">
+        <div id="profileLoading" class="message">Loading profile...</div>
+        <div id="profileView" class="hidden"></div>
+        <div id="profileEdit" class="hidden">
+          <div class="profile-edit-heading">
+            <div><p class="eyebrow">MY PROFILE</p><h2>Edit Profile</h2></div>
+            <button id="profileCancelEditButton" type="button">CANCEL</button>
+          </div>
+          <form id="profileEditForm" class="stack-form profile-edit-form">
+            <label for="profileAvatarInput">Profile picture URL <span class="small">(https:// only)</span></label>
+            <input id="profileAvatarInput" maxlength="500" placeholder="https://...">
+            <label for="profileStatusInput">Profile status</label>
+            <input id="profileStatusInput" maxlength="120" placeholder="What are you up to?">
+            <label for="profileAboutInput">About Me</label>
+            <textarea id="profileAboutInput" maxlength="600"></textarea>
+            <label for="profileInterestsInput">Interests</label>
+            <textarea id="profileInterestsInput" maxlength="300"></textarea>
+            <label for="profileFavoritesInput">Favorite Things</label>
+            <textarea id="profileFavoritesInput" maxlength="300"></textarea>
+            <label for="profileLocationInput">Location <span class="small">(optional)</span></label>
+            <input id="profileLocationInput" maxlength="80">
+            <button type="submit" class="primary-action">SAVE PROFILE</button>
+          </form>
+          <div class="profile-reward-editor">
+            <h3>Display Rewards</h3>
+            <label for="profileTitleSelect">Title</label>
+            <select id="profileTitleSelect"><option value="">No title</option></select>
+            <label for="profileEffectSelect">Profile Effect</label>
+            <select id="profileEffectSelect"><option value="">No effect</option></select>
+            <div><strong>Trophy Showcase</strong><p class="field-note">Choose up to five active rewards.</p><div id="profileShowcaseChoices" class="profile-showcase-choices"></div></div>
+            <button id="profileSaveRewardsButton" type="button">SAVE DISPLAY</button>
+          </div>
+          <div id="profileEditMessage" class="message"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- GAME SETUP DIALOG -->
   <div class="modal-overlay hidden" id="gameOverlay" role="dialog" aria-modal="true" aria-labelledby="gameDialogTitle">
     <div class="modal-window game-dialog">
@@ -402,6 +449,7 @@
           <option value="hangman">Hangman</option>
           <option value="boss">D&amp;D-Style Boss Battle</option>
           <option value="werewolf">Werewolf</option>
+          <option value="rps_tournament">Rock Paper Scissors Tournament</option>
         </select>
 
         <div id="hangmanSetupFields">
@@ -422,6 +470,11 @@
         <div id="werewolfSetupFields" class="hidden">
           <p class="field-note"><strong>Werewolf:</strong> all people online when the game begins become players. One werewolf is chosen at random with 4–6 players; two are chosen with 7 or more. Roles are sent privately by the server.</p>
           <p class="field-note">At night, werewolves secretly type <strong>/kill Name</strong>. During the day, living players discuss in chat and type <strong>/vote Name</strong>. Villagers win by eliminating every werewolf. Werewolves win when they equal or outnumber the remaining villagers.</p>
+        </div>
+
+        <div id="rpsTournamentSetupFields" class="hidden">
+          <p class="field-note"><strong>RPS Tournament:</strong> opens room registration. Players type <strong>/rps join</strong>. Admin/MOD starts the bracket when ready. Picks stay secret until both players lock in.</p>
+          <p class="field-note">Tournament matches are best-of-3; the championship is best-of-5. The winner earns the temporary reigning RPS Champion title for up to 30 days.</p>
         </div>
 
         <div id="gameSetupMessage" class="message"></div>
@@ -502,6 +555,6 @@
 
   <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
 
-  <script type="module" src="./js/app.js?v=0.15.2"></script>
+  <script type="module" src="./js/app.js?v=0.16.0"></script>
 </body>
 </html>

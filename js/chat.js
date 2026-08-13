@@ -1,8 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.15.2";
-import { apiFetch } from "./api.js?v=0.15.2";
-import { getToken, state } from "./state.js?v=0.15.2";
-import { openMemberByUsername } from "./admin.js?v=0.15.2";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.15.2";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.16.0";
+import { apiFetch } from "./api.js?v=0.16.0";
+import { getToken, state } from "./state.js?v=0.16.0";
+import { openMemberByUsername } from "./admin.js?v=0.16.0";
+import { openProfileByUsername } from "./profile.js?v=0.16.0";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.16.0";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -144,13 +145,8 @@ function buildUsername(message) {
   button.className = "chat-user-button";
   button.textContent = message.user;
   if (profile.nameColor) button.style.color = profile.nameColor;
-  if (isAdmin()) {
-    button.title = isOwnDisplayedUsername(message.user) ? "Your disguised chat identity" : `View ${message.user}`;
-    button.addEventListener("click", () => openMemberByUsername(isOwnDisplayedUsername(message.user) ? state.currentUser.username : message.user));
-  } else if (isMod()) {
-    button.title = `Change ${message.user}'s chat name color`;
-    button.addEventListener("click", () => promptStaffNameColor(message.user));
-  }
+  button.title = `View ${message.user}'s profile`;
+  button.addEventListener("click", () => openProfileByUsername(isOwnDisplayedUsername(message.user) ? state.currentUser.username : message.user));
   return { button, profile };
 }
 
@@ -384,14 +380,10 @@ function renderOnlineUsers(users) {
     const row = document.createElement("div");
     row.className = "chat-user-card";
 
-    const canInteract = isAdmin() || isMod();
-    const name = document.createElement(canInteract ? "button" : "span");
-    if (name.tagName === "BUTTON") {
-      name.type = "button";
-      name.className = "online-user-button";
-      if (isAdmin()) name.addEventListener("click", () => openMemberByUsername(user.username));
-      else name.addEventListener("click", () => promptStaffNameColor(user.username));
-    }
+    const name = document.createElement("button");
+    name.type = "button";
+    name.className = "online-user-button";
+    name.addEventListener("click", () => openProfileByUsername(isOwnDisplayedUsername(user.username) ? state.currentUser.username : user.username));
     name.textContent = user.username;
     if (user.nameColor) name.style.color = user.nameColor;
     row.appendChild(name);
@@ -752,6 +744,10 @@ function connectChatSocket() {
       addSystemLine(data.message || "Werewolf action received.");
       return;
     }
+    if (data.type === "rps_private") {
+      addSystemLine(data.message || "RPS choice locked.");
+      return;
+    }
     if (data.type === "admin_announcement") {
       addAnnouncement(data);
       return;
@@ -1049,7 +1045,7 @@ function promptStaffNameColor(username = null) {
 
 function openGameSetup() {
   if (!isStaff()) return;
-  if (state.game?.status === "active") {
+  if (state.game && !["won", "lost", "villagers_win", "werewolves_win", "complete", "declined", "ended"].includes(String(state.game.status))) {
     el("gamePanel").scrollIntoView({ behavior: "smooth", block: "nearest" });
     return;
   }
@@ -1068,6 +1064,7 @@ function updateGameSetupFields() {
   el("hangmanSetupFields").classList.toggle("hidden", game !== "hangman");
   el("bossSetupFields").classList.toggle("hidden", game !== "boss");
   el("werewolfSetupFields").classList.toggle("hidden", game !== "werewolf");
+  el("rpsTournamentSetupFields").classList.toggle("hidden", game !== "rps_tournament");
 }
 
 function startSelectedGame() {
@@ -1087,6 +1084,8 @@ function startSelectedGame() {
     sendSocket({ type: "game_start", game: "boss", boss: el("bossSelect").value });
   } else if (game === "werewolf") {
     sendSocket({ type: "game_start", game: "werewolf" });
+  } else if (game === "rps_tournament") {
+    sendSocket({ type: "game_start", game: "rps_tournament" });
   }
   closeGameSetup();
 }
@@ -1131,6 +1130,10 @@ function updateComposerForGame() {
     input.placeholder = "Type /roll to roll a d20 and attack, or type a normal message...";
   } else if (state.game?.type === "hangman" && state.game.status === "active") {
     input.placeholder = "Chat normally here — use the Hangman box above to guess...";
+  } else if (state.game?.type === "rps_duel" && ["challenged", "active"].includes(state.game.status)) {
+    input.placeholder = "RPS: use /rps accept, /rps decline, or /rps rock|paper|scissors";
+  } else if (state.game?.type === "rps_tournament" && ["registration", "active"].includes(state.game.status)) {
+    input.placeholder = state.game.status === "registration" ? "RPS Tournament: type /rps join" : "RPS Tournament: when it is your match, type /rps rock|paper|scissors";
   } else if (state.game?.type === "werewolf" && state.game.status === "active") {
     const secret = state.werewolfSecret;
     if (!secret?.participant) input.placeholder = "Werewolf is in progress — you are observing this round.";
@@ -1158,7 +1161,7 @@ function renderGame(game) {
 
   panel.classList.remove("hidden");
   updateComposerForGame();
-  el("startGameButton").textContent = state.game.status === "active" ? "GAME" : "START GAME";
+  el("startGameButton").textContent = ["active", "registration", "challenged"].includes(String(state.game.status)) ? "GAME" : "START GAME";
 
   const header = document.createElement("div");
   header.className = "game-panel-header";
@@ -1167,7 +1170,10 @@ function renderGame(game) {
   title.className = "game-panel-title";
   if (state.game.type === "hangman") title.textContent = "HANGMAN";
   else if (state.game.type === "boss") title.textContent = `BOSS BATTLE — ${state.game.bossName}`;
-  else title.textContent = `WEREWOLF — ${String(state.game.phase || "ended").toUpperCase()} ${state.game.day || ""}`.trim();
+  else if (state.game.type === "werewolf") title.textContent = `WEREWOLF — ${String(state.game.phase || "ended").toUpperCase()} ${state.game.day || ""}`.trim();
+  else if (state.game.type === "rps_duel") title.textContent = "ROCK PAPER SCISSORS — CHALLENGE";
+  else if (state.game.type === "rps_tournament") title.textContent = "ROCK PAPER SCISSORS — TOURNAMENT";
+  else title.textContent = "CHAT GAME";
 
   const subtitle = document.createElement("div");
   subtitle.className = "game-panel-subtitle";
@@ -1228,6 +1234,154 @@ function renderGame(game) {
     }
 
     panel.appendChild(gameLogNode(state.game.log));
+    return;
+  }
+
+
+  if (state.game.type === "rps_duel") {
+    const game = state.game;
+    const myUser = String(state.currentUser?.username || "").toLowerCase();
+    const aKey = String(game.challenger?.username || "").toLowerCase();
+    const bKey = String(game.opponent?.username || "").toLowerCase();
+    const card = document.createElement("div");
+    card.className = "rps-match-card";
+    const players = document.createElement("div");
+    players.className = "rps-versus";
+    const a = document.createElement("div");
+    a.className = "rps-player-card";
+    a.innerHTML = `<strong>${game.challenger?.displayName || "Player 1"}</strong><span>${game.score?.[aKey] || 0}</span>`;
+    const vs = document.createElement("div");
+    vs.className = "rps-vs";
+    vs.textContent = "VS";
+    const b = document.createElement("div");
+    b.className = "rps-player-card";
+    b.innerHTML = `<strong>${game.opponent?.displayName || "Player 2"}</strong><span>${game.score?.[bKey] || 0}</span>`;
+    players.append(a, vs, b);
+    card.appendChild(players);
+
+    const status = document.createElement("div");
+    status.className = "rps-status";
+    if (game.status === "challenged") status.textContent = `${game.opponent?.displayName} has been challenged. Best of ${game.bestOf}.`;
+    else if (game.status === "active") status.textContent = `Round ${game.round} • First to ${game.requiredWins} wins.`;
+    else if (game.status === "complete") status.textContent = `🏆 ${game.winner?.displayName || "Winner"} wins the match.`;
+    else status.textContent = String(game.status || "").toUpperCase();
+    card.appendChild(status);
+
+    if (game.status === "challenged" && myUser === bKey) {
+      const actions = document.createElement("div");
+      actions.className = "rps-choice-row";
+      actions.append(
+        makeAction("ACCEPT", () => sendSocket({ type: "rps_accept" })),
+        makeAction("DECLINE", () => sendSocket({ type: "rps_decline" }), "danger")
+      );
+      card.appendChild(actions);
+    }
+
+    if (game.status === "active" && [aKey, bKey].includes(myUser)) {
+      const locked = Boolean(game.locked?.[myUser]);
+      const choices = document.createElement("div");
+      choices.className = "rps-choice-row";
+      if (locked) {
+        const wait = document.createElement("strong");
+        wait.textContent = "CHOICE LOCKED — waiting for the other player…";
+        choices.appendChild(wait);
+      } else {
+        [["✊", "ROCK", "rock"], ["✋", "PAPER", "paper"], ["✌️", "SCISSORS", "scissors"]].forEach(([icon, label, choice]) => {
+          choices.appendChild(makeAction(`${icon} ${label}`, () => sendSocket({ type: "rps_pick", choice })));
+        });
+      }
+      card.appendChild(choices);
+    }
+    panel.appendChild(card);
+    panel.appendChild(gameLogNode(game.log));
+    return;
+  }
+
+  if (state.game.type === "rps_tournament") {
+    const game = state.game;
+    const myUser = String(state.currentUser?.username || "").toLowerCase();
+    const intro = document.createElement("div");
+    intro.className = "rps-tournament-head";
+    if (game.status === "registration") {
+      const text = document.createElement("div");
+      text.innerHTML = `<strong>REGISTRATION OPEN</strong><span>${(game.participants || []).length} player${(game.participants || []).length === 1 ? "" : "s"} joined</span>`;
+      intro.appendChild(text);
+      const joined = (game.participants || []).some((p) => String(p.username).toLowerCase() === myUser);
+      if (!joined) intro.appendChild(makeAction("JOIN TOURNAMENT", () => sendSocket({ type: "rps_tournament_join" })));
+      if (isStaff() && (game.participants || []).length >= 2) intro.appendChild(makeAction("START BRACKET", () => sendSocket({ type: "rps_tournament_start" })));
+    } else if (game.status === "complete") {
+      intro.innerHTML = `<strong>🏆 ${game.champion?.displayName || "Champion"}</strong><span>RPS CHAMPION — reigning title awarded for up to 30 days</span>`;
+    } else {
+      intro.innerHTML = `<strong>BRACKET IN PROGRESS</strong><span>Selections stay hidden until both players lock in.</span>`;
+    }
+    panel.appendChild(intro);
+
+    if (game.status === "registration") {
+      const roster = document.createElement("div");
+      roster.className = "rps-registration-roster";
+      (game.participants || []).forEach((player, index) => {
+        const chip = document.createElement("span");
+        chip.textContent = `${index + 1}. ${player.displayName}`;
+        roster.appendChild(chip);
+      });
+      panel.appendChild(roster);
+    }
+
+    if ((game.rounds || []).length) {
+      const bracket = document.createElement("div");
+      bracket.className = "rps-bracket";
+      (game.rounds || []).forEach((round, roundIndex) => {
+        const col = document.createElement("div");
+        col.className = "rps-bracket-round";
+        const heading = document.createElement("strong");
+        const isFinal = round.length === 1;
+        heading.textContent = isFinal ? "FINAL" : `ROUND ${roundIndex + 1}`;
+        col.appendChild(heading);
+        round.forEach((match, matchIndex) => {
+          const node = document.createElement("div");
+          node.className = `rps-bracket-match ${match.status}${roundIndex === game.currentRound && matchIndex === game.currentMatch ? " current" : ""}`;
+          const p1 = document.createElement("div");
+          p1.className = match.winner?.username === match.playerA?.username ? "winner" : "";
+          p1.textContent = `${match.playerA?.displayName || "BYE"} ${match.playerA ? match.scoreA : ""}`;
+          const p2 = document.createElement("div");
+          p2.className = match.winner?.username === match.playerB?.username ? "winner" : "";
+          p2.textContent = `${match.playerB?.displayName || "BYE"} ${match.playerB ? match.scoreB : ""}`;
+          node.append(p1, p2);
+          col.appendChild(node);
+        });
+        bracket.appendChild(col);
+      });
+      panel.appendChild(bracket);
+    }
+
+    if (game.status === "active") {
+      const currentRound = game.rounds?.[game.currentRound] || [];
+      const match = currentRound?.[game.currentMatch] || null;
+      if (match?.playerA && match?.playerB) {
+        const aKey = String(match.playerA.username).toLowerCase();
+        const bKey = String(match.playerB.username).toLowerCase();
+        const current = document.createElement("div");
+        current.className = "rps-current-match";
+        current.innerHTML = `<strong>${match.playerA.displayName} vs ${match.playerB.displayName}</strong><span>First to ${match.requiredWins} • ${match.scoreA}-${match.scoreB}</span>`;
+        panel.appendChild(current);
+        if ([aKey, bKey].includes(myUser)) {
+          const locked = Boolean(game.locked?.[myUser]);
+          const choices = document.createElement("div");
+          choices.className = "rps-choice-row";
+          if (locked) {
+            const wait = document.createElement("strong");
+            wait.textContent = "YOUR THROW IS LOCKED — waiting for your opponent…";
+            choices.appendChild(wait);
+          } else {
+            [["✊", "ROCK", "rock"], ["✋", "PAPER", "paper"], ["✌️", "SCISSORS", "scissors"]].forEach(([icon, label, choice]) => {
+              choices.appendChild(makeAction(`${icon} ${label}`, () => sendSocket({ type: "rps_pick", choice })));
+            });
+          }
+          panel.appendChild(choices);
+        }
+      }
+    }
+    panel.appendChild(gameLogNode(game.log));
     return;
   }
 
@@ -1552,6 +1706,11 @@ export function initChatUI() {
     if (!isAdmin()) return;
     const theme = event.detail?.theme || null;
     sendSocket({ type: "admin_room_theme", theme });
+  });
+
+  window.addEventListener("drk:rps-challenge", (event) => {
+    const username = event.detail?.username;
+    if (username) sendSocket({ type: "rps_challenge", username });
   });
 
   window.addEventListener("drk:admin-kick", (event) => {
