@@ -1,6 +1,6 @@
-import { apiFetch } from "./api.js?v=0.16.0";
-import { state } from "./state.js?v=0.16.0";
-import { openMemberByUsername } from "./admin.js?v=0.16.0";
+import { apiFetch } from "./api.js?v=0.16.1";
+import { state } from "./state.js?v=0.16.1";
+import { openMemberByUsername } from "./admin.js?v=0.16.1";
 
 const el = (id) => document.getElementById(id);
 let activeProfile = null;
@@ -34,30 +34,177 @@ function initials(username) {
   return String(username || "?").split(/[\s._-]+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "?";
 }
 
+function defaultMonsterAvatar() {
+  return {
+    skin: "#7ecf8a",
+    eyes: "classic",
+    ears: "round",
+    horns: "curved",
+    mouth: "smile",
+    eyebrows: "soft",
+    nose: "button",
+    hair: "mohawk",
+    eyeglasses: false,
+    sunglasses: false,
+    nosePiercing: false,
+    earPiercing: false
+  };
+}
+
+function normalizeMonsterAvatar(value) {
+  const defaults = defaultMonsterAvatar();
+  const raw = value && typeof value === "object" ? value : {};
+  const pick = (key, allowed) => allowed.includes(String(raw[key] || "")) ? String(raw[key]) : defaults[key];
+  const avatar = {
+    skin: typeof raw.skin === "string" && /^#[0-9a-fA-F]{6}$/.test(raw.skin) ? raw.skin : defaults.skin,
+    eyes: pick("eyes", ["classic", "sleepy", "wide"]),
+    ears: pick("ears", ["round", "pointy", "floppy"]),
+    horns: pick("horns", ["curved", "spike", "nubs"]),
+    mouth: pick("mouth", ["smile", "fang", "grin"]),
+    eyebrows: pick("eyebrows", ["soft", "angry", "arched"]),
+    nose: pick("nose", ["button", "triangle", "snout"]),
+    hair: pick("hair", ["none", "mohawk", "shaggy"]),
+    eyeglasses: Boolean(raw.eyeglasses),
+    sunglasses: Boolean(raw.sunglasses),
+    nosePiercing: Boolean(raw.nosePiercing),
+    earPiercing: Boolean(raw.earPiercing)
+  };
+  if (avatar.sunglasses) avatar.eyeglasses = false;
+  return avatar;
+}
+
+function buildMonsterSvg(config, size = 112) {
+  const a = normalizeMonsterAvatar(config);
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", "0 0 120 120");
+  svg.setAttribute("width", String(size));
+  svg.setAttribute("height", String(size));
+  svg.setAttribute("aria-hidden", "true");
+  svg.classList.add("profile-avatar", "monster-avatar-svg");
+
+  const add = (name, attrs) => {
+    const el = document.createElementNS(ns, name);
+    for (const [k,v] of Object.entries(attrs)) el.setAttribute(k, String(v));
+    svg.appendChild(el);
+    return el;
+  };
+
+  add("rect", { x: 0, y: 0, width: 120, height: 120, rx: 24, fill: "#00000000" });
+  add("circle", { cx: 60, cy: 60, r: 53, fill: "#f7f8fb" });
+
+  // ears
+  if (a.ears === "round") {
+    add("circle", { cx: 19, cy: 56, r: 12, fill: a.skin, stroke: "#28323d", 'stroke-width': 3 });
+    add("circle", { cx: 101, cy: 56, r: 12, fill: a.skin, stroke: "#28323d", 'stroke-width': 3 });
+  } else if (a.ears === "pointy") {
+    add("path", { d: "M18 61 L9 44 L28 48 Z", fill: a.skin, stroke: "#28323d", 'stroke-width': 3, 'stroke-linejoin': 'round' });
+    add("path", { d: "M102 61 L111 44 L92 48 Z", fill: a.skin, stroke: "#28323d", 'stroke-width': 3, 'stroke-linejoin': 'round' });
+  } else {
+    add("path", { d: "M18 61 Q7 66 9 81 Q18 79 24 71", fill: a.skin, stroke: "#28323d", 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+    add("path", { d: "M102 61 Q113 66 111 81 Q102 79 96 71", fill: a.skin, stroke: "#28323d", 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+  }
+
+  // horns
+  if (a.horns === "curved") {
+    add("path", { d: "M38 20 Q28 2 18 24", fill: "none", stroke: "#8b6b4b", 'stroke-width': 8, 'stroke-linecap': 'round' });
+    add("path", { d: "M82 20 Q92 2 102 24", fill: "none", stroke: "#8b6b4b", 'stroke-width': 8, 'stroke-linecap': 'round' });
+  } else if (a.horns === "spike") {
+    add("path", { d: "M38 26 L31 6 L48 20 Z", fill: "#b88c61", stroke: "#6c4d31", 'stroke-width': 2, 'stroke-linejoin': 'round' });
+    add("path", { d: "M82 26 L89 6 L72 20 Z", fill: "#b88c61", stroke: "#6c4d31", 'stroke-width': 2, 'stroke-linejoin': 'round' });
+  } else {
+    add("circle", { cx: 42, cy: 21, r: 7, fill: "#b88c61", stroke: "#6c4d31", 'stroke-width': 2 });
+    add("circle", { cx: 78, cy: 21, r: 7, fill: "#b88c61", stroke: "#6c4d31", 'stroke-width': 2 });
+  }
+
+  // hair
+  if (a.hair === "mohawk") {
+    add("path", { d: "M60 8 L68 26 L60 22 L52 26 Z", fill: "#442b18" });
+    add("path", { d: "M60 18 L70 40 L60 36 L50 40 Z", fill: "#5a3921" });
+  } else if (a.hair === "shaggy") {
+    add("path", { d: "M28 32 Q40 8 60 10 Q80 8 92 32 Q84 24 76 28 Q68 21 60 27 Q52 21 44 28 Q36 23 28 32", fill: "#4e3426" });
+  }
+
+  // head
+  add("circle", { cx: 60, cy: 60, r: 38, fill: a.skin, stroke: "#28323d", 'stroke-width': 3 });
+
+  // eyebrows
+  if (a.eyebrows === "soft") {
+    add("path", { d: "M38 44 Q45 40 51 44", fill: "none", stroke: "#28323d", 'stroke-width': 3, 'stroke-linecap': 'round' });
+    add("path", { d: "M69 44 Q75 40 82 44", fill: "none", stroke: "#28323d", 'stroke-width': 3, 'stroke-linecap': 'round' });
+  } else if (a.eyebrows === "angry") {
+    add("path", { d: "M36 46 L51 41", fill: "none", stroke: "#28323d", 'stroke-width': 3.5, 'stroke-linecap': 'round' });
+    add("path", { d: "M69 41 L84 46", fill: "none", stroke: "#28323d", 'stroke-width': 3.5, 'stroke-linecap': 'round' });
+  } else {
+    add("path", { d: "M36 43 Q44 36 51 43", fill: "none", stroke: "#28323d", 'stroke-width': 3, 'stroke-linecap': 'round' });
+    add("path", { d: "M69 43 Q76 36 84 43", fill: "none", stroke: "#28323d", 'stroke-width': 3, 'stroke-linecap': 'round' });
+  }
+
+  // eyes
+  if (a.eyes === "classic") {
+    add("ellipse", { cx: 44, cy: 52, rx: 8, ry: 10, fill: "#fff", stroke: "#28323d", 'stroke-width': 2 });
+    add("ellipse", { cx: 76, cy: 52, rx: 8, ry: 10, fill: "#fff", stroke: "#28323d", 'stroke-width': 2 });
+    add("circle", { cx: 45, cy: 54, r: 3.4, fill: "#28323d" });
+    add("circle", { cx: 77, cy: 54, r: 3.4, fill: "#28323d" });
+  } else if (a.eyes === "sleepy") {
+    add("path", { d: "M36 54 Q44 48 52 54", fill: "#fff", stroke: "#28323d", 'stroke-width': 2, 'stroke-linecap': 'round' });
+    add("path", { d: "M68 54 Q76 48 84 54", fill: "#fff", stroke: "#28323d", 'stroke-width': 2, 'stroke-linecap': 'round' });
+    add("circle", { cx: 44, cy: 54, r: 2.7, fill: "#28323d" });
+    add("circle", { cx: 76, cy: 54, r: 2.7, fill: "#28323d" });
+  } else {
+    add("circle", { cx: 44, cy: 52, r: 10, fill: "#fff", stroke: "#28323d", 'stroke-width': 2 });
+    add("circle", { cx: 76, cy: 52, r: 10, fill: "#fff", stroke: "#28323d", 'stroke-width': 2 });
+    add("circle", { cx: 44, cy: 52, r: 4, fill: "#28323d" });
+    add("circle", { cx: 76, cy: 52, r: 4, fill: "#28323d" });
+  }
+
+  // glasses
+  if (a.eyeglasses || a.sunglasses) {
+    const fill = a.sunglasses ? "#1d2430" : "#ffffffaa";
+    add("rect", { x: 32, y: 44, width: 22, height: 18, rx: 6, fill, stroke: "#28323d", 'stroke-width': 2 });
+    add("rect", { x: 66, y: 44, width: 22, height: 18, rx: 6, fill, stroke: "#28323d", 'stroke-width': 2 });
+    add("path", { d: "M54 53 H66", fill: "none", stroke: "#28323d", 'stroke-width': 2 });
+  }
+
+  // nose
+  if (a.nose === "button") {
+    add("circle", { cx: 60, cy: 61, r: 3.5, fill: "#f2b2a4", stroke: "#28323d", 'stroke-width': 1.5 });
+  } else if (a.nose === "triangle") {
+    add("path", { d: "M60 57 L55 65 L65 65 Z", fill: "#f2b2a4", stroke: "#28323d", 'stroke-width': 1.5, 'stroke-linejoin':'round' });
+  } else {
+    add("ellipse", { cx: 60, cy: 62, rx: 8, ry: 5, fill: "#f2b2a4", stroke: "#28323d", 'stroke-width': 1.5 });
+  }
+
+  // mouth
+  if (a.mouth === "smile") {
+    add("path", { d: "M46 76 Q60 86 74 76", fill: "none", stroke: "#28323d", 'stroke-width': 3, 'stroke-linecap': 'round' });
+  } else if (a.mouth === "fang") {
+    add("path", { d: "M45 75 Q60 84 75 75", fill: "#fff", stroke: "#28323d", 'stroke-width': 2, 'stroke-linejoin':'round' });
+    add("path", { d: "M54 76 L57 84 L60 76", fill: "#fff", stroke: "#28323d", 'stroke-width': 1.5 });
+    add("path", { d: "M60 76 L63 84 L66 76", fill: "#fff", stroke: "#28323d", 'stroke-width': 1.5 });
+  } else {
+    add("rect", { x: 47, y: 72, width: 26, height: 12, rx: 6, fill: "#7d2c35", stroke: "#28323d", 'stroke-width': 2 });
+    for (const x of [52,58,64,70]) add("path", { d: `M${x} 72 V84`, fill:'none', stroke:'#ffffff', 'stroke-width': 1 });
+  }
+
+  if (a.nosePiercing) add("circle", { cx: 66, cy: 64, r: 2.2, fill: "#d9dce5", stroke: "#495566", 'stroke-width': 1 });
+  if (a.earPiercing) {
+    add("circle", { cx: 24, cy: 65, r: 2.5, fill: "#d9dce5", stroke: "#495566", 'stroke-width': 1 });
+    add("circle", { cx: 96, cy: 65, r: 2.5, fill: "#d9dce5", stroke: "#495566", 'stroke-width': 1 });
+  }
+
+  return svg;
+}
+
+function renderMonsterAvatarInto(container, config, size = 112) {
+  container.innerHTML = "";
+  container.appendChild(buildMonsterSvg(config, size));
+}
+
 function createAvatar(profile) {
   const wrap = document.createElement("div");
   wrap.className = "profile-avatar-wrap";
-  const url = profile.profile?.avatar_url;
-  if (url) {
-    const img = document.createElement("img");
-    img.className = "profile-avatar";
-    img.alt = `${profile.user.username}'s profile picture`;
-    img.src = url;
-    img.referrerPolicy = "no-referrer";
-    img.addEventListener("error", () => {
-      wrap.innerHTML = "";
-      const fallback = document.createElement("div");
-      fallback.className = "profile-avatar profile-avatar-fallback";
-      fallback.textContent = initials(profile.user.username);
-      wrap.appendChild(fallback);
-    }, { once: true });
-    wrap.appendChild(img);
-  } else {
-    const fallback = document.createElement("div");
-    fallback.className = "profile-avatar profile-avatar-fallback";
-    fallback.textContent = initials(profile.user.username);
-    wrap.appendChild(fallback);
-  }
+  renderMonsterAvatarInto(wrap, profile.profile?.avatar_monster || defaultMonsterAvatar(), 112);
   return wrap;
 }
 
@@ -325,13 +472,51 @@ function openEditMode() {
   el("profileView").classList.add("hidden");
   el("profileEdit").classList.remove("hidden");
   const p = activeProfile.profile || {};
-  el("profileAvatarInput").value = p.avatar_url || "";
+  const avatar = normalizeMonsterAvatar(p.avatar_monster);
+  el("profileAvatarSkinInput").value = avatar.skin;
+  el("profileAvatarEyesSelect").value = avatar.eyes;
+  el("profileAvatarEarsSelect").value = avatar.ears;
+  el("profileAvatarHornsSelect").value = avatar.horns;
+  el("profileAvatarMouthSelect").value = avatar.mouth;
+  el("profileAvatarEyebrowsSelect").value = avatar.eyebrows;
+  el("profileAvatarNoseSelect").value = avatar.nose;
+  el("profileAvatarHairSelect").value = avatar.hair;
+  el("profileAvatarEyeglassesInput").checked = avatar.eyeglasses;
+  el("profileAvatarSunglassesInput").checked = avatar.sunglasses;
+  el("profileAvatarNosePiercingInput").checked = avatar.nosePiercing;
+  el("profileAvatarEarPiercingInput").checked = avatar.earPiercing;
+  updateAvatarEditorPreview();
   el("profileStatusInput").value = p.profile_status || "";
   el("profileAboutInput").value = p.about_me || "";
   el("profileInterestsInput").value = p.interests || "";
   el("profileFavoritesInput").value = p.favorite_things || "";
   el("profileLocationInput").value = p.profile_location || "";
   fillRewardEditor();
+}
+
+
+function getMonsterAvatarFromForm() {
+  const avatar = normalizeMonsterAvatar({
+    skin: el("profileAvatarSkinInput").value,
+    eyes: el("profileAvatarEyesSelect").value,
+    ears: el("profileAvatarEarsSelect").value,
+    horns: el("profileAvatarHornsSelect").value,
+    mouth: el("profileAvatarMouthSelect").value,
+    eyebrows: el("profileAvatarEyebrowsSelect").value,
+    nose: el("profileAvatarNoseSelect").value,
+    hair: el("profileAvatarHairSelect").value,
+    eyeglasses: el("profileAvatarEyeglassesInput").checked,
+    sunglasses: el("profileAvatarSunglassesInput").checked,
+    nosePiercing: el("profileAvatarNosePiercingInput").checked,
+    earPiercing: el("profileAvatarEarPiercingInput").checked
+  });
+  if (avatar.sunglasses) el("profileAvatarEyeglassesInput").checked = false;
+  return avatar;
+}
+
+function updateAvatarEditorPreview() {
+  const avatar = getMonsterAvatarFromForm();
+  renderMonsterAvatarInto(el("profileAvatarPreview"), avatar, 120);
 }
 
 function fillRewardEditor() {
@@ -379,7 +564,7 @@ async function saveProfile(event) {
   message.textContent = "Saving...";
   try {
     const payload = {
-      avatar_url: el("profileAvatarInput").value.trim(),
+      avatar_monster: getMonsterAvatarFromForm(),
       profile_status: el("profileStatusInput").value.trim(),
       about_me: el("profileAboutInput").value.trim(),
       interests: el("profileInterestsInput").value.trim(),
@@ -438,6 +623,22 @@ export function initProfiles() {
     el("profileEdit").classList.add("hidden");
     el("profileView").classList.remove("hidden");
   });
+  [
+    "profileAvatarSkinInput",
+    "profileAvatarEyesSelect",
+    "profileAvatarEarsSelect",
+    "profileAvatarHornsSelect",
+    "profileAvatarMouthSelect",
+    "profileAvatarEyebrowsSelect",
+    "profileAvatarNoseSelect",
+    "profileAvatarHairSelect",
+    "profileAvatarEyeglassesInput",
+    "profileAvatarSunglassesInput",
+    "profileAvatarNosePiercingInput",
+    "profileAvatarEarPiercingInput"
+  ].forEach((id) => el(id).addEventListener("input", updateAvatarEditorPreview));
+  el("profileAvatarEyeglassesInput").addEventListener("change", () => { if (el("profileAvatarEyeglassesInput").checked) el("profileAvatarSunglassesInput").checked = false; updateAvatarEditorPreview(); });
+  el("profileAvatarSunglassesInput").addEventListener("change", () => { if (el("profileAvatarSunglassesInput").checked) el("profileAvatarEyeglassesInput").checked = false; updateAvatarEditorPreview(); });
   el("profileEditForm").addEventListener("submit", saveProfile);
   el("profileSaveRewardsButton").addEventListener("click", saveRewardDisplay);
   el("myProfileButton").addEventListener("click", openOwnProfile);

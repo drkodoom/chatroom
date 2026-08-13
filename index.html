@@ -4,16 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0b0f17">
-  <title>DRKODOOM Chatroom v0.16.0</title>
-  <link rel="stylesheet" href="./css/base.css?v=0.16.0">
-  <link rel="stylesheet" href="./css/themes.css?v=0.16.0">
+  <title>DRKODOOM Chatroom v0.16.1</title>
+  <link rel="stylesheet" href="./css/base.css?v=0.16.1">
+  <link rel="stylesheet" href="./css/themes.css?v=0.16.1">
 </head>
 <body class="theme-modern">
   <main class="app-window" id="appWindow">
     <header class="titlebar">
       <div class="titlebar-copy">
         <span id="clientTitle">DRK CHAT</span>
-        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.16.0</button>
+        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.16.1</button>
       </div>
       <span class="classic-window-controls aol-only" aria-hidden="true">[_][□][X]</span>
     </header>
@@ -394,7 +394,7 @@
   </div>
 
 
-  <!-- v0.16.0 MEMBER PROFILE -->
+  <!-- v0.16.1 MEMBER PROFILE -->
   <div class="modal-overlay hidden" id="profileOverlay" role="dialog" aria-modal="true" aria-labelledby="profileDialogTitle">
     <div class="modal-window profile-dialog">
       <div class="modal-titlebar profile-modal-titlebar">
@@ -410,8 +410,65 @@
             <button id="profileCancelEditButton" type="button">CANCEL</button>
           </div>
           <form id="profileEditForm" class="stack-form profile-edit-form">
-            <label for="profileAvatarInput">Profile picture URL <span class="small">(https:// only)</span></label>
-            <input id="profileAvatarInput" maxlength="500" placeholder="https://...">
+            <div class="profile-avatar-builder">
+              <div>
+                <label>Monster Avatar</label>
+                <p class="field-note">Build a local monster avatar. No photo uploads or image hosting required.</p>
+                <div id="profileAvatarPreview" class="profile-avatar-builder-preview"></div>
+              </div>
+              <div class="profile-avatar-builder-controls">
+                <label for="profileAvatarSkinInput">Skin tone</label>
+                <input id="profileAvatarSkinInput" type="color" value="#7ecf8a">
+                <label for="profileAvatarEyesSelect">Eyes</label>
+                <select id="profileAvatarEyesSelect">
+                  <option value="classic">Classic</option>
+                  <option value="sleepy">Sleepy</option>
+                  <option value="wide">Wide</option>
+                </select>
+                <label for="profileAvatarEarsSelect">Ears</label>
+                <select id="profileAvatarEarsSelect">
+                  <option value="round">Round</option>
+                  <option value="pointy">Pointy</option>
+                  <option value="floppy">Floppy</option>
+                </select>
+                <label for="profileAvatarHornsSelect">Horns</label>
+                <select id="profileAvatarHornsSelect">
+                  <option value="curved">Curved</option>
+                  <option value="spike">Spike</option>
+                  <option value="nubs">Nubs</option>
+                </select>
+                <label for="profileAvatarMouthSelect">Mouth</label>
+                <select id="profileAvatarMouthSelect">
+                  <option value="smile">Smile</option>
+                  <option value="fang">Fangs</option>
+                  <option value="grin">Grin</option>
+                </select>
+                <label for="profileAvatarEyebrowsSelect">Eyebrows</label>
+                <select id="profileAvatarEyebrowsSelect">
+                  <option value="soft">Soft</option>
+                  <option value="angry">Angry</option>
+                  <option value="arched">Arched</option>
+                </select>
+                <label for="profileAvatarNoseSelect">Nose</label>
+                <select id="profileAvatarNoseSelect">
+                  <option value="button">Button</option>
+                  <option value="triangle">Triangle</option>
+                  <option value="snout">Snout</option>
+                </select>
+                <label for="profileAvatarHairSelect">Hair</label>
+                <select id="profileAvatarHairSelect">
+                  <option value="none">None</option>
+                  <option value="mohawk">Mohawk</option>
+                  <option value="shaggy">Shaggy</option>
+                </select>
+                <div class="profile-avatar-accessories">
+                  <label><input id="profileAvatarEyeglassesInput" type="checkbox"> Eyeglasses</label>
+                  <label><input id="profileAvatarSunglassesInput" type="checkbox"> Sunglasses</label>
+                  <label><input id="profileAvatarNosePiercingInput" type="checkbox"> Nose Piercing</label>
+                  <label><input id="profileAvatarEarPiercingInput" type="checkbox"> Ear Piercing</label>
+                </div>
+              </div>
+            </div>
             <label for="profileStatusInput">Profile status</label>
             <input id="profileStatusInput" maxlength="120" placeholder="What are you up to?">
             <label for="profileAboutInput">About Me</label>
@@ -555,6 +612,6 @@
 
   <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
 
-  <script type="module" src="./js/app.js?v=0.16.0"></script>
+  <script type="module" src="./js/app.js?v=0.16.1"></script>
 </body>
 </html>

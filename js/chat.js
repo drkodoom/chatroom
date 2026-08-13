@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.16.0";
-import { apiFetch } from "./api.js?v=0.16.0";
-import { getToken, state } from "./state.js?v=0.16.0";
-import { openMemberByUsername } from "./admin.js?v=0.16.0";
-import { openProfileByUsername } from "./profile.js?v=0.16.0";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.16.0";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.16.1";
+import { apiFetch } from "./api.js?v=0.16.1";
+import { getToken, state } from "./state.js?v=0.16.1";
+import { openMemberByUsername } from "./admin.js?v=0.16.1";
+import { openProfileByUsername } from "./profile.js?v=0.16.1";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.16.1";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
