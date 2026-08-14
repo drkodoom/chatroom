@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.17.4";
-import { apiFetch } from "./api.js?v=0.17.4";
-import { getToken, state } from "./state.js?v=0.17.4";
-import { openMemberByUsername } from "./admin.js?v=0.17.4";
-import { openProfileByUsername } from "./profile.js?v=0.17.4";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.17.4";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.18.0";
+import { apiFetch } from "./api.js?v=0.18.0";
+import { getToken, state } from "./state.js?v=0.18.0";
+import { openMemberByUsername } from "./admin.js?v=0.18.0";
+import { openProfileByUsername } from "./profile.js?v=0.18.0";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.18.0";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -841,7 +841,7 @@ function entranceParticle(layer, side, color, height, style, intensity, width = 
   burst.style.setProperty("--pyro-width", String(width));
   if (side === "left") burst.style.left = `${5.5 + sourceOffset}%`;
   if (side === "right") burst.style.right = `${5.5 + sourceOffset}%`;
-  if (side === "center") burst.style.left = "50%";
+  if (side === "center") burst.style.left = `${50 + Number(sourceOffset || 0)}%`;
 
   const flash = document.createElement("i");
   flash.className = "entrance-pyro-flash";
@@ -930,7 +930,9 @@ function applyEntranceScreenFilter(filter) {
     purple: `sepia(${.38*i}) saturate(${1 + 1.7*i}) hue-rotate(${225*i}deg)`,
     green: `sepia(${.35*i}) saturate(${1 + 1.7*i}) hue-rotate(${78*i}deg)`,
     gold: `sepia(${.65*i}) saturate(${1 + 1.25*i}) hue-rotate(${-8*i}deg)`,
-    mono: `grayscale(${i}) contrast(${1 + .25*i}) brightness(${1 - .05*i})`
+    mono: `grayscale(${i}) contrast(${1 + .25*i}) brightness(${1 - .05*i})`,
+    high_contrast: `contrast(${1 + .75*i}) saturate(${1 + .25*i}) brightness(${1 - .05*i})`,
+    desaturated: `grayscale(${.65*i}) saturate(${1 - .65*i}) contrast(${1 + .12*i})`
   };
   app.style.filter = map[mode] || "";
 }
@@ -938,42 +940,26 @@ function applyEntranceScreenFilter(filter) {
 function addEntranceAtmosphere(layer, atmosphere) {
   if (!atmosphere || atmosphere.type === "none") return;
   const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  const total = reduced ? 6 : Math.max(8, Math.round(28 * Number(atmosphere.density || .45)));
-  for (let i = 0; i < total; i += 1) {
-    const puff = document.createElement("i");
-    puff.className = `entrance-atmosphere entrance-${atmosphere.type}`;
-    puff.style.setProperty("--fog-color", atmosphere.color || "#FFFFFF");
-    puff.style.setProperty("--fog-x", `${Math.random() * 100}%`);
-    puff.style.setProperty("--fog-delay", `${(Math.random() * 1.8).toFixed(2)}s`);
-    puff.style.setProperty("--fog-size", `${Math.round(80 + Math.random() * 150)}px`);
-    layer.appendChild(puff);
+  const density = Number(atmosphere.density || .45);
+  const spread = Number(atmosphere.spread || .75);
+  const heavy = atmosphere.type === "heavy_fog";
+  const total = reduced ? 6 : Math.max(8, Math.round((heavy ? 42 : 28) * density));
+  for (let i=0;i<total;i+=1){
+    const puff=document.createElement("i"); puff.className=`entrance-atmosphere entrance-${atmosphere.type}`;
+    puff.style.setProperty("--fog-color",atmosphere.color||"#FFFFFF");
+    const placement=atmosphere.placement||"floor";
+    let x=50+(Math.random()-.5)*100*spread; if(placement==="sides") x=Math.random()<.5?Math.random()*20:80+Math.random()*20; if(placement==="center") x=35+Math.random()*30;
+    puff.style.setProperty("--fog-x",`${Math.max(0,Math.min(100,x))}%`); puff.style.setProperty("--fog-delay",`${(Math.random()*1.8).toFixed(2)}s`); puff.style.setProperty("--fog-size",`${Math.round((heavy?130:80)+Math.random()*(heavy?220:150))}px`); puff.style.setProperty("--fog-fade",`${Number(atmosphere.fade||4)}s`); layer.appendChild(puff);
   }
 }
 
 function addEntranceRig(layer, lighting) {
   if (lighting?.enabled === false) return;
-  const rig = document.createElement("div");
-  rig.className = "entrance-rig";
-  const truss = document.createElement("div");
-  truss.className = "entrance-truss";
-  rig.appendChild(truss);
-  for (let i = 0; i < 6; i += 1) {
-    const fixture = document.createElement("div");
-    fixture.className = "entrance-light-fixture";
-    fixture.style.setProperty("--fixture-i", String(i));
-    fixture.style.setProperty("--beam-color", i % 2 ? (lighting.secondaryColor || "#FFFFFF") : (lighting.primaryColor || "#FFFFFF"));
-    const yoke = document.createElement("i");
-    yoke.className = "entrance-light-yoke";
-    const head = document.createElement("i");
-    head.className = "entrance-light-head";
-    const lens = document.createElement("i");
-    lens.className = "entrance-light-lens";
-    const beam = document.createElement("i");
-    beam.className = "entrance-light-beam";
-    head.append(lens, beam);
-    fixture.append(yoke, head);
-    rig.appendChild(fixture);
-  }
+  const rig=document.createElement("div"); rig.className="entrance-rig";
+  rig.style.setProperty("--rig-brightness",String(Number(lighting.brightness||.65))); rig.style.setProperty("--beam-width",String(Number(lighting.beamWidth||1)));
+  const truss=document.createElement("div"); truss.className="entrance-truss"; rig.appendChild(truss);
+  const count=Math.max(2,Math.min(10,Math.round(Number(lighting.fixtureCount||6))));
+  for(let i=0;i<count;i+=1){ const fixture=document.createElement("div"); fixture.className="entrance-light-fixture"; fixture.style.setProperty("--fixture-i",String(i)); fixture.style.setProperty("--fixture-count",String(count)); fixture.style.left=`${count===1?50:8+(84*i/(count-1))}%`; fixture.style.setProperty("--beam-color",i%2?(lighting.secondaryColor||"#FFFFFF"):(lighting.primaryColor||"#FFFFFF")); const yoke=document.createElement("i"); yoke.className="entrance-light-yoke"; const head=document.createElement("i"); head.className="entrance-light-head"; const lens=document.createElement("i"); lens.className="entrance-light-lens"; const beam=document.createElement("i"); beam.className="entrance-light-beam"; head.append(lens,beam); fixture.append(yoke,head); rig.appendChild(fixture); }
   layer.appendChild(rig);
 }
 
@@ -1011,21 +997,28 @@ function addEntranceFilter(layer, filter) {
   layer.appendChild(overlay);
 }
 
-function addEntranceNameplate(layer, username, tier, config) {
-  const plate = config.nameplate || {};
-  if (plate.enabled === false) return null;
-  const nameplate = document.createElement("div");
-  nameplate.className = `entrance-nameplate entrance-nameplate-${plate.style || "arena"}${plate.glow ? " glow" : ""}`;
-  const name = document.createElement("strong");
-  name.textContent = config.wrestlingName || username || "ENTRANCE";
-  const sub = document.createElement("span");
-  sub.textContent = config.subtitle || (tier === "champion" ? "CHAMPION" : username || "");
-  nameplate.append(name, sub);
-  layer.appendChild(nameplate);
-  requestAnimationFrame(() => nameplate.classList.add("show"));
-  setTimeout(() => nameplate.classList.add("leaving"), 2800);
-  setTimeout(() => nameplate.remove(), 3500);
-  return nameplate;
+function addEntranceNameplate(layer, username, tier, config, timing = {}) {
+  const plate=config.nameplate||{}; if(plate.enabled===false)return null;
+  const nameplate=document.createElement("div"); nameplate.className=`entrance-nameplate entrance-nameplate-${plate.style||"arena"} entrance-nameplate-anim-${plate.animation||"slide"}${plate.glow?" glow":""}`;
+  const name=document.createElement("strong"); name.textContent=config.wrestlingName||username||"ENTRANCE"; const sub=document.createElement("span"); sub.textContent=config.subtitle||(tier==="champion"?"CHAMPION":username||""); nameplate.append(name,sub); layer.appendChild(nameplate); requestAnimationFrame(()=>nameplate.classList.add("show"));
+  const leaveAt=Math.max(1800,Math.min(6000,(Number(timing.totalDuration||6)-1.2)*1000)); setTimeout(()=>nameplate.classList.add("leaving"),leaveAt); setTimeout(()=>nameplate.remove(),leaveAt+700); return nameplate;
+}
+
+function entranceFlameBurst(layer, color, height, width, intensity, positions = ["left","right"]) {
+  positions.forEach((side,idx)=>{ const flame=document.createElement("div"); flame.className=`entrance-flame entrance-flame-${side}`; flame.style.setProperty("--flame-color",color||"#F97316"); flame.style.setProperty("--flame-height",`${Math.max(100,window.innerHeight*height)}px`); flame.style.setProperty("--flame-width",`${Math.max(.6,width)}`); flame.style.setProperty("--flame-intensity",String(intensity)); if(side.startsWith("center")){ flame.style.left=side==="center-left"?"46%":"54%"; } layer.appendChild(flame); setTimeout(()=>flame.remove(),1100); });
+}
+
+function addGlassShatter(layer, fx={}) {
+  const wrap=document.createElement("div"); wrap.className=`entrance-glass-shatter${fx.lingerCracks?" linger":""}`; const svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); svg.setAttribute("viewBox","0 0 100 100"); svg.classList.add("entrance-glass-svg"); const centerX=48+Math.random()*4,centerY=42+Math.random()*12;
+  for(let i=0;i<18;i+=1){ const a=(Math.PI*2*i/18)+(Math.random()-.5)*.18; const r=45+Math.random()*35; const x=centerX+Math.cos(a)*r,y=centerY+Math.sin(a)*r; const line=document.createElementNS(svg.namespaceURI,"path"); const mx=centerX+Math.cos(a)*r*.35+(Math.random()-.5)*8,my=centerY+Math.sin(a)*r*.35+(Math.random()-.5)*8; line.setAttribute("d",`M ${centerX} ${centerY} L ${mx} ${my} L ${x} ${y}`); svg.appendChild(line); }
+  wrap.appendChild(svg); layer.appendChild(wrap); if(Number(fx.flash||0)>0){ const flash=document.createElement("div"); flash.className="entrance-screen-flash"; flash.style.opacity=String(Math.min(1,Number(fx.flash||.6))); layer.appendChild(flash); setTimeout(()=>flash.remove(),320); } if(Number(fx.shake||0)>0) el("appWindow")?.classList.add(`entrance-shake-${Math.min(3,Math.round(Number(fx.shake)))}`); setTimeout(()=>{ el("appWindow")?.classList.remove("entrance-shake-1","entrance-shake-2","entrance-shake-3"); if(!fx.lingerCracks)wrap.remove(); },fx.lingerCracks?3500:1500); if(fx.lingerCracks)setTimeout(()=>wrap.remove(),3500);
+}
+
+function addEntranceScreenFx(layer, fx={}) {
+  const effect=fx.effect||"none"; if(effect==="none")return; if(effect==="glass_shatter")return addGlassShatter(layer,fx); if(effect==="lightning")return addLightningStrike(layer);
+  if(effect==="flash"){ const flash=document.createElement("div"); flash.className="entrance-screen-flash"; flash.style.opacity=String(Math.min(1,Number(fx.flash||.7))); layer.appendChild(flash); setTimeout(()=>flash.remove(),500); }
+  if(effect==="glitch"){ const glitch=document.createElement("div"); glitch.className="entrance-screen-glitch"; layer.appendChild(glitch); setTimeout(()=>glitch.remove(),1100); }
+  if(effect==="shake"){ const app=el("appWindow"); const n=Math.max(1,Math.min(3,Math.round(Number(fx.shake||1)))); app?.classList.add(`entrance-shake-${n}`); setTimeout(()=>app?.classList.remove(`entrance-shake-${n}`),900); }
 }
 
 function spotlightChatMessage(line, pending) {
@@ -1093,72 +1086,24 @@ function registerEntranceSpotlight(username, config, { preview = false } = {}) {
 }
 
 function renderEntrance(username, entrance, { preview = false } = {}) {
-  const tier = String(entrance?.tier || "none");
-  const config = entrance?.config || {};
-  if (tier === "none" || !config.enabled) {
-    if (preview) addSystemLine("This entrance is disabled or has no Entrance Status.");
-    return;
-  }
-  stopRoomEffectsLocal();
-  stopEntranceLocal();
-  const layer = el("entranceLayer");
-  if (!layer) return;
-  const pyro = config.pyro || {};
-  const lighting = config.lighting || {};
-  const filter = config.filter || {};
-  const duration = Math.max(2, Math.min(10, Number(pyro.duration || 4)));
-  const frequency = Math.max(.35, Math.min(2.5, Number(pyro.frequency || .8)));
-  const height = Math.max(.3, Math.min(.95, Number(pyro.height || .72)));
-  const intensity = Math.max(1, Math.min(3, Number(pyro.intensity || 2)));
-  const width = Math.max(.5, Math.min(2.4, Number(pyro.width || 1)));
-  const primary = lighting.primaryColor || "#FFFFFF";
-  const secondary = lighting.secondaryColor || primary;
-
-  layer.className = `entrance-layer active entrance-tier-${tier} entrance-motion-${lighting.motion || "none"}${lighting.blackout ? " entrance-blackout" : ""}`;
-  layer.style.setProperty("--entrance-primary", primary);
-  layer.style.setProperty("--entrance-secondary", secondary);
-  layer.style.setProperty("--entrance-speed", `${Math.max(.4, Math.min(2.2, Number(lighting.speed || 1)))}s`);
-
-  const blackout = document.createElement("div");
-  blackout.className = "entrance-blackout-screen";
-  if (lighting.blackout) layer.appendChild(blackout);
-  addEntranceFilter(layer, filter);
-  applyEntranceScreenFilter(filter);
-
-  setTimeout(() => addEntranceRig(layer, lighting), 180);
-  if (lighting.phoneLights) setTimeout(() => addPhoneLights(layer), 500);
-  setTimeout(() => addEntranceAtmosphere(layer, config.atmosphere || {}), 450);
-  addEntranceNameplate(layer, username, tier, config);
-  if (lighting.lightning) setTimeout(() => addLightningStrike(layer), 1350);
-
-  if (pyro.enabled !== false) {
-    const fireBurst = () => {
-      const style = pyro.style || "jets";
-      if (style === "rain" || style === "curtain") {
-        entrancePyroRain(layer, pyro.color || "#FFFFFF", intensity, width, style === "curtain");
-        return;
-      }
-      if (style === "center_blast") {
-        for (let n = 0; n < intensity; n += 1) setTimeout(() => entranceParticle(layer, "center", pyro.color || "#FFFFFF", height, style, intensity, width), n * 85);
-        return;
-      }
-      const offsets = style === "wide_fountain" ? [0, 10, 20] : style === "fan" ? [0, 14] : [0];
-      offsets.forEach((offset, idx) => {
-        for (let n = 0; n < intensity; n += 1) {
-          setTimeout(() => entranceParticle(layer, "left", pyro.color || "#FFFFFF", height, style, intensity, width, offset), n * 85 + idx * 55);
-          setTimeout(() => entranceParticle(layer, "right", pyro.color || "#FFFFFF", height, style, intensity, width, offset), n * 85 + idx * 55);
-        }
-      });
-    };
-    setTimeout(fireBurst, 900);
-    if (!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
-      setTimeout(() => { entranceBurstTimer = setInterval(fireBurst, frequency * 1000); }, 900);
-    }
-  }
-
-  registerEntranceSpotlight(username, config, { preview });
-  const stageDuration = Math.max(5, pyro.enabled === false ? 5 : duration);
-  entranceTimer = setTimeout(() => stopEntranceLocal({ keepPending: !preview && Boolean(config.lighting?.spotlight) }), stageDuration * 1000);
+  const tier=String(entrance?.tier||"none"), config=entrance?.config||{}; if(tier==="none"||!config.enabled){if(preview)addSystemLine("This entrance is disabled or has no Entrance Status.");return;}
+  stopRoomEffectsLocal(); stopEntranceLocal(); const layer=el("entranceLayer"); if(!layer)return;
+  const pyro=config.pyro||{}, lighting=config.lighting||{}, filter=config.filter||{}, timing=config.timing||{}, fx=config.screenFx||{};
+  const duration=Math.max(1,Math.min(15,Number(pyro.duration||4))), frequency=Math.max(.25,Math.min(3,Number(pyro.frequency||.8))), height=Math.max(.2,Math.min(1,Number(pyro.height||.72))), intensity=Math.max(1,Math.min(4,Number(pyro.intensity||2))), width=Math.max(.4,Math.min(3,Number(pyro.width||1))), burstCount=Math.max(1,Math.min(8,Math.round(Number(pyro.burstCount||3))));
+  const primary=lighting.primaryColor||"#FFFFFF", secondary=lighting.secondaryColor||primary, delay=Math.max(0,Number(timing.entranceDelay||0))*1000, total=Math.max(3,Math.min(15,Number(timing.totalDuration||Math.max(6,duration))))*1000;
+  layer.className=`entrance-layer active entrance-tier-${tier} entrance-motion-${lighting.motion||"none"}${lighting.blackout?" entrance-blackout":""}`; layer.style.setProperty("--entrance-primary",primary); layer.style.setProperty("--entrance-secondary",secondary); layer.style.setProperty("--entrance-speed",`${Math.max(.3,Math.min(3,Number(lighting.speed||1)))}s`);
+  if(lighting.blackout){const blackout=document.createElement("div");blackout.className="entrance-blackout-screen";layer.appendChild(blackout);} addEntranceFilter(layer,filter); applyEntranceScreenFilter(filter);
+  const at=(seconds,fn)=>setTimeout(fn,delay+Math.max(0,Number(seconds||0))*1000);
+  at(.15,()=>addEntranceRig(layer,lighting)); if(lighting.phoneLights)at(.35,()=>addPhoneLights(layer)); at(timing.atmosphereStart??.3,()=>addEntranceAtmosphere(layer,config.atmosphere||{})); at(timing.nameplateStart??.6,()=>addEntranceNameplate(layer,username,tier,config,timing)); if(lighting.lightning)at(1.2,()=>addLightningStrike(layer)); at(timing.screenFxStart??.8,()=>addEntranceScreenFx(layer,fx));
+  const fireBurst=(burstIndex=0)=>{ if(pyro.enabled===false)return; const style=pyro.style||"jets",color=pyro.color||"#FFFFFF",pos=pyro.position||"both";
+    if(style==="rain"||style==="curtain"){entrancePyroRain(layer,color,intensity,width,style==="curtain");return;}
+    if(style==="flame_jets"||style==="alternating_flames"){ let positions=pos==="center"?["center-left","center-right"]:(pos==="left"?["left"]:(pos==="right"?["right"]:["left","right"])); if(style==="alternating_flames"&&positions.length>1)positions=[positions[burstIndex%positions.length]]; entranceFlameBurst(layer,color,height,width,intensity,positions); return; }
+    if(style==="center_blast"||style==="dual_center"){ if(style==="dual_center"){ entranceParticle(layer,"center",color,height,"center_blast",intensity,width,-4); entranceParticle(layer,"center",color,height,"center_blast",intensity,width,4); } else entranceParticle(layer,"center",color,height,"center_blast",intensity,width); return; }
+    if(style==="multi_burst"||style==="finale"){ [0,12,24].forEach((off,i)=>{setTimeout(()=>entranceParticle(layer,"left",color,height,"bursts",intensity,width,off),i*70);setTimeout(()=>entranceParticle(layer,"right",color,height,"bursts",intensity,width,off),i*70);}); if(style==="finale")setTimeout(()=>entranceParticle(layer,"center",color,height,"center_blast",intensity,width*1.2),120); return; }
+    const sides=pos==="left"?["left"]:(pos==="right"?["right"]:(pos==="center"?["center"]:["left","right"])); const offsets=style==="wide_fountain"?[0,10,20]:style==="fan"?[0,14]:[0]; sides.forEach(side=>offsets.forEach((offset,idx)=>setTimeout(()=>entranceParticle(layer,side,color,height,style,intensity,width,offset),idx*55)));
+  };
+  if(pyro.enabled!==false){ at(timing.pyroStart??1,()=>{ for(let i=0;i<burstCount;i+=1)setTimeout(()=>fireBurst(i),i*(pyro.behavior==="rapid"?180:frequency*1000)); }); }
+  registerEntranceSpotlight(username,config,{preview}); entranceTimer=setTimeout(()=>stopEntranceLocal({keepPending:!preview&&Boolean(config.lighting?.spotlight)}),delay+total);
 }
 
 function connectChatSocket() {

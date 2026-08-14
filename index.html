@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0b0f17">
   <title>DRK.CHAT</title>
-  <link rel="stylesheet" href="./css/base.css?v=0.17.4">
-  <link rel="stylesheet" href="./css/themes.css?v=0.17.4">
+  <link rel="stylesheet" href="./css/base.css?v=0.18.0">
+  <link rel="stylesheet" href="./css/themes.css?v=0.18.0">
 </head>
 <body class="theme-modern">
   <main class="app-window" id="appWindow">
     <header class="titlebar">
       <div class="titlebar-copy">
         <span id="clientTitle">DRK CHAT</span>
-        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.17.4</button>
+        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.18.0</button>
       </div>
       <span class="classic-window-controls aol-only" aria-hidden="true">[_][□][X]</span>
     </header>
@@ -424,7 +424,7 @@
   </div>
 
 
-  <!-- v0.17.4 MEMBER PROFILE -->
+  <!-- v0.18.0 MEMBER PROFILE -->
   <div class="modal-overlay hidden" id="profileOverlay" role="dialog" aria-modal="true" aria-labelledby="profileDialogTitle">
     <div class="modal-window profile-dialog">
       <div class="modal-titlebar profile-modal-titlebar">
@@ -551,65 +551,109 @@
   <!-- ENTRANCE EDITOR -->
   <div class="modal-overlay hidden" id="entranceOverlay" role="dialog" aria-modal="true" aria-labelledby="entranceDialogTitle">
     <div class="modal-window entrance-dialog">
-      <div class="modal-titlebar profile-modal-titlebar"><span id="entranceDialogTitle">ENTRANCE</span><button id="entranceCloseButton" type="button" class="profile-close-button">×</button></div>
-      <div class="modal-content">
+      <div class="modal-titlebar profile-modal-titlebar"><span id="entranceDialogTitle">CUSTOM ENTRANCE</span><button id="entranceCloseButton" type="button" class="profile-close-button">×</button></div>
+      <div class="modal-content entrance-modal-content">
         <div class="entrance-editor-head">
-          <div><p class="eyebrow">PRO WRESTLING STYLE</p><h2 id="entranceMemberName">Entrance Builder</h2></div>
+          <div><p class="eyebrow">ENTRANCE PRODUCTION</p><h2 id="entranceMemberName">Entrance Builder</h2><p id="entranceSummary" class="small entrance-summary"></p></div>
           <div><span class="small">STATUS</span><strong id="entranceTierLabel">NONE</strong></div>
         </div>
+        <div class="entrance-editor-mode"><button id="entranceBasicModeButton" type="button" class="is-active">BASIC</button><button id="entranceAdvancedModeButton" type="button">ADVANCED</button></div>
         <div id="entranceLockedMessage" class="status-box hidden">Your entrance is locked. An administrator must grant you an Entrance Status first.</div>
-        <div id="entranceAdminTierRow" class="hidden">
-          <label for="entranceTierSelect">Admin: Entrance Status</label>
-          <select id="entranceTierSelect"><option value="none">None</option><option value="basic">Basic</option><option value="rare">Rare</option><option value="epic">Epic</option><option value="champion">Champion</option></select>
-        </div>
-        <form id="entranceForm" class="stack-form entrance-form">
-          <label class="identity-check"><input id="entranceEnabledInput" type="checkbox"> Play this entrance when I enter the room</label>
+        <div id="entranceAdminTierRow" class="hidden"><label for="entranceTierSelect">Admin: Entrance Status</label><select id="entranceTierSelect"><option value="none">None</option><option value="basic">Basic</option><option value="rare">Rare</option><option value="epic">Epic</option><option value="champion">Champion</option></select></div>
+        <form id="entranceForm" class="entrance-form">
+          <label class="identity-check entrance-master-toggle"><input id="entranceEnabledInput" type="checkbox"> Play this entrance when I enter the room</label>
 
-          <div class="entrance-template-row">
-            <div><label for="entranceTemplateSelect">Entrance Template</label><select id="entranceTemplateSelect"></select></div>
-            <button id="entranceApplyTemplateButton" type="button">APPLY TEMPLATE</button>
-          </div>
+          <details class="entrance-accordion" open>
+            <summary>Preset</summary>
+            <div class="entrance-accordion-body entrance-template-row"><div><label for="entranceTemplateSelect">Template</label><select id="entranceTemplateSelect"></select></div><button id="entranceApplyTemplateButton" type="button">LOAD PRESET</button></div>
+          </details>
 
-          <div class="entrance-grid">
-            <div><label for="entranceWrestlingNameInput">Wrestling Name</label><input id="entranceWrestlingNameInput" maxlength="32" placeholder="THE DOOM"></div>
-            <div><label for="entranceSubtitleInput">Nameplate subtitle</label><input id="entranceSubtitleInput" maxlength="60" placeholder="Optional title or catchphrase"></div>
+          <details class="entrance-accordion" open>
+            <summary>Identity</summary>
+            <div class="entrance-accordion-body entrance-grid">
+              <div><label for="entranceWrestlingNameInput">Wrestling Name</label><input id="entranceWrestlingNameInput" maxlength="32" placeholder="THE DOOM"></div>
+              <div><label for="entranceSubtitleInput">Subtitle / Catchphrase</label><input id="entranceSubtitleInput" maxlength="60" placeholder="Optional title or catchphrase"></div>
+              <div><label for="entranceNameplateStyleSelect">Nameplate Style</label><select id="entranceNameplateStyleSelect"><option value="arena">Arena</option><option value="steel">Steel</option><option value="neon">Neon</option><option value="minimal">Minimal</option><option value="championship">Championship</option></select></div>
+              <div><label for="entranceNameplateAnimationSelect">Nameplate Animation</label><select id="entranceNameplateAnimationSelect"><option value="slide">Slide</option><option value="fade">Fade</option><option value="pop">Pop</option><option value="glitch">Glitch</option></select></div>
+            </div>
+            <div class="entrance-toggle-row"><label><input id="entranceNameplateEnabledInput" type="checkbox" checked> Show nameplate</label><label><input id="entranceNameplateGlowInput" type="checkbox" checked> Nameplate glow</label></div>
+          </details>
 
-            <div class="entrance-section-toggle"><label class="identity-check"><input id="entrancePyroEnabledInput" type="checkbox" checked> Enable Pyro</label></div>
-            <div><label for="entrancePyroStyleSelect">Pyro Style</label><select id="entrancePyroStyleSelect"><option value="jets">Side Jets</option><option value="bursts">Burst Cannons</option><option value="fountain">Fountains</option><option value="wide_fountain">Wide Fountains</option><option value="fan">Fan Pyro</option><option value="center_blast">Center Blast</option><option value="rain">Pyro Rain</option><option value="curtain">Spark Curtain</option></select></div>
-            <div><label for="entrancePyroColorInput">Pyro Color</label><input id="entrancePyroColorInput" type="color" value="#ffffff"></div>
-            <div><label for="entrancePyroDurationInput">Pyro Duration</label><input id="entrancePyroDurationInput" type="range" min="2" max="10" step="0.5" value="4"><span id="entrancePyroDurationValue" class="small"></span></div>
-            <div><label for="entrancePyroFrequencyInput">Burst Frequency</label><input id="entrancePyroFrequencyInput" type="range" min="0.35" max="2.5" step="0.05" value="0.8"><span id="entrancePyroFrequencyValue" class="small"></span></div>
-            <div><label for="entrancePyroHeightInput">Pyro Height</label><input id="entrancePyroHeightInput" type="range" min="0.3" max="0.95" step="0.05" value="0.72"><span id="entrancePyroHeightValue" class="small"></span></div>
-            <div><label for="entrancePyroWidthInput">Pyro Width / Spread</label><input id="entrancePyroWidthInput" type="range" min="0.5" max="2.4" step="0.1" value="1"><span id="entrancePyroWidthValue" class="small"></span></div>
-            <div><label for="entrancePyroIntensitySelect">Pyro Intensity</label><select id="entrancePyroIntensitySelect"><option value="1">Low</option><option value="2">Medium</option><option value="3">High</option></select></div>
+          <details class="entrance-accordion">
+            <summary>Pyro & Flames</summary>
+            <div class="entrance-accordion-body">
+              <label class="identity-check"><input id="entrancePyroEnabledInput" type="checkbox" checked> Enable pyro / flames</label>
+              <div class="entrance-grid">
+                <div><label for="entrancePyroStyleSelect">Effect Type</label><select id="entrancePyroStyleSelect"><option value="jets">Side Jets</option><option value="fountain">Side Fountains</option><option value="wide_fountain">Wide Fountains</option><option value="fan">Fan Pyro</option><option value="center_blast">Center Blast</option><option value="dual_center">Dual Center Blast</option><option value="multi_burst">Multi-Burst</option><option value="flame_jets">Flame Jets</option><option value="alternating_flames">Alternating Flames</option><option value="rain">Pyro Rain</option><option value="curtain">Spark Curtain</option><option value="finale">Finale Burst</option></select></div>
+                <div><label for="entrancePyroPositionSelect">Position</label><select id="entrancePyroPositionSelect"><option value="both">Both Sides</option><option value="left">Left</option><option value="right">Right</option><option value="center">Center</option><option value="full">Full Stage</option><option value="overhead">Overhead</option></select></div>
+                <div><label for="entrancePyroColorInput">Color</label><input id="entrancePyroColorInput" type="color" value="#ffffff"></div>
+                <div><label for="entrancePyroIntensitySelect">Intensity</label><select id="entrancePyroIntensitySelect"><option value="1">Low</option><option value="2">Medium</option><option value="3">High</option><option value="4">Maximum</option></select></div>
+                <div class="advanced-only"><label for="entrancePyroDurationInput">Duration</label><input id="entrancePyroDurationInput" type="range" min="1" max="15" step="0.5" value="4"><span id="entrancePyroDurationValue" class="small"></span></div>
+                <div class="advanced-only"><label for="entrancePyroFrequencyInput">Burst Frequency</label><input id="entrancePyroFrequencyInput" type="range" min="0.25" max="3" step="0.05" value="0.8"><span id="entrancePyroFrequencyValue" class="small"></span></div>
+                <div class="advanced-only"><label for="entrancePyroHeightInput">Height</label><input id="entrancePyroHeightInput" type="range" min="0.2" max="1" step="0.05" value="0.72"><span id="entrancePyroHeightValue" class="small"></span></div>
+                <div class="advanced-only"><label for="entrancePyroWidthInput">Width / Spread</label><input id="entrancePyroWidthInput" type="range" min="0.4" max="3" step="0.1" value="1"><span id="entrancePyroWidthValue" class="small"></span></div>
+                <div class="advanced-only"><label for="entrancePyroBurstCountInput">Burst Count</label><input id="entrancePyroBurstCountInput" type="range" min="1" max="8" step="1" value="3"><span id="entrancePyroBurstCountValue" class="small"></span></div>
+                <div class="advanced-only"><label for="entrancePyroBehaviorSelect">Pattern</label><select id="entrancePyroBehaviorSelect"><option value="simultaneous">Simultaneous</option><option value="alternating">Alternating</option><option value="outside_in">Outside → Inside</option><option value="inside_out">Inside → Outside</option><option value="wave">Wave</option><option value="random">Random</option><option value="rapid">Rapid Fire</option></select></div>
+              </div>
+            </div>
+          </details>
 
-            <div><label for="entranceAtmosphereSelect">Atmosphere</label><select id="entranceAtmosphereSelect"><option value="none">None</option><option value="fog">Fog</option><option value="smoke">Smoke</option></select></div>
-            <div><label for="entranceAtmosphereColorInput">Fog / Smoke Color</label><input id="entranceAtmosphereColorInput" type="color" value="#ffffff"></div>
-            <div><label for="entranceAtmosphereDensityInput">Fog / Smoke Density</label><input id="entranceAtmosphereDensityInput" type="range" min="0.15" max="0.9" step="0.05" value="0.45"></div>
+          <details class="entrance-accordion">
+            <summary>Atmosphere</summary>
+            <div class="entrance-accordion-body entrance-grid">
+              <div><label for="entranceAtmosphereSelect">Atmosphere</label><select id="entranceAtmosphereSelect"><option value="none">None</option><option value="fog">Fog</option><option value="smoke">Smoke</option><option value="heavy_fog">Heavy Fog</option><option value="mist">Mist</option></select></div>
+              <div><label for="entranceAtmosphereColorInput">Color</label><input id="entranceAtmosphereColorInput" type="color" value="#ffffff"></div>
+              <div class="advanced-only"><label for="entranceAtmosphereDensityInput">Density</label><input id="entranceAtmosphereDensityInput" type="range" min="0.1" max="1" step="0.05" value="0.45"></div>
+              <div class="advanced-only"><label for="entranceAtmosphereSpreadInput">Spread</label><input id="entranceAtmosphereSpreadInput" type="range" min="0.3" max="1" step="0.05" value="0.75"></div>
+              <div class="advanced-only"><label for="entranceAtmospherePlacementSelect">Placement</label><select id="entranceAtmospherePlacementSelect"><option value="floor">Floor</option><option value="sides">Sides</option><option value="center">Center</option><option value="full">Full Room</option></select></div>
+              <div class="advanced-only"><label for="entranceAtmosphereFadeInput">Fade Speed</label><input id="entranceAtmosphereFadeInput" type="range" min="1" max="8" step="0.5" value="4"></div>
+            </div>
+          </details>
 
-            <div class="entrance-section-toggle"><label class="identity-check"><input id="entranceLightingEnabledInput" type="checkbox" checked> Enable Overhead Lighting Rig</label></div>
-            <div><label for="entranceLightPrimaryInput">Primary Light</label><input id="entranceLightPrimaryInput" type="color" value="#ffffff"></div>
-            <div><label for="entranceLightSecondaryInput">Secondary Light</label><input id="entranceLightSecondaryInput" type="color" value="#ffffff"></div>
-            <div><label for="entranceLightMotionSelect">Light Motion</label><select id="entranceLightMotionSelect"><option value="none">Still</option><option value="sweep">Sweep</option><option value="cross">Crossfire</option><option value="pulse">Pulse</option><option value="fan">Fan</option><option value="search">Searchlights</option></select></div>
-            <div><label for="entranceLightSpeedInput">Light Speed</label><input id="entranceLightSpeedInput" type="range" min="0.4" max="2.2" step="0.1" value="1"></div>
+          <details class="entrance-accordion">
+            <summary>Lighting</summary>
+            <div class="entrance-accordion-body">
+              <label class="identity-check"><input id="entranceLightingEnabledInput" type="checkbox" checked> Enable arena lighting rig</label>
+              <div class="entrance-grid">
+                <div><label for="entranceLightMotionSelect">Lighting Mode</label><select id="entranceLightMotionSelect"><option value="none">Still</option><option value="sweep">Sweep</option><option value="cross">Crossfire</option><option value="fan">Fan</option><option value="search">Searchlights</option><option value="pulse">Pulse</option><option value="stadium">Stadium</option><option value="champion">Champion Gold</option></select></div>
+                <div><label for="entranceLightPrimaryInput">Primary Light</label><input id="entranceLightPrimaryInput" type="color" value="#ffffff"></div>
+                <div><label for="entranceLightSecondaryInput">Secondary Light</label><input id="entranceLightSecondaryInput" type="color" value="#ffffff"></div>
+                <div class="advanced-only"><label for="entranceLightSpeedInput">Motion Speed</label><input id="entranceLightSpeedInput" type="range" min="0.3" max="3" step="0.1" value="1"></div>
+                <div class="advanced-only"><label for="entranceLightBrightnessInput">Brightness</label><input id="entranceLightBrightnessInput" type="range" min="0.2" max="1" step="0.05" value="0.65"></div>
+                <div class="advanced-only"><label for="entranceLightBeamWidthInput">Beam Width</label><input id="entranceLightBeamWidthInput" type="range" min="0.5" max="2" step="0.1" value="1"></div>
+                <div class="advanced-only"><label for="entranceLightFixtureCountInput">Fixtures</label><input id="entranceLightFixtureCountInput" type="range" min="2" max="10" step="1" value="6"></div>
+              </div>
+              <div class="entrance-toggle-row"><label><input id="entranceBlackoutInput" type="checkbox" checked> Dim room</label><label><input id="entranceSpotlightInput" type="checkbox" checked> Spotlight first message</label><label><input id="entrancePhoneLightsInput" type="checkbox"> Phone Lights / Fireflies</label><label><input id="entranceLightningInput" type="checkbox"> Lightning Strike</label></div>
+            </div>
+          </details>
 
-            <div><label for="entranceFilterSelect">Entrance Color Filter</label><select id="entranceFilterSelect"><option value="none">None</option><option value="cinematic">Cinematic</option><option value="cool">Cool</option><option value="warm">Warm</option><option value="red">Red</option><option value="blue">Blue</option><option value="purple">Purple</option><option value="green">Green</option><option value="gold">Gold</option><option value="mono">Monochrome</option></select></div>
-            <div><label for="entranceFilterIntensityInput">Filter Intensity</label><input id="entranceFilterIntensityInput" type="range" min="0" max="1" step="0.05" value="0.55"></div>
+          <details class="entrance-accordion">
+            <summary>Screen FX & Filter</summary>
+            <div class="entrance-accordion-body entrance-grid">
+              <div><label for="entranceScreenFxSelect">Screen FX</label><select id="entranceScreenFxSelect"><option value="none">None</option><option value="glass_shatter">Glass Shatter</option><option value="lightning">Lightning Strike</option><option value="flash">Flash Burst</option><option value="glitch">Static Glitch</option><option value="shake">Camera Shake</option></select></div>
+              <div><label for="entranceFilterSelect">Color Filter</label><select id="entranceFilterSelect"><option value="none">None</option><option value="cinematic">Cinematic</option><option value="cool">Cold Blue</option><option value="warm">Warm</option><option value="red">Red Alert</option><option value="blue">Blue</option><option value="purple">Purple Haze</option><option value="green">Green Toxic</option><option value="gold">Gold</option><option value="mono">Black & White</option><option value="high_contrast">High Contrast</option><option value="desaturated">Desaturated</option></select></div>
+              <div class="advanced-only"><label for="entranceFilterIntensityInput">Filter Intensity</label><input id="entranceFilterIntensityInput" type="range" min="0" max="1" step="0.05" value="0.55"></div>
+              <div class="advanced-only"><label for="entranceScreenShakeInput">Shake Strength</label><input id="entranceScreenShakeInput" type="range" min="0" max="3" step="1" value="1"></div>
+              <div class="advanced-only"><label for="entranceScreenFlashInput">Flash Strength</label><input id="entranceScreenFlashInput" type="range" min="0" max="1" step="0.1" value="0.6"></div>
+              <div class="advanced-only"><label class="identity-check"><input id="entranceGlassLingerInput" type="checkbox"> Let cracks linger</label></div>
+            </div>
+          </details>
 
-            <div><label for="entranceNameplateStyleSelect">Nameplate Style</label><select id="entranceNameplateStyleSelect"><option value="arena">Arena</option><option value="steel">Steel</option><option value="neon">Neon</option><option value="championship">Championship</option></select></div>
-          </div>
+          <details class="entrance-accordion advanced-only">
+            <summary>Timing</summary>
+            <div class="entrance-accordion-body entrance-grid">
+              <div><label for="entranceTotalDurationInput">Total Entrance</label><input id="entranceTotalDurationInput" type="range" min="3" max="15" step="0.5" value="6"></div>
+              <div><label for="entranceDelayInput">Entrance Delay</label><input id="entranceDelayInput" type="range" min="0" max="5" step="0.25" value="0"></div>
+              <div><label for="entranceNameplateStartInput">Nameplate Start</label><input id="entranceNameplateStartInput" type="range" min="0" max="5" step="0.25" value="0.6"></div>
+              <div><label for="entrancePyroStartInput">Pyro Start</label><input id="entrancePyroStartInput" type="range" min="0" max="5" step="0.25" value="1"></div>
+              <div><label for="entranceAtmosphereStartInput">Atmosphere Start</label><input id="entranceAtmosphereStartInput" type="range" min="0" max="5" step="0.25" value="0.3"></div>
+              <div><label for="entranceScreenFxStartInput">Screen FX Start</label><input id="entranceScreenFxStartInput" type="range" min="0" max="5" step="0.25" value="0.8"></div>
+            </div>
+          </details>
 
-          <div class="entrance-toggle-row">
-            <label><input id="entranceBlackoutInput" type="checkbox" checked> Dim room lights</label>
-            <label><input id="entranceSpotlightInput" type="checkbox" checked> Spotlight first message</label>
-            <label><input id="entrancePhoneLightsInput" type="checkbox"> Phone Lights / Fireflies</label>
-            <label><input id="entranceLightningInput" type="checkbox"> Lightning Strike</label>
-            <label><input id="entranceNameplateEnabledInput" type="checkbox" checked> Show Nameplate</label>
-            <label><input id="entranceNameplateGlowInput" type="checkbox" checked> Nameplate glow</label>
-          </div>
           <p id="entrancePaletteNote" class="field-note"></p>
           <div id="entranceMessage" class="message"></div>
-          <div class="button-row"><button id="entrancePreviewButton" type="button">PREVIEW ENTRANCE</button><button id="entranceTriggerButton" type="button" class="hidden">TRIGGER NOW</button><button type="submit" class="primary-action">SAVE ENTRANCE</button></div>
+          <div class="entrance-sticky-actions"><button id="entrancePreviewButton" type="button">PREVIEW</button><button id="entranceTriggerButton" type="button" class="hidden">TRIGGER NOW</button><button id="entranceResetButton" type="button">RESET</button><button type="submit" class="primary-action">SAVE</button></div>
         </form>
       </div>
     </div>
@@ -736,6 +780,6 @@
   <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
   <div id="roomEffectLayer" class="room-effect-layer" aria-hidden="true"></div>
 
-  <script type="module" src="./js/app.js?v=0.17.4"></script>
+  <script type="module" src="./js/app.js?v=0.18.0"></script>
 </body>
 </html>
