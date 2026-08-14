@@ -3,6 +3,7 @@ export const state = {
   activationToken: null,
   chatSocket: null,
   chatIntentionalClose: false,
+  chatManualEntry: false,
   chatReconnectTimer: null,
   chatHeartbeatTimer: null,
   chatReconnectAttempts: 0,

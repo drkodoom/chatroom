@@ -1927,7 +1927,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 
-/* v0.17.3 — minimalist cleanup */
+/* v0.17.4 — minimalist cleanup */
 .online-user-button,
 .chat-sidebar #onlineUsers > span,
 .chat-sidebar #onlineUsers > button {
@@ -1959,7 +1959,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 /* =====================================================
-   v0.17.3 — profiles + RPS
+   v0.17.4 — profiles + RPS
    ===================================================== */
 
 .profile-dialog {
@@ -2470,7 +2470,7 @@ body.theme-newsroom .werewolf-role-card {
   .rps-choice-row button { min-width: 0; flex: 1 1 90px; }
 }
 
-/* v0.17.3 avatar builder expansion */
+/* v0.17.4 avatar builder expansion */
 .avatar-earring-control {
   display: grid !important;
   grid-template-columns: 1fr;
@@ -2484,7 +2484,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 /* =====================================================
-   v0.17.3 — admin room effects
+   v0.17.4 — admin room effects
    ===================================================== */
 .effects-menu-wrap {
   position: relative;
@@ -2781,7 +2781,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 
 
 /* =====================================================
-   v0.17.3 — docked admin room effects
+   v0.17.4 — docked admin room effects
    ===================================================== */
 .chat-sidebar {
   display: flex;
@@ -2891,7 +2891,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 }
 
 /* =====================================================
-   v0.17.3 — entrances
+   v0.17.4 — entrances
    ===================================================== */
 .entrance-dialog { width:min(96vw, 900px); max-height:min(92dvh, 900px); }
 .entrance-editor-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:14px; }
@@ -3035,7 +3035,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 }
 
 /* =====================================================
-   v0.17.3 — wrestling entrance choreography
+   v0.17.4 — wrestling entrance choreography
    ===================================================== */
 .entrance-template-row {
   display: grid;
@@ -3260,7 +3260,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 }
 
 
-/* v0.17.3 — expanded arena pyro */
+/* v0.17.4 — expanded arena pyro */
 .entrance-pyro-center { left:50%; transform:translateX(-50%); }
 .entrance-pyro-wide_fountain .entrance-pyro-core {
   width:calc(20px * var(--pyro-width,1));

@@ -1,5 +1,5 @@
-import { apiFetch } from "./api.js?v=0.17.3";
-import { getToken, saveSession, state } from "./state.js?v=0.17.3";
+import { apiFetch } from "./api.js?v=0.17.4";
+import { getToken, saveSession, state } from "./state.js?v=0.17.4";
 
 const el = (id) => document.getElementById(id);
 

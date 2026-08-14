@@ -1,5 +1,5 @@
-import { apiFetch } from "./api.js?v=0.17.3";
-import { clearSession, getToken, saveSession, state } from "./state.js?v=0.17.3";
+import { apiFetch } from "./api.js?v=0.17.4";
+import { clearSession, getToken, saveSession, state } from "./state.js?v=0.17.4";
 
 export async function loginUser(login, password) {
   const { response, data } = await apiFetch("/login", {

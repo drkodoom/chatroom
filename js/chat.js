@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.17.3";
-import { apiFetch } from "./api.js?v=0.17.3";
-import { getToken, state } from "./state.js?v=0.17.3";
-import { openMemberByUsername } from "./admin.js?v=0.17.3";
-import { openProfileByUsername } from "./profile.js?v=0.17.3";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.17.3";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.17.4";
+import { apiFetch } from "./api.js?v=0.17.4";
+import { getToken, state } from "./state.js?v=0.17.4";
+import { openMemberByUsername } from "./admin.js?v=0.17.4";
+import { openProfileByUsername } from "./profile.js?v=0.17.4";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.17.4";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -578,6 +578,7 @@ function applyTimestampsPreference() {
 }
 
 export async function enterChatroom(showScreen) {
+  state.chatManualEntry = true;
   const token = getToken();
   if (!token) {
     showScreen("login");
@@ -1173,13 +1174,15 @@ function connectChatSocket() {
   el("chatInput").disabled = true;
   el("chatSendButton").disabled = true;
 
-  const socketUrl = `wss://${LIVE_HOST}/parties/chat/${ROOM_NAME}?token=${encodeURIComponent(token)}`;
+  const entryFlag = state.chatManualEntry ? "&entry=1" : "";
+  const socketUrl = `wss://${LIVE_HOST}/parties/chat/${ROOM_NAME}?token=${encodeURIComponent(token)}${entryFlag}`;
   const socket = new WebSocket(socketUrl);
   state.chatSocket = socket;
 
   socket.addEventListener("open", () => {
     if (socket !== state.chatSocket) return;
     const wasReconnect = state.chatReconnectAttempts > 0;
+    state.chatManualEntry = false;
     state.chatReconnectAttempts = 0;
     status.className = "connected";
     status.textContent = "Connected";
