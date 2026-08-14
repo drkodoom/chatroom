@@ -3358,7 +3358,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 
 
 /* =====================================================
-   v0.18.1 — achievement-gated entrance ranks
+   v0.18.2 — achievement-gated entrance ranks
    ===================================================== */
 .entrance-rank-message { margin:0 0 12px; }
 .entrance-feature-locked { opacity:.58; position:relative; }

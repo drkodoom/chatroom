@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.18.0";
-import { apiFetch } from "./api.js?v=0.18.0";
-import { getToken, state } from "./state.js?v=0.18.0";
-import { openMemberByUsername } from "./admin.js?v=0.18.0";
-import { openProfileByUsername } from "./profile.js?v=0.18.0";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.18.0";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.18.2";
+import { apiFetch } from "./api.js?v=0.18.2";
+import { getToken, state } from "./state.js?v=0.18.2";
+import { openMemberByUsername } from "./admin.js?v=0.18.2";
+import { openProfileByUsername } from "./profile.js?v=0.18.2";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.18.2";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -1082,7 +1082,7 @@ function renderEntrance(username, entrance, { preview = false } = {}) {
   layer.className=`entrance-layer active entrance-tier-${tier} entrance-motion-${lighting.motion||"none"}`; layer.style.setProperty("--entrance-primary",primary); layer.style.setProperty("--entrance-secondary",secondary); layer.style.setProperty("--entrance-speed",`${Math.max(.3,Math.min(3,Number(lighting.speed||1)))}s`);
   const dimOpacity={light:.24,moderate:.42,strong:.62,blackout:.88}[dimming]||.42; const blackout=document.createElement("div"); blackout.className="entrance-blackout-screen"; blackout.style.setProperty("--entrance-dim-opacity",String(dimOpacity)); layer.appendChild(blackout); addEntranceFilter(layer,filter); applyEntranceScreenFilter(filter);
   const at=(seconds,fn)=>setTimeout(fn,delay+Math.max(0,Number(seconds||0))*1000);
-  at(.15,()=>addEntranceRig(layer,lighting)); at(timing.atmosphereStart??.3,()=>addEntranceAtmosphere(layer,config.atmosphere||{})); at(timing.nameplateStart??.6,()=>addEntranceNameplate(layer,username,tier,config,timing)); if(lighting.lightning)at(1.2,()=>addLightningStrike(layer,Boolean(lighting.branchingLightning))); at(timing.screenFxStart??.8,()=>addEntranceScreenFx(layer,fx));
+  at(.15,()=>addEntranceRig(layer,lighting)); at(timing.atmosphereStart??.3,()=>addEntranceAtmosphere(layer,config.atmosphere||{})); at(timing.nameplateStart??.6,()=>addEntranceNameplate(layer,username,tier,config,timing)); if(lighting.lightning||config.signatureEffect==="dark_arrival_lightning")at(timing.screenFxStart??1.2,()=>addLightningStrike(layer,Boolean(lighting.branchingLightning))); at(timing.screenFxStart??.8,()=>addEntranceScreenFx(layer,fx));
   const fireBurst=(burstIndex=0)=>{ if(pyro.enabled===false)return; const style=pyro.style||"jets",color=pyro.color||"#FFFFFF",pos=pyro.position||"both";
     if(pyro.layeredEffects && !["flame_jets","alternating_flames","flame_wall"].includes(style)){ entranceFlameBurst(layer,"#F97316",Math.min(1,height*.9),Math.min(1.4,width),intensity,[12,28,72,88]); setTimeout(()=>entranceParticle(layer,"center",color,Math.min(1,height*.92),"center_blast",Math.max(2,intensity),Math.min(2,width)),90); }
     if(style==="rain"||style==="curtain"){entrancePyroRain(layer,color,intensity,width,style==="curtain");return;}
