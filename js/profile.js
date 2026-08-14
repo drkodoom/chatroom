@@ -360,7 +360,7 @@ function renderProfile(data) {
   basicTitle.textContent = "Basics";
   const rows = [
     ["Member since", formatDate(data.user.created_at, true)],
-    ["Entrance status", String(data.entrance?.tier || "none").toUpperCase()],
+    ["Entrance rank", String(data.entrance?.tier || "basic").toUpperCase()],
     ["Location", data.profile?.profile_location || "Not listed"],
     ["RPS record", `${data.stats?.rps_wins || 0}–${data.stats?.rps_losses || 0}`],
     ["Tournament wins", String(data.stats?.rps_tournament_wins || 0)],
@@ -661,48 +661,64 @@ async function saveRewardDisplay() {
 }
 
 
-const ENTRANCE_TIER_RANK = { none: 0, basic: 1, rare: 2, epic: 3, champion: 4 };
+const ENTRANCE_TIER_RANK = { basic: 1, rare: 2, epic: 3, champion: 4 };
+const ENTRANCE_COLOR_PALETTES = {
+  lighting: {
+    basic: ["#FFFFFF", "#3B82F6"],
+    rare: ["#FFFFFF", "#3B82F6", "#EF4444", "#22C55E", "#A855F7"],
+    epic: ["#FFFFFF", "#3B82F6", "#EF4444", "#22C55E", "#A855F7", "#F59E0B", "#06B6D4", "#EC4899"],
+    champion: null
+  },
+  pyro: {
+    basic: ["#FFFFFF"],
+    rare: ["#FFFFFF", "#3B82F6", "#EF4444", "#22C55E", "#A855F7", "#F59E0B"],
+    epic: ["#FFFFFF", "#3B82F6", "#EF4444", "#22C55E", "#A855F7", "#F59E0B", "#06B6D4", "#EC4899"],
+    champion: null
+  },
+  atmosphere: {
+    basic: ["#FFFFFF"], rare: ["#FFFFFF"],
+    epic: ["#FFFFFF", "#3B82F6", "#EF4444", "#22C55E", "#A855F7", "#F59E0B", "#06B6D4", "#EC4899"],
+    champion: null
+  }
+};
 
 function entranceDefaults() {
   return {
     enabled: false,
     wrestlingName: "",
     subtitle: "",
-    pyro: { enabled: true, style: "jets", position: "both", color: "#FFFFFF", duration: 4, frequency: 0.8, height: 0.72, width: 1, intensity: 2, burstCount: 3, behavior: "simultaneous" },
+    pyro: { enabled: true, style: "jets", position: "both", color: "#FFFFFF", duration: 3.5, frequency: 1.1, height: 0.58, width: 0.9, intensity: 1, burstCount: 2, behavior: "simultaneous", layeredEffects:false },
     atmosphere: { type: "none", color: "#FFFFFF", density: 0.45, spread: 0.75, placement: "floor", fade: 4 },
-    lighting: { enabled: true, blackout: true, spotlight: true, phoneLights: false, lightning: false, primaryColor: "#FFFFFF", secondaryColor: "#FFFFFF", motion: "sweep", speed: 1, brightness: 0.65, beamWidth: 1, fixtureCount: 6 },
-    filter: { mode: "none", intensity: 0.55 },
+    lighting: { enabled: true, dimming: "moderate", blackout: false, spotlight: false, phoneLights: false, lightning: false, branchingLightning:false, primaryColor: "#FFFFFF", secondaryColor: "#3B82F6", motion: "sweep", speed: 1, brightness: 0.6, beamWidth: 0.9, fixtureCount: 4 },
+    filter: { mode: "none", intensity: 0.45 },
     screenFx: { effect: "none", shake: 1, flash: 0.6, lingerCracks: false },
     nameplate: { enabled: true, style: "arena", glow: true, animation: "slide" },
-    timing: { totalDuration: 6, entranceDelay: 0, nameplateStart: 0.6, pyroStart: 1, atmosphereStart: 0.3, screenFxStart: 0.8 }
+    timing: { totalDuration: 5, entranceDelay: 0, nameplateStart: 0.6, pyroStart: 1, atmosphereStart: 0.3, screenFxStart: 0.8 }
   };
 }
 
 const ENTRANCE_TEMPLATES = {
-  basic_white_heat: { tier:"basic", name:"Basic — White Heat", config:{ enabled:true, pyro:{enabled:true,style:"fountain",position:"both",color:"#FFFFFF",duration:3.5,frequency:1.1,height:.62,width:1,intensity:1,burstCount:2,behavior:"simultaneous"}, atmosphere:{type:"none"}, lighting:{enabled:true,blackout:true,spotlight:true,primaryColor:"#FFFFFF",secondaryColor:"#FFFFFF",motion:"none",speed:1}, filter:{mode:"cinematic",intensity:.3}, screenFx:{effect:"none"}, nameplate:{enabled:true,style:"arena",glow:true,animation:"slide"}, timing:{totalDuration:5,pyroStart:1,nameplateStart:.5,atmosphereStart:.2,screenFxStart:.7} } },
-  rare_purple_haze: { tier:"rare", name:"Rare — Purple Haze", config:{ enabled:true, pyro:{enabled:false}, atmosphere:{type:"fog",color:"#A855F7",density:.72,spread:.9,placement:"full",fade:5}, lighting:{enabled:true,blackout:true,spotlight:true,primaryColor:"#A855F7",secondaryColor:"#FFFFFF",motion:"sweep",speed:1.2}, filter:{mode:"purple",intensity:.55}, nameplate:{enabled:true,style:"neon",glow:true,animation:"fade"}, timing:{totalDuration:6} } },
-  rare_green_rebellion: { tier:"rare", name:"Rare — Green Rebellion", config:{ enabled:true, pyro:{enabled:true,style:"wide_fountain",position:"both",color:"#22C55E",duration:5,frequency:.8,height:.72,width:2,intensity:2,burstCount:4,behavior:"alternating"}, atmosphere:{type:"smoke",color:"#22C55E",density:.5,spread:.8,placement:"sides",fade:4}, lighting:{enabled:true,blackout:true,spotlight:true,primaryColor:"#22C55E",secondaryColor:"#FFFFFF",motion:"cross",speed:.8}, filter:{mode:"green",intensity:.45}, screenFx:{effect:"glitch",shake:1,flash:.25}, nameplate:{enabled:true,style:"neon",glow:true,animation:"glitch"} } },
-  rare_monochrome_invasion: { tier:"rare", name:"Rare — Monochrome Invasion", config:{ enabled:true, pyro:{enabled:false}, atmosphere:{type:"smoke",color:"#FFFFFF",density:.45,spread:.8,placement:"full",fade:5}, lighting:{enabled:true,blackout:true,spotlight:true,primaryColor:"#FFFFFF",secondaryColor:"#FFFFFF",motion:"none",speed:1}, filter:{mode:"mono",intensity:.95}, nameplate:{enabled:true,style:"steel",glow:false,animation:"fade"} } },
-  rare_glass_break: { tier:"epic", name:"Epic — Glass Break", config:{ enabled:true, pyro:{enabled:true,style:"center_blast",position:"center",color:"#FFFFFF",duration:2.8,frequency:1.4,height:.7,width:1.2,intensity:2,burstCount:1,behavior:"simultaneous"}, atmosphere:{type:"none"}, lighting:{enabled:true,blackout:true,spotlight:true,primaryColor:"#FFFFFF",secondaryColor:"#3B82F6",motion:"pulse",speed:.6}, filter:{mode:"cool",intensity:.45}, screenFx:{effect:"glass_shatter",shake:2,flash:.9,lingerCracks:true}, nameplate:{enabled:true,style:"steel",glow:false,animation:"slide"}, timing:{totalDuration:5,screenFxStart:.35,pyroStart:.6,nameplateStart:1.1} } },
-  epic_fireflies: { tier:"epic", name:"Epic — Fireflies", config:{ enabled:true, pyro:{enabled:false}, atmosphere:{type:"fog",color:"#FFFFFF",density:.22,spread:1,placement:"floor",fade:7}, lighting:{enabled:false,blackout:true,spotlight:true,phoneLights:true,lightning:false,primaryColor:"#FFFFFF",secondaryColor:"#FFFFFF",motion:"none",speed:1}, filter:{mode:"cool",intensity:.65}, screenFx:{effect:"none"}, nameplate:{enabled:true,style:"minimal",glow:false,animation:"fade"}, timing:{totalDuration:8} } },
-  epic_hellfire: { tier:"epic", name:"Epic — Hellfire", config:{ enabled:true, pyro:{enabled:true,style:"flame_jets",position:"full",color:"#EF4444",duration:6,frequency:.7,height:.9,width:1.5,intensity:3,burstCount:5,behavior:"alternating"}, atmosphere:{type:"smoke",color:"#EF4444",density:.55,spread:.85,placement:"sides",fade:5}, lighting:{enabled:true,blackout:true,spotlight:true,primaryColor:"#EF4444",secondaryColor:"#F59E0B",motion:"pulse",speed:.7}, filter:{mode:"red",intensity:.55}, nameplate:{enabled:true,style:"arena",glow:true,animation:"pop"} } },
-  epic_deadman: { tier:"epic", name:"Epic — Graveyard Walk", config:{ enabled:true, pyro:{enabled:true,style:"rain",position:"overhead",color:"#FFFFFF",duration:7,frequency:1.2,height:.8,width:2.4,intensity:2,burstCount:5,behavior:"simultaneous"}, atmosphere:{type:"heavy_fog",color:"#A855F7",density:.86,spread:1,placement:"full",fade:7}, lighting:{enabled:false,blackout:true,spotlight:true,phoneLights:false,lightning:true,primaryColor:"#A855F7",secondaryColor:"#3B82F6",motion:"none",speed:1}, filter:{mode:"purple",intensity:.6}, screenFx:{effect:"lightning",shake:1,flash:.8}, nameplate:{enabled:true,style:"steel",glow:false,animation:"fade"}, timing:{totalDuration:9} } },
-  epic_electrifying: { tier:"epic", name:"Epic — Electrifying", config:{ enabled:true, pyro:{enabled:true,style:"multi_burst",position:"full",color:"#FFFFFF",duration:5,frequency:.7,height:.82,width:1.5,intensity:3,burstCount:5,behavior:"wave"}, atmosphere:{type:"none"}, lighting:{enabled:true,blackout:false,spotlight:true,primaryColor:"#3B82F6",secondaryColor:"#FFFFFF",motion:"search",speed:.75}, filter:{mode:"blue",intensity:.4}, screenFx:{effect:"lightning",shake:1,flash:.75}, nameplate:{enabled:true,style:"arena",glow:true,animation:"slide"} } },
-  epic_savage_fire: { tier:"epic", name:"Epic — Savage Fire", config:{ enabled:true, pyro:{enabled:true,style:"alternating_flames",position:"full",color:"#F97316",duration:6,frequency:.45,height:.88,width:1.4,intensity:3,burstCount:6,behavior:"alternating"}, atmosphere:{type:"smoke",color:"#EF4444",density:.5,spread:.8,placement:"floor",fade:5}, lighting:{enabled:true,blackout:true,spotlight:true,primaryColor:"#EF4444",secondaryColor:"#F97316",motion:"pulse",speed:.55}, filter:{mode:"warm",intensity:.55}, nameplate:{enabled:true,style:"steel",glow:true,animation:"pop"} } },
-  epic_rainmaker: { tier:"epic", name:"Epic — Rainmaker", config:{ enabled:true, pyro:{enabled:true,style:"curtain",position:"overhead",color:"#F59E0B",duration:8,frequency:1.2,height:.9,width:2.8,intensity:3,burstCount:6,behavior:"simultaneous"}, atmosphere:{type:"mist",color:"#FFFFFF",density:.25,spread:1,placement:"full",fade:6}, lighting:{enabled:true,blackout:true,spotlight:true,primaryColor:"#F59E0B",secondaryColor:"#FFFFFF",motion:"fan",speed:.8}, filter:{mode:"gold",intensity:.4}, nameplate:{enabled:true,style:"arena",glow:true,animation:"fade"}, timing:{totalDuration:9} } },
-  champion_burst: { tier:"champion", name:"Champion — Burst", config:{ enabled:true, pyro:{enabled:true,style:"finale",position:"full",color:"#F59E0B",duration:7,frequency:.55,height:.95,width:2.4,intensity:4,burstCount:7,behavior:"wave"}, atmosphere:{type:"smoke",color:"#FFFFFF",density:.5,spread:.9,placement:"full",fade:5}, lighting:{enabled:true,blackout:true,spotlight:true,primaryColor:"#F59E0B",secondaryColor:"#FFFFFF",motion:"champion",speed:.65,brightness:1,beamWidth:1.4,fixtureCount:8}, filter:{mode:"gold",intensity:.5}, screenFx:{effect:"flash",shake:1,flash:.8}, nameplate:{enabled:true,style:"championship",glow:true,animation:"pop"}, timing:{totalDuration:10} } },
-  champion_thunder_crown: { tier:"champion", name:"Champion — Thunder Crown", config:{ enabled:true, pyro:{enabled:true,style:"dual_center",position:"center",color:"#F59E0B",duration:6,frequency:.7,height:.88,width:1.4,intensity:4,burstCount:5,behavior:"rapid"}, atmosphere:{type:"smoke",color:"#FFFFFF",density:.6,spread:.85,placement:"full",fade:5}, lighting:{enabled:true,blackout:true,spotlight:true,lightning:true,primaryColor:"#F59E0B",secondaryColor:"#FFFFFF",motion:"fan",speed:.8,brightness:1,beamWidth:1.3,fixtureCount:8}, filter:{mode:"gold",intensity:.5}, screenFx:{effect:"lightning",shake:2,flash:1}, nameplate:{enabled:true,style:"championship",glow:true,animation:"pop"}, timing:{totalDuration:9} } },
-  epic_dark_arrival: { tier:"epic", name:"Epic — Dark Arrival", config:{ enabled:true, pyro:{enabled:false}, atmosphere:{type:"heavy_fog",color:"#6D28D9",density:.75,spread:1,placement:"floor",fade:8}, lighting:{enabled:true,blackout:true,spotlight:true,primaryColor:"#6D28D9",secondaryColor:"#FFFFFF",motion:"search",speed:1.5,brightness:.45,beamWidth:.8,fixtureCount:4}, filter:{mode:"desaturated",intensity:.45}, nameplate:{enabled:true,style:"minimal",glow:false,animation:"fade"}, timing:{totalDuration:9} } }
+  basic_white_heat: { tier:"basic", name:"Basic — White Heat", config:{ enabled:true, pyro:{enabled:true,style:"fountain",position:"both",color:"#FFFFFF",duration:3.5,frequency:1.1,height:.58,width:.9,intensity:1,burstCount:2,behavior:"simultaneous"}, atmosphere:{type:"none"}, lighting:{enabled:true,dimming:"moderate",blackout:false,spotlight:false,phoneLights:false,lightning:false,primaryColor:"#FFFFFF",secondaryColor:"#3B82F6",motion:"sweep",speed:1,brightness:.6,beamWidth:.9,fixtureCount:4}, filter:{mode:"none",intensity:0}, screenFx:{effect:"none"}, nameplate:{enabled:true,style:"arena",glow:true,animation:"slide"}, timing:{totalDuration:5,pyroStart:1,nameplateStart:.5,atmosphereStart:.2,screenFxStart:.7} } },
+  rare_center_stage: { tier:"rare", name:"Rare — Center Stage", config:{ enabled:true, pyro:{enabled:true,style:"center_blast",position:"center",color:"#3B82F6",duration:4.5,frequency:.85,height:.74,width:1.35,intensity:2,burstCount:3,behavior:"simultaneous"}, atmosphere:{type:"none"}, lighting:{enabled:true,dimming:"strong",blackout:false,spotlight:false,phoneLights:false,lightning:false,primaryColor:"#FFFFFF",secondaryColor:"#3B82F6",motion:"cross",speed:.9,brightness:.72,beamWidth:1.15,fixtureCount:6}, filter:{mode:"cool",intensity:.4}, screenFx:{effect:"none"}, nameplate:{enabled:true,style:"neon",glow:true,animation:"fade"}, timing:{totalDuration:7} } },
+  rare_green_rebellion: { tier:"rare", name:"Rare — Green Rebellion", config:{ enabled:true, pyro:{enabled:true,style:"dual_center",position:"center",color:"#22C55E",duration:5,frequency:.8,height:.76,width:1.6,intensity:2,burstCount:4,behavior:"alternating"}, atmosphere:{type:"none"}, lighting:{enabled:true,dimming:"strong",blackout:false,spotlight:false,phoneLights:false,lightning:false,primaryColor:"#22C55E",secondaryColor:"#FFFFFF",motion:"fan",speed:.8,brightness:.76,beamWidth:1.2,fixtureCount:6}, filter:{mode:"none",intensity:0}, screenFx:{effect:"none"}, nameplate:{enabled:true,style:"neon",glow:true,animation:"fade"}, timing:{totalDuration:7} } },
+  rare_monochrome_invasion: { tier:"rare", name:"Rare — Monochrome Invasion", config:{ enabled:true, pyro:{enabled:true,style:"wide_fountain",position:"both",color:"#FFFFFF",duration:4.5,frequency:1,height:.7,width:1.7,intensity:2,burstCount:3,behavior:"outside_in"}, atmosphere:{type:"none"}, lighting:{enabled:true,dimming:"strong",blackout:false,spotlight:false,phoneLights:false,lightning:false,primaryColor:"#FFFFFF",secondaryColor:"#FFFFFF",motion:"cross",speed:1,brightness:.7,beamWidth:1.1,fixtureCount:6}, filter:{mode:"cool",intensity:.2}, screenFx:{effect:"none"}, nameplate:{enabled:true,style:"steel",glow:false,animation:"fade"}, timing:{totalDuration:7} } },
+  epic_glass_break: { tier:"epic", name:"Epic — Glass Break", config:{ enabled:true, pyro:{enabled:true,style:"center_blast",position:"center",color:"#FFFFFF",duration:3,frequency:1.1,height:.78,width:1.4,intensity:3,burstCount:2,behavior:"rapid"}, atmosphere:{type:"none"}, lighting:{enabled:true,dimming:"blackout",blackout:true,spotlight:true,phoneLights:false,lightning:false,primaryColor:"#FFFFFF",secondaryColor:"#3B82F6",motion:"pulse",speed:.6,brightness:.85,beamWidth:1.25,fixtureCount:8}, filter:{mode:"cool",intensity:.45}, screenFx:{effect:"glass_shatter",shake:2,flash:.9,lingerCracks:true}, nameplate:{enabled:true,style:"steel",glow:false,animation:"slide"}, timing:{totalDuration:7,screenFxStart:.35,pyroStart:.65,nameplateStart:1.1} } },
+  epic_hellfire: { tier:"epic", name:"Epic — Hellfire", config:{ enabled:true, pyro:{enabled:true,style:"flame_jets",position:"full",color:"#EF4444",duration:6,frequency:.7,height:.9,width:1.5,intensity:3,burstCount:5,behavior:"alternating"}, atmosphere:{type:"smoke",color:"#EF4444",density:.55,spread:.85,placement:"sides",fade:5}, lighting:{enabled:true,dimming:"blackout",blackout:true,spotlight:true,phoneLights:false,lightning:false,primaryColor:"#EF4444",secondaryColor:"#F59E0B",motion:"pulse",speed:.7,brightness:.9,beamWidth:1.35,fixtureCount:8}, filter:{mode:"red",intensity:.55}, screenFx:{effect:"flash",shake:1,flash:.55}, nameplate:{enabled:true,style:"arena",glow:true,animation:"pop"}, timing:{totalDuration:9} } },
+  epic_dark_arrival: { tier:"epic", name:"Epic — Dark Arrival", config:{ enabled:true, pyro:{enabled:false}, atmosphere:{type:"heavy_fog",color:"#A855F7",density:.78,spread:1,placement:"floor",fade:8}, lighting:{enabled:true,dimming:"blackout",blackout:true,spotlight:true,phoneLights:false,lightning:false,primaryColor:"#A855F7",secondaryColor:"#FFFFFF",motion:"search",speed:1.4,brightness:.5,beamWidth:.85,fixtureCount:8}, filter:{mode:"desaturated",intensity:.42}, screenFx:{effect:"none"}, nameplate:{enabled:true,style:"minimal",glow:false,animation:"fade"}, timing:{totalDuration:10} } },
+  epic_electrifying: { tier:"epic", name:"Epic — Electrifying", config:{ enabled:true, pyro:{enabled:true,style:"multi_burst",position:"full",color:"#FFFFFF",duration:5,frequency:.7,height:.82,width:1.8,intensity:3,burstCount:5,behavior:"wave"}, atmosphere:{type:"none"}, lighting:{enabled:true,dimming:"strong",blackout:false,spotlight:true,phoneLights:false,lightning:false,primaryColor:"#3B82F6",secondaryColor:"#FFFFFF",motion:"search",speed:.75,brightness:.9,beamWidth:1.3,fixtureCount:8}, filter:{mode:"blue",intensity:.42}, screenFx:{effect:"glitch",shake:2,flash:.55}, nameplate:{enabled:true,style:"arena",glow:true,animation:"glitch"}, timing:{totalDuration:8} } },
+  epic_rainmaker: { tier:"epic", name:"Epic — Rainmaker", config:{ enabled:true, pyro:{enabled:true,style:"curtain",position:"overhead",color:"#F59E0B",duration:8,frequency:1.2,height:.9,width:2.8,intensity:3,burstCount:6,behavior:"simultaneous"}, atmosphere:{type:"mist",color:"#FFFFFF",density:.25,spread:1,placement:"full",fade:6}, lighting:{enabled:true,dimming:"strong",blackout:false,spotlight:true,phoneLights:false,lightning:false,primaryColor:"#F59E0B",secondaryColor:"#FFFFFF",motion:"fan",speed:.8,brightness:.9,beamWidth:1.45,fixtureCount:8}, filter:{mode:"gold",intensity:.4}, screenFx:{effect:"none"}, nameplate:{enabled:true,style:"arena",glow:true,animation:"fade"}, timing:{totalDuration:10} } },
+  champion_thunder_crown: { tier:"champion", name:"Champion — Thunder Crown", config:{ enabled:true, pyro:{enabled:true,style:"finale",position:"full",color:"#F59E0B",duration:7,frequency:.55,height:1,width:3,intensity:4,burstCount:7,behavior:"rapid",layeredEffects:true}, atmosphere:{type:"smoke",color:"#FFFFFF",density:.6,spread:.9,placement:"full",fade:5}, lighting:{enabled:true,dimming:"blackout",blackout:true,spotlight:true,phoneLights:false,lightning:true,branchingLightning:true,primaryColor:"#F59E0B",secondaryColor:"#FFFFFF",motion:"champion",speed:.7,brightness:1,beamWidth:1.6,fixtureCount:12}, filter:{mode:"gold_contrast",intensity:.55}, screenFx:{effect:"flash",shake:2,flash:1}, nameplate:{enabled:true,style:"championship",glow:true,animation:"shimmer"}, timing:{totalDuration:12,screenFxStart:.7,pyroStart:1.2,nameplateStart:.9,atmosphereStart:.2} } }
 };
 
 function mergeEntranceConfig(value) {
   const d = entranceDefaults();
   const raw = value && typeof value === "object" ? value : {};
+  const legacyDimming = raw.lighting?.dimming || (raw.lighting?.blackout ? "blackout" : d.lighting.dimming);
   return {
     ...d, ...raw,
     pyro: { ...d.pyro, ...(raw.pyro || {}) },
     atmosphere: { ...d.atmosphere, ...(raw.atmosphere || {}) },
-    lighting: { ...d.lighting, ...(raw.lighting || {}) },
+    lighting: { ...d.lighting, ...(raw.lighting || {}), dimming: legacyDimming, phoneLights:false },
     filter: { ...d.filter, ...(raw.filter || {}) },
     screenFx: { ...d.screenFx, ...(raw.screenFx || {}) },
     nameplate: { ...d.nameplate, ...(raw.nameplate || {}) },
@@ -710,9 +726,10 @@ function mergeEntranceConfig(value) {
   };
 }
 
-function entranceTierText(tier) {
-  return String(tier || "none").toUpperCase();
-}
+function entranceTierText(tier) { return String(tier || "basic").toUpperCase(); }
+function currentEntranceTier() { return activeProfile?.entrance?.tier || "basic"; }
+function currentEntranceRank() { return ENTRANCE_TIER_RANK[currentEntranceTier()] || 1; }
+function tierAtLeast(tier) { return currentEntranceRank() >= ENTRANCE_TIER_RANK[tier]; }
 
 function fillEntranceRanges() {
   el("entrancePyroDurationValue").textContent = `${Number(el("entrancePyroDurationInput").value).toFixed(1)} sec`;
@@ -724,12 +741,13 @@ function fillEntranceRanges() {
 }
 
 function currentEntranceForm() {
+  const dimming = el("entranceDimmingSelect").value;
   return {
     enabled: el("entranceEnabledInput").checked,
     wrestlingName: el("entranceWrestlingNameInput").value.trim(), subtitle: el("entranceSubtitleInput").value.trim(),
-    pyro: { enabled: el("entrancePyroEnabledInput").checked, style: el("entrancePyroStyleSelect").value, position: el("entrancePyroPositionSelect").value, color: el("entrancePyroColorInput").value, duration:+el("entrancePyroDurationInput").value, frequency:+el("entrancePyroFrequencyInput").value, height:+el("entrancePyroHeightInput").value, width:+el("entrancePyroWidthInput").value, intensity:+el("entrancePyroIntensitySelect").value, burstCount:+el("entrancePyroBurstCountInput").value, behavior:el("entrancePyroBehaviorSelect").value },
+    pyro: { enabled: el("entrancePyroEnabledInput").checked, style: el("entrancePyroStyleSelect").value, position: el("entrancePyroPositionSelect").value, color: el("entrancePyroColorInput").value, duration:+el("entrancePyroDurationInput").value, frequency:+el("entrancePyroFrequencyInput").value, height:+el("entrancePyroHeightInput").value, width:+el("entrancePyroWidthInput").value, intensity:+el("entrancePyroIntensitySelect").value, burstCount:+el("entrancePyroBurstCountInput").value, behavior:el("entrancePyroBehaviorSelect").value, layeredEffects:el("entranceLayeredEffectsInput").checked },
     atmosphere: { type:el("entranceAtmosphereSelect").value, color:el("entranceAtmosphereColorInput").value, density:+el("entranceAtmosphereDensityInput").value, spread:+el("entranceAtmosphereSpreadInput").value, placement:el("entranceAtmospherePlacementSelect").value, fade:+el("entranceAtmosphereFadeInput").value },
-    lighting: { enabled:el("entranceLightingEnabledInput").checked, blackout:el("entranceBlackoutInput").checked, spotlight:el("entranceSpotlightInput").checked, phoneLights:el("entrancePhoneLightsInput").checked, lightning:el("entranceLightningInput").checked, primaryColor:el("entranceLightPrimaryInput").value, secondaryColor:el("entranceLightSecondaryInput").value, motion:el("entranceLightMotionSelect").value, speed:+el("entranceLightSpeedInput").value, brightness:+el("entranceLightBrightnessInput").value, beamWidth:+el("entranceLightBeamWidthInput").value, fixtureCount:+el("entranceLightFixtureCountInput").value },
+    lighting: { enabled:el("entranceLightingEnabledInput").checked, dimming, blackout:dimming==="blackout", spotlight:el("entranceSpotlightInput").checked, phoneLights:false, lightning:el("entranceLightningInput").checked, branchingLightning:el("entranceBranchingLightningInput").checked, primaryColor:el("entranceLightPrimaryInput").value, secondaryColor:el("entranceLightSecondaryInput").value, motion:el("entranceLightMotionSelect").value, speed:+el("entranceLightSpeedInput").value, brightness:+el("entranceLightBrightnessInput").value, beamWidth:+el("entranceLightBeamWidthInput").value, fixtureCount:+el("entranceLightFixtureCountInput").value },
     filter: { mode:el("entranceFilterSelect").value, intensity:+el("entranceFilterIntensityInput").value },
     screenFx: { effect:el("entranceScreenFxSelect").value, shake:+el("entranceScreenShakeInput").value, flash:+el("entranceScreenFlashInput").value, lingerCracks:el("entranceGlassLingerInput").checked },
     nameplate: { enabled:el("entranceNameplateEnabledInput").checked, style:el("entranceNameplateStyleSelect").value, glow:el("entranceNameplateGlowInput").checked, animation:el("entranceNameplateAnimationSelect").value },
@@ -740,160 +758,151 @@ function currentEntranceForm() {
 function setEntranceForm(config) {
   const c=mergeEntranceConfig(config);
   el("entranceEnabledInput").checked=!!c.enabled; el("entranceWrestlingNameInput").value=c.wrestlingName||activeProfile?.user?.username||""; el("entranceSubtitleInput").value=c.subtitle||"";
-  el("entrancePyroEnabledInput").checked=c.pyro.enabled!==false; el("entrancePyroStyleSelect").value=c.pyro.style; el("entrancePyroPositionSelect").value=c.pyro.position||"both"; el("entrancePyroColorInput").value=c.pyro.color||"#FFFFFF"; el("entrancePyroDurationInput").value=c.pyro.duration; el("entrancePyroFrequencyInput").value=c.pyro.frequency; el("entrancePyroHeightInput").value=c.pyro.height; el("entrancePyroWidthInput").value=c.pyro.width; el("entrancePyroIntensitySelect").value=String(c.pyro.intensity); el("entrancePyroBurstCountInput").value=c.pyro.burstCount||3; el("entrancePyroBehaviorSelect").value=c.pyro.behavior||"simultaneous";
+  el("entrancePyroEnabledInput").checked=c.pyro.enabled!==false; el("entrancePyroStyleSelect").value=c.pyro.style; el("entrancePyroPositionSelect").value=c.pyro.position||"both"; el("entrancePyroColorInput").value=c.pyro.color||"#FFFFFF"; el("entrancePyroDurationInput").value=c.pyro.duration; el("entrancePyroFrequencyInput").value=c.pyro.frequency; el("entrancePyroHeightInput").value=c.pyro.height; el("entrancePyroWidthInput").value=c.pyro.width; el("entrancePyroIntensitySelect").value=String(c.pyro.intensity); el("entrancePyroBurstCountInput").value=c.pyro.burstCount||3; el("entrancePyroBehaviorSelect").value=c.pyro.behavior||"simultaneous"; el("entranceLayeredEffectsInput").checked=!!c.pyro.layeredEffects;
   el("entranceAtmosphereSelect").value=c.atmosphere.type; el("entranceAtmosphereColorInput").value=c.atmosphere.color||"#FFFFFF"; el("entranceAtmosphereDensityInput").value=c.atmosphere.density; el("entranceAtmosphereSpreadInput").value=c.atmosphere.spread??.75; el("entranceAtmospherePlacementSelect").value=c.atmosphere.placement||"floor"; el("entranceAtmosphereFadeInput").value=c.atmosphere.fade||4;
-  el("entranceLightingEnabledInput").checked=c.lighting.enabled!==false; el("entranceBlackoutInput").checked=!!c.lighting.blackout; el("entranceSpotlightInput").checked=!!c.lighting.spotlight; el("entrancePhoneLightsInput").checked=!!c.lighting.phoneLights; el("entranceLightningInput").checked=!!c.lighting.lightning; el("entranceLightPrimaryInput").value=c.lighting.primaryColor||"#FFFFFF"; el("entranceLightSecondaryInput").value=c.lighting.secondaryColor||"#FFFFFF"; el("entranceLightMotionSelect").value=c.lighting.motion; el("entranceLightSpeedInput").value=c.lighting.speed; el("entranceLightBrightnessInput").value=c.lighting.brightness??.65; el("entranceLightBeamWidthInput").value=c.lighting.beamWidth??1; el("entranceLightFixtureCountInput").value=c.lighting.fixtureCount??6;
-  el("entranceFilterSelect").value=c.filter.mode||"none"; el("entranceFilterIntensityInput").value=c.filter.intensity??.55; el("entranceScreenFxSelect").value=c.screenFx.effect||"none"; el("entranceScreenShakeInput").value=c.screenFx.shake??1; el("entranceScreenFlashInput").value=c.screenFx.flash??.6; el("entranceGlassLingerInput").checked=!!c.screenFx.lingerCracks;
+  el("entranceLightingEnabledInput").checked=c.lighting.enabled!==false; el("entranceDimmingSelect").value=c.lighting.dimming||"moderate"; el("entranceSpotlightInput").checked=!!c.lighting.spotlight; el("entranceLightningInput").checked=!!c.lighting.lightning; el("entranceBranchingLightningInput").checked=!!c.lighting.branchingLightning; el("entranceLightPrimaryInput").value=c.lighting.primaryColor||"#FFFFFF"; el("entranceLightSecondaryInput").value=c.lighting.secondaryColor||"#3B82F6"; el("entranceLightMotionSelect").value=c.lighting.motion; el("entranceLightSpeedInput").value=c.lighting.speed; el("entranceLightBrightnessInput").value=c.lighting.brightness??.6; el("entranceLightBeamWidthInput").value=c.lighting.beamWidth??.9; el("entranceLightFixtureCountInput").value=c.lighting.fixtureCount??4;
+  el("entranceFilterSelect").value=c.filter.mode||"none"; el("entranceFilterIntensityInput").value=c.filter.intensity??.45; el("entranceScreenFxSelect").value=c.screenFx.effect||"none"; el("entranceScreenShakeInput").value=c.screenFx.shake??1; el("entranceScreenFlashInput").value=c.screenFx.flash??.6; el("entranceGlassLingerInput").checked=!!c.screenFx.lingerCracks;
   el("entranceNameplateEnabledInput").checked=c.nameplate.enabled!==false; el("entranceNameplateStyleSelect").value=c.nameplate.style; el("entranceNameplateGlowInput").checked=!!c.nameplate.glow; el("entranceNameplateAnimationSelect").value=c.nameplate.animation||"slide";
-  el("entranceTotalDurationInput").value=c.timing.totalDuration||6; el("entranceDelayInput").value=c.timing.entranceDelay||0; el("entranceNameplateStartInput").value=c.timing.nameplateStart??.6; el("entrancePyroStartInput").value=c.timing.pyroStart??1; el("entranceAtmosphereStartInput").value=c.timing.atmosphereStart??.3; el("entranceScreenFxStartInput").value=c.timing.screenFxStart??.8;
-  fillEntranceRanges(); setEntranceControlAvailability();
+  el("entranceTotalDurationInput").value=c.timing.totalDuration||5; el("entranceDelayInput").value=c.timing.entranceDelay||0; el("entranceNameplateStartInput").value=c.timing.nameplateStart??.6; el("entrancePyroStartInput").value=c.timing.pyroStart??1; el("entranceAtmosphereStartInput").value=c.timing.atmosphereStart??.3; el("entranceScreenFxStartInput").value=c.timing.screenFxStart??.8;
+  fillEntranceRanges(); applyEntranceTierUI();
 }
 
 function updateEntranceSummary(){
   const target=el("entranceSummary"); if(!target)return; const c=currentEntranceForm();
-  const parts=[c.pyro.enabled?c.pyro.style.replaceAll("_"," ").toUpperCase():"NO PYRO", c.atmosphere.type!=="none"?c.atmosphere.type.replaceAll("_"," ").toUpperCase():"NO ATMOSPHERE", c.lighting.enabled?`${c.lighting.motion.toUpperCase()} LIGHTS`:"NO RIG", c.screenFx.effect!=="none"?c.screenFx.effect.replaceAll("_"," ").toUpperCase():null].filter(Boolean); target.textContent=parts.join(" · ");
-}
-
-
-function currentEntranceTier() {
-  return state.currentUser?.role === "admin" ? el("entranceTierSelect").value : (activeProfile?.entrance?.tier || "none");
+  const parts=[entranceTierText(currentEntranceTier()), c.pyro.enabled?c.pyro.style.replaceAll("_"," ").toUpperCase():"NO PYRO", c.atmosphere.type!=="none"?c.atmosphere.type.replaceAll("_"," ").toUpperCase():null, c.lighting.enabled?`${c.lighting.motion.toUpperCase()} LIGHTS`:"NO RIG", c.screenFx.effect!=="none"?c.screenFx.effect.replaceAll("_"," ").toUpperCase():null].filter(Boolean); target.textContent=parts.join(" · ");
 }
 
 function populateEntranceTemplates() {
   const select = el("entranceTemplateSelect");
-  const tier = currentEntranceTier();
-  const maxRank = ENTRANCE_TIER_RANK[tier] || 0;
+  const maxRank = currentEntranceRank();
   select.innerHTML = "";
   Object.entries(ENTRANCE_TEMPLATES).forEach(([key, template]) => {
-    if ((ENTRANCE_TIER_RANK[template.tier] || 0) > maxRank) return;
     const option = document.createElement("option");
     option.value = key;
-    option.textContent = template.name;
+    const locked = (ENTRANCE_TIER_RANK[template.tier] || 1) > maxRank;
+    option.disabled = locked;
+    option.textContent = `${locked ? "🔒 " : ""}${template.name}${locked ? ` — requires ${entranceTierText(template.tier)}` : ""}`;
     select.appendChild(option);
   });
-  if (!select.options.length) {
-    const option = document.createElement("option");
-    option.value = "";
-    option.textContent = "No templates unlocked";
-    select.appendChild(option);
-  }
+  const firstUnlocked=[...select.options].find(o=>!o.disabled); if(firstUnlocked) select.value=firstUnlocked.value;
 }
 
 function applyEntranceTemplate() {
   const template = ENTRANCE_TEMPLATES[el("entranceTemplateSelect").value];
-  if (!template) return;
+  if (!template || (ENTRANCE_TIER_RANK[template.tier]||1)>currentEntranceRank()) return;
   const current = currentEntranceForm();
   setEntranceForm({
-    ...current,
-    ...template.config,
-    wrestlingName: current.wrestlingName,
-    subtitle: current.subtitle,
-    pyro: { ...current.pyro, ...(template.config.pyro || {}) },
-    atmosphere: { ...current.atmosphere, ...(template.config.atmosphere || {}) },
-    lighting: { ...current.lighting, ...(template.config.lighting || {}) },
-    filter: { ...current.filter, ...(template.config.filter || {}) },
-    screenFx: { ...current.screenFx, ...(template.config.screenFx || {}) },
-    nameplate: { ...current.nameplate, ...(template.config.nameplate || {}) },
-    timing: { ...current.timing, ...(template.config.timing || {}) }
+    ...current, ...template.config, wrestlingName: current.wrestlingName, subtitle: current.subtitle,
+    pyro: { ...current.pyro, ...(template.config.pyro || {}) }, atmosphere: { ...current.atmosphere, ...(template.config.atmosphere || {}) }, lighting: { ...current.lighting, ...(template.config.lighting || {}) }, filter: { ...current.filter, ...(template.config.filter || {}) }, screenFx: { ...current.screenFx, ...(template.config.screenFx || {}) }, nameplate: { ...current.nameplate, ...(template.config.nameplate || {}) }, timing: { ...current.timing, ...(template.config.timing || {}) }
   });
-  setEntranceControlAvailability();
   el("entranceMessage").className = "message success";
-  el("entranceMessage").textContent = `${template.name} template applied. Customize anything you want before saving.`;
+  el("entranceMessage").textContent = `${template.name} applied. Customize any unlocked controls before saving.`;
+}
+
+function setSelectLocks(id, rules) {
+  const select=el(id); if(!select)return;
+  [...select.options].forEach(option=>{
+    if(!option.dataset.baseLabel) option.dataset.baseLabel=option.textContent.replace(/^🔒\s*/,"").replace(/\s+— requires .+$/i,"");
+    const required=rules[option.value]||"basic"; const locked=!tierAtLeast(required);
+    option.disabled=locked; option.textContent=`${locked?"🔒 ":""}${option.dataset.baseLabel}${locked?` — ${entranceTierText(required)}`:""}`;
+  });
+  if(select.selectedOptions[0]?.disabled){ const fallback=[...select.options].find(o=>!o.disabled); if(fallback) select.value=fallback.value; }
+}
+
+function setControlTierLock(id, requiredTier, lockedValue=null) {
+  const control=el(id); if(!control)return;
+  const locked=!tierAtLeast(requiredTier);
+  control.dataset.tierLocked=locked?"true":"false";
+  if(locked && lockedValue!==null){ if(control.type==="checkbox")control.checked=Boolean(lockedValue); else control.value=String(lockedValue); }
+  control.disabled=locked;
+  const label=control.closest("label"); if(label){label.classList.toggle("entrance-feature-locked",locked); label.dataset.lockTier=locked?entranceTierText(requiredTier):"";}
+}
+
+function setRangeTier(id, {basic,rare,epic,champion}, min=null) {
+  const input=el(id); if(!input)return; const tier=currentEntranceTier(); const max={basic,rare,epic,champion}[tier];
+  if(min!=null)input.min=String(min); input.max=String(max); if(Number(input.value)>max)input.value=String(max);
 }
 
 function setEntranceControlAvailability() {
   const pyroEnabled=el("entrancePyroEnabledInput").checked;
-  ["entrancePyroStyleSelect","entrancePyroPositionSelect","entrancePyroColorInput","entrancePyroDurationInput","entrancePyroFrequencyInput","entrancePyroHeightInput","entrancePyroWidthInput","entrancePyroIntensitySelect","entrancePyroBurstCountInput","entrancePyroBehaviorSelect"].forEach(id=>el(id).disabled=!pyroEnabled);
+  ["entrancePyroStyleSelect","entrancePyroPositionSelect","entrancePyroColorInput","entrancePyroDurationInput","entrancePyroFrequencyInput","entrancePyroHeightInput","entrancePyroWidthInput","entrancePyroIntensitySelect","entrancePyroBurstCountInput","entrancePyroBehaviorSelect"].forEach(id=>{const c=el(id); if(c && c.dataset.tierLocked!=="true")c.disabled=!pyroEnabled;});
   const rigEnabled=el("entranceLightingEnabledInput").checked;
-  ["entranceLightPrimaryInput","entranceLightSecondaryInput","entranceLightMotionSelect","entranceLightSpeedInput","entranceLightBrightnessInput","entranceLightBeamWidthInput","entranceLightFixtureCountInput"].forEach(id=>el(id).disabled=!rigEnabled);
+  ["entranceDimmingSelect","entranceLightPrimaryInput","entranceLightSecondaryInput","entranceLightMotionSelect","entranceLightSpeedInput","entranceLightBrightnessInput","entranceLightBeamWidthInput","entranceLightFixtureCountInput","entranceSpotlightInput","entranceLightningInput","entranceBranchingLightningInput"].forEach(id=>{const c=el(id); if(c && c.dataset.tierLocked!=="true")c.disabled=!rigEnabled;});
   const nameplateEnabled=el("entranceNameplateEnabledInput").checked;
-  ["entranceNameplateStyleSelect","entranceNameplateGlowInput","entranceNameplateAnimationSelect"].forEach(id=>el(id).disabled=!nameplateEnabled);
+  ["entranceNameplateStyleSelect","entranceNameplateGlowInput","entranceNameplateAnimationSelect"].forEach(id=>{const c=el(id); if(c && c.dataset.tierLocked!=="true")c.disabled=!nameplateEnabled;});
+  const atmosphereEnabled=el("entranceAtmosphereSelect").value!=="none" && tierAtLeast("epic");
+  ["entranceAtmosphereColorInput","entranceAtmosphereDensityInput","entranceAtmosphereSpreadInput","entranceAtmospherePlacementSelect","entranceAtmosphereFadeInput"].forEach(id=>{const c=el(id); if(c && c.dataset.tierLocked!=="true")c.disabled=!atmosphereEnabled;});
   updateEntranceSummary();
 }
 
 function setEntranceEditorMode(mode){
-  const advanced=mode==="advanced"; el("entranceForm").classList.toggle("show-advanced",advanced); el("entranceBasicModeButton").classList.toggle("is-active",!advanced); el("entranceAdvancedModeButton").classList.toggle("is-active",advanced); localStorage.setItem("chatroom_entrance_editor_mode",advanced?"advanced":"basic");
+  const canAdvanced=tierAtLeast("rare"); const advanced=mode==="advanced"&&canAdvanced;
+  el("entranceForm").classList.toggle("show-advanced",advanced); el("entranceBasicModeButton").classList.toggle("is-active",!advanced); el("entranceAdvancedModeButton").classList.toggle("is-active",advanced); el("entranceAdvancedModeButton").disabled=!canAdvanced; el("entranceAdvancedModeButton").title=canAdvanced?"":"Advanced production controls unlock at Rare."; localStorage.setItem("chatroom_entrance_editor_mode",advanced?"advanced":"basic");
 }
 function resetEntranceForm(){ setEntranceForm(entranceDefaults()); el("entranceMessage").className="message"; el("entranceMessage").textContent="Entrance reset locally. Press SAVE to keep the reset."; }
 
+function nearestPaletteColor(hex,palette){
+  if(!palette||!palette.length)return hex; const toRgb=v=>{const n=parseInt(v.slice(1),16);return[(n>>16)&255,(n>>8)&255,n&255]}; const a=toRgb(hex.toUpperCase()); let best=palette[0],dist=Infinity; for(const p of palette){const b=toRgb(p),d=(a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2;if(d<dist){dist=d;best=p;}} return best;
+}
+function snapEntranceColor(id,kind){
+  const input=el(id), tier=currentEntranceTier(), palette=ENTRANCE_COLOR_PALETTES[kind]?.[tier]; if(!input||palette===null)return; const snapped=nearestPaletteColor(input.value,palette||["#FFFFFF"]); if(snapped.toUpperCase()!==input.value.toUpperCase()){input.value=snapped; el("entranceMessage").className="message"; el("entranceMessage").textContent=`Custom ${kind} colors unlock at Champion. Snapped to the nearest ${entranceTierText(tier)} color.`;}
+}
+
 function applyEntranceTierUI() {
-  const isAdminViewer = state.currentUser?.role === "admin";
-  const tier = currentEntranceTier();
-  el("entranceTierLabel").textContent = entranceTierText(tier);
-  const locked = tier === "none";
-  el("entranceLockedMessage").classList.toggle("hidden", !locked);
-  [...el("entranceForm").querySelectorAll("input,select,button")].forEach((control) => {
-    if (control.id === "entranceTriggerButton" && isAdminViewer) return;
-    control.disabled = locked;
-  });
-  const palette = tier === "champion" ? "any custom color" : tier === "epic" ? "white, blue, red, green, purple, gold, cyan, or pink" : tier === "rare" ? "white, blue, red, green, or purple" : "white only";
-  el("entrancePaletteNote").textContent = `Your ${entranceTierText(tier)} status allows ${palette}. You can turn pyro and the overhead rig off entirely. Filter presets are available at every unlocked level.`;
-  el("entranceNameplateStyleSelect").querySelector('option[value="championship"]').disabled = tier !== "champion";
-  const rank=ENTRANCE_TIER_RANK[tier]||0;
-  ["wide_fountain","fan","center_blast","dual_center","multi_burst"].forEach(v=>{const o=el("entrancePyroStyleSelect").querySelector(`option[value="${v}"]`); if(o)o.disabled=rank<2;});
-  ["flame_jets","alternating_flames","rain","curtain","finale"].forEach(v=>{const o=el("entrancePyroStyleSelect").querySelector(`option[value="${v}"]`); if(o)o.disabled=rank<3;});
-  ["glass_shatter","lightning"].forEach(v=>{const o=el("entranceScreenFxSelect").querySelector(`option[value="${v}"]`); if(o)o.disabled=rank<3;});
-  const maxIntensity=el("entrancePyroIntensitySelect").querySelector('option[value="4"]'); if(maxIntensity)maxIntensity.disabled=tier!=="champion";
+  const tier=currentEntranceTier(); const rank=currentEntranceRank(); el("entranceTierLabel").textContent=entranceTierText(tier);
+  const basis=activeProfile?.entrance?.rank_basis||"achievement"; const highest=activeProfile?.entrance?.highest_achievement_rarity;
+  const next=tier==="basic"?"Rare achievement":tier==="rare"?"Epic achievement":tier==="epic"?"Legendary or Secret achievement":null;
+  el("entranceLockedMessage").classList.remove("hidden");
+  el("entranceLockedMessage").textContent=tier==="champion" ? (basis==="admin_bypass"?"Admin bypass active: the full Champion production rig is unlocked.":"Champion production unlocked. The full entrance rig is available.") : `${entranceTierText(tier)} rank active${highest?` · highest achievement: ${String(highest).toUpperCase()}`:""}. ${next} unlocks the next production tier.`;
+
+  setSelectLocks("entranceNameplateStyleSelect",{arena:"basic",minimal:"basic",steel:"basic",neon:"rare",championship:"champion"});
+  setSelectLocks("entranceNameplateAnimationSelect",{slide:"basic",fade:"basic",pop:"epic",glitch:"epic",shimmer:"champion"});
+  setSelectLocks("entrancePyroStyleSelect",{jets:"basic",fountain:"basic",wide_fountain:"rare",fan:"rare",center_blast:"rare",dual_center:"rare",multi_burst:"rare",full_stage:"epic",flame_jets:"epic",alternating_flames:"epic",flame_wall:"epic",rain:"epic",curtain:"epic",finale:"epic"});
+  setSelectLocks("entrancePyroPositionSelect",{left:"basic",right:"basic",both:"basic",center:"rare",full:"epic",overhead:"epic"});
+  setSelectLocks("entrancePyroIntensitySelect",{"1":"basic","2":"basic","3":"rare","4":"champion"});
+  setSelectLocks("entrancePyroBehaviorSelect",{simultaneous:"basic",alternating:"rare",outside_in:"rare",inside_out:"rare",wave:"rare",random:"epic",rapid:"epic"});
+  setSelectLocks("entranceDimmingSelect",{light:"basic",moderate:"basic",strong:"rare",blackout:"epic"});
+  setSelectLocks("entranceLightMotionSelect",{none:"basic",sweep:"basic",cross:"rare",fan:"rare",search:"epic",pulse:"epic",stadium:"epic",champion:"champion"});
+  setSelectLocks("entranceAtmosphereSelect",{none:"basic",fog:"epic",smoke:"epic",heavy_fog:"epic",mist:"epic"});
+  setSelectLocks("entranceScreenFxSelect",{none:"basic",glass_shatter:"epic",flash:"epic",glitch:"epic",shake:"epic"});
+  setSelectLocks("entranceFilterSelect",{none:"basic",cinematic:"epic",cool:"rare",warm:"rare",red:"rare",blue:"rare",purple:"rare",green:"epic",gold:"epic",mono:"epic",high_contrast:"epic",desaturated:"epic",gold_contrast:"champion",crimson_mono:"champion",electric_blue:"champion"});
+
+  setControlTierLock("entrancePyroColorInput","rare","#FFFFFF"); setControlTierLock("entranceSpotlightInput","epic",false); setControlTierLock("entranceLightningInput","champion",false); setControlTierLock("entranceBranchingLightningInput","champion",false); setControlTierLock("entranceLayeredEffectsInput","champion",false); setControlTierLock("entranceGlassLingerInput","epic",false);
+  ["entranceAtmosphereColorInput","entranceAtmosphereDensityInput","entranceAtmosphereSpreadInput","entranceAtmospherePlacementSelect","entranceAtmosphereFadeInput"].forEach(id=>setControlTierLock(id,"epic"));
+  setControlTierLock("entranceFilterIntensityInput","rare"); ["entranceScreenShakeInput","entranceScreenFlashInput"].forEach(id=>setControlTierLock(id,"epic"));
+  ["entranceDelayInput","entranceNameplateStartInput","entrancePyroStartInput","entranceAtmosphereStartInput","entranceScreenFxStartInput"].forEach(id=>setControlTierLock(id,"epic"));
+
+  setRangeTier("entranceLightFixtureCountInput",{basic:4,rare:6,epic:8,champion:12},2);
+  setRangeTier("entranceLightBrightnessInput",{basic:.65,rare:.8,epic:1,champion:1},.2);
+  setRangeTier("entranceLightBeamWidthInput",{basic:1,rare:1.3,epic:1.7,champion:2},.5);
+  setRangeTier("entrancePyroHeightInput",{basic:.65,rare:.82,epic:.95,champion:1},.2);
+  setRangeTier("entrancePyroWidthInput",{basic:1.1,rare:2,epic:3,champion:3},.4);
+  setRangeTier("entrancePyroBurstCountInput",{basic:2,rare:5,epic:7,champion:8},1);
+  setRangeTier("entrancePyroDurationInput",{basic:5,rare:7,epic:12,champion:15},1);
+  setRangeTier("entranceTotalDurationInput",{basic:6,rare:8,epic:12,champion:15},3);
+
+  el("entrancePyroFrequencyInput").min=tier==="basic"?"0.8":tier==="rare"?"0.5":"0.25"; if(Number(el("entrancePyroFrequencyInput").value)<Number(el("entrancePyroFrequencyInput").min))el("entrancePyroFrequencyInput").value=el("entrancePyroFrequencyInput").min;
   populateEntranceTemplates();
-  if (!locked) setEntranceControlAvailability();
+  setEntranceEditorMode(localStorage.getItem("chatroom_entrance_editor_mode")||"basic");
+  const palette=tier==="champion"?"unrestricted custom colors":tier==="epic"?"expanded lighting, pyro, and atmosphere colors":tier==="rare"?"expanded lighting and pyro colors":"white pyro plus white/blue lighting";
+  el("entrancePaletteNote").textContent=`${entranceTierText(tier)}: ${palette}. Basic = modest lights/pyro · Rare = upgraded lights/pyro/filters · Epic = atmosphere/flames/raining pyro/screen FX · Champion = lightning and maximum production.`;
+  setEntranceControlAvailability(); fillEntranceRanges();
 }
 
 function openEntranceEditor(profileData) {
-  activeProfile = profileData;
-  const isAdminViewer = state.currentUser?.role === "admin";
-  el("entranceMemberName").textContent = `${profileData.user.username} — Entrance`;
-  el("entranceAdminTierRow").classList.toggle("hidden", !isAdminViewer);
-  el("entranceTriggerButton").classList.toggle("hidden", !isAdminViewer);
-  el("entranceTierSelect").value = profileData.entrance?.tier || "none";
-  setEntranceForm(profileData.entrance?.config || null);
-  applyEntranceTierUI();
-  el("entranceMessage").textContent = "";
-  el("entranceOverlay").classList.remove("hidden");
-  setEntranceEditorMode(localStorage.getItem("chatroom_entrance_editor_mode") || "basic");
+  activeProfile=profileData; const isAdminViewer=state.currentUser?.role==="admin";
+  el("entranceMemberName").textContent=`${profileData.user.username} — Entrance`; el("entranceTriggerButton").classList.toggle("hidden",!isAdminViewer); setEntranceForm(profileData.entrance?.config||null); el("entranceMessage").textContent=""; el("entranceOverlay").classList.remove("hidden");
 }
-
-function closeEntranceEditor() {
-  el("entranceOverlay").classList.add("hidden");
-}
+function closeEntranceEditor(){el("entranceOverlay").classList.add("hidden");}
 
 async function saveEntrance(event) {
-  event.preventDefault();
-  if (!activeProfile?.user?.username) return;
-  const message = el("entranceMessage");
-  message.className = "message";
-  message.textContent = "Saving entrance...";
-  const body = { entrance: currentEntranceForm() };
-  if (state.currentUser?.role === "admin") {
-    body.username = activeProfile.user.username;
-    body.tier = el("entranceTierSelect").value;
-  }
-  try {
-    const { response, data } = await apiFetch("/profile/entrance", { method: "POST", body: JSON.stringify(body) }, true);
-    if (!response.ok || !data.ok) throw new Error(data.error || "Could not save entrance.");
-    activeProfile = data;
-    message.className = "message success";
-    message.textContent = "Entrance saved. It will play the next time this member enters the room.";
-    applyEntranceTierUI();
-  } catch (error) {
-    message.className = "message error";
-    message.textContent = error.message || "Could not save entrance.";
-  }
+  event.preventDefault(); if(!activeProfile?.user?.username)return; const message=el("entranceMessage"); message.className="message"; message.textContent="Saving entrance..."; const body={entrance:currentEntranceForm()}; if(state.currentUser?.role==="admin"&&activeProfile.user.username!==state.currentUser.username)body.username=activeProfile.user.username;
+  try{const{response,data}=await apiFetch("/profile/entrance",{method:"POST",body:JSON.stringify(body)},true);if(!response.ok||!data.ok)throw new Error(data.error||"Could not save entrance.");activeProfile=data;message.className="message success";message.textContent="Entrance saved. It will play the next time this member enters the room.";setEntranceForm(data.entrance?.config||currentEntranceForm());}
+  catch(error){message.className="message error";message.textContent=error.message||"Could not save entrance.";}
 }
 
-function previewEntrance() {
-  const tier = currentEntranceTier();
-  el("entranceOverlay").classList.add("hidden");
-  window.dispatchEvent(new CustomEvent("drk:preview-entrance", { detail: { username: activeProfile?.user?.username || state.currentUser?.username, entrance: { tier, config: currentEntranceForm() } } }));
-  setTimeout(() => {
-    if (activeProfile?.user?.username) el("entranceOverlay").classList.remove("hidden");
-  }, 8200);
-}
-
-function triggerEntranceNow() {
-  if (state.currentUser?.role !== "admin" || !activeProfile?.user?.username) return;
-  window.dispatchEvent(new CustomEvent("drk:trigger-entrance", { detail: { username: activeProfile.user.username } }));
-  closeEntranceEditor();
-}
+function previewEntrance(){const tier=currentEntranceTier();el("entranceOverlay").classList.add("hidden");window.dispatchEvent(new CustomEvent("drk:preview-entrance",{detail:{username:activeProfile?.user?.username||state.currentUser?.username,entrance:{tier,config:currentEntranceForm()}}}));setTimeout(()=>{if(activeProfile?.user?.username)el("entranceOverlay").classList.remove("hidden");},8200);}
+function triggerEntranceNow(){if(state.currentUser?.role!=="admin"||!activeProfile?.user?.username)return;window.dispatchEvent(new CustomEvent("drk:trigger-entrance",{detail:{username:activeProfile.user.username}}));closeEntranceEditor();}
 
 export function closeProfile() {
   el("profileOverlay").classList.add("hidden");
@@ -934,13 +943,13 @@ export function initProfiles() {
   el("entranceForm").addEventListener("submit", saveEntrance);
   el("entrancePreviewButton").addEventListener("click", previewEntrance);
   el("entranceTriggerButton").addEventListener("click", triggerEntranceNow);
-  el("entranceTierSelect").addEventListener("change", applyEntranceTierUI);
   el("entranceApplyTemplateButton").addEventListener("click", applyEntranceTemplate);
-  el("entrancePyroEnabledInput").addEventListener("change", setEntranceControlAvailability);
-  el("entranceLightingEnabledInput").addEventListener("change", setEntranceControlAvailability);
-  el("entranceNameplateEnabledInput").addEventListener("change", setEntranceControlAvailability);
+  el("entrancePyroEnabledInput").addEventListener("change", applyEntranceTierUI);
+  el("entranceLightingEnabledInput").addEventListener("change", applyEntranceTierUI);
+  el("entranceNameplateEnabledInput").addEventListener("change", applyEntranceTierUI);
   el("entranceBasicModeButton").addEventListener("click",()=>setEntranceEditorMode("basic"));
   el("entranceAdvancedModeButton").addEventListener("click",()=>setEntranceEditorMode("advanced"));
   el("entranceResetButton").addEventListener("click",resetEntranceForm);
-  ["entrancePyroDurationInput","entrancePyroFrequencyInput","entrancePyroHeightInput","entrancePyroWidthInput","entrancePyroBurstCountInput","entrancePyroStyleSelect","entranceAtmosphereSelect","entranceLightMotionSelect","entranceScreenFxSelect"].forEach((id)=>el(id).addEventListener("input",fillEntranceRanges));
+  ["entrancePyroDurationInput","entrancePyroFrequencyInput","entrancePyroHeightInput","entrancePyroWidthInput","entrancePyroBurstCountInput","entrancePyroStyleSelect","entranceAtmosphereSelect","entranceLightMotionSelect","entranceDimmingSelect","entranceScreenFxSelect"].forEach((id)=>el(id).addEventListener("input",()=>{applyEntranceTierUI();fillEntranceRanges();}));
+  [["entrancePyroColorInput","pyro"],["entranceAtmosphereColorInput","atmosphere"],["entranceLightPrimaryInput","lighting"],["entranceLightSecondaryInput","lighting"]].forEach(([id,kind])=>el(id).addEventListener("change",()=>snapEntranceColor(id,kind)));
 }

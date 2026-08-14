@@ -2904,7 +2904,6 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 .entrance-toggle-row { display:flex; gap:10px; flex-wrap:wrap; padding:10px 0; }
 .entrance-toggle-row label { display:flex; align-items:center; gap:7px; margin:0; padding:8px 10px; border:1px solid var(--border); border-radius:10px; background:var(--surface-2); font-size:12px; }
 .entrance-toggle-row input { width:auto; margin:0; }
-#entranceAdminTierRow { margin-bottom:12px; padding:10px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); }
 
 .entrance-layer { position:fixed; inset:0; z-index:1500; pointer-events:none; display:none; overflow:hidden; }
 .entrance-layer.active { display:block; }
@@ -2926,7 +2925,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 .entrance-nameplate-steel { border:2px solid #bfc7d3; background:linear-gradient(#283342,#0f151f); }
 .entrance-nameplate-neon { border-color:var(--entrance-primary); color:#fff; text-shadow:0 0 12px var(--entrance-primary); }
 .entrance-nameplate-championship { border:2px solid #f5c94a; background:linear-gradient(135deg,#211500,#4a3200,#171006); color:#ffe89a; }
-.entrance-nameplate-championship::before { content:"CHAMPIONSHIP ENTRANCE"; display:block; margin-bottom:7px; font-size:9px; letter-spacing:.24em; color:#f5c94a; }
+
 
 .entrance-pyro-burst { position:absolute; bottom:0; width:1px; height:1px; pointer-events:none; --pyro-color:#fff; }
 .entrance-pyro-left { left:5.5%; }
@@ -3056,7 +3055,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 .entrance-blackout-screen {
   position:absolute;
   inset:0;
-  background:rgba(0,0,0,.78);
+  background:rgba(0,0,0,var(--entrance-dim-opacity,.42));
   animation:entranceBlackoutIn .45s ease both;
 }
 @keyframes entranceBlackoutIn { from { opacity:0; } to { opacity:1; } }
@@ -3166,24 +3165,6 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 .entrance-nameplate.show { opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
 .entrance-nameplate.leaving { opacity:0; transform:translateX(-50%) translateY(-12px) scale(.985); }
 
-/* Phone lights / fireflies. */
-.entrance-phone-lights { position:absolute; inset:0; z-index:3; overflow:hidden; }
-.entrance-phone-light {
-  position:absolute;
-  left:var(--phone-x); top:var(--phone-y);
-  width:4px; height:6px;
-  border-radius:2px;
-  background:#fffbea;
-  box-shadow:0 0 6px #fff,0 0 13px #fff6b2;
-  opacity:.2;
-  transform:scale(var(--phone-scale));
-  animation:entrancePhoneGlow 2.4s ease-in-out var(--phone-delay) infinite alternate;
-}
-@keyframes entrancePhoneGlow {
-  0% { opacity:.12; transform:translate(-2px,2px) scale(var(--phone-scale)); }
-  45% { opacity:.95; }
-  100% { opacity:.32; transform:translate(3px,-4px) scale(var(--phone-scale)); }
-}
 
 /* Lightning strike and screen flash. */
 .entrance-lightning-wrap { position:absolute; inset:0; z-index:20; opacity:0; }
@@ -3374,3 +3355,20 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 .entrance-atmosphere { animation-duration:var(--fog-fade,4.5s); }
 
 @media (max-width:700px){ .entrance-dialog{width:96vw}.entrance-sticky-actions{justify-content:stretch}.entrance-sticky-actions button{flex:1 1 auto} }
+
+
+/* =====================================================
+   v0.18.1 — achievement-gated entrance ranks
+   ===================================================== */
+.entrance-rank-message { margin:0 0 12px; }
+.entrance-feature-locked { opacity:.58; position:relative; }
+.entrance-feature-locked::after { content:"🔒 " attr(data-lock-tier); margin-left:4px; font-size:9px; letter-spacing:.08em; color:var(--muted); }
+.entrance-form select option:disabled { color:var(--muted); }
+.entrance-form input:disabled, .entrance-form select:disabled { opacity:.55; cursor:not-allowed; }
+#entranceAdvancedModeButton:disabled { opacity:.45; cursor:not-allowed; }
+
+.entrance-lightning-branch { opacity:.82; stroke-width:.28 !important; }
+.entrance-nameplate-anim-shimmer { overflow:hidden; }
+.entrance-nameplate-anim-shimmer::after { content:""; position:absolute; inset:-40% -80%; background:linear-gradient(110deg,transparent 42%,rgba(255,238,166,.8) 49%,rgba(255,255,255,.95) 50%,rgba(255,220,112,.55) 52%,transparent 58%); transform:translateX(-60%); }
+.entrance-nameplate-anim-shimmer.show::after { animation:entranceGoldShimmer 1.4s ease-out .25s 2; }
+@keyframes entranceGoldShimmer { from{transform:translateX(-55%)} to{transform:translateX(55%)} }

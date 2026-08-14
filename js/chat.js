@@ -932,7 +932,10 @@ function applyEntranceScreenFilter(filter) {
     gold: `sepia(${.65*i}) saturate(${1 + 1.25*i}) hue-rotate(${-8*i}deg)`,
     mono: `grayscale(${i}) contrast(${1 + .25*i}) brightness(${1 - .05*i})`,
     high_contrast: `contrast(${1 + .75*i}) saturate(${1 + .25*i}) brightness(${1 - .05*i})`,
-    desaturated: `grayscale(${.65*i}) saturate(${1 - .65*i}) contrast(${1 + .12*i})`
+    desaturated: `grayscale(${.65*i}) saturate(${1 - .65*i}) contrast(${1 + .12*i})`,
+    gold_contrast: `sepia(${.72*i}) saturate(${1 + 1.45*i}) hue-rotate(${-10*i}deg) contrast(${1 + .48*i})`,
+    crimson_mono: `grayscale(${.55*i}) sepia(${.45*i}) saturate(${1 + 1.35*i}) hue-rotate(${-34*i}deg) contrast(${1 + .3*i})`,
+    electric_blue: `sepia(${.28*i}) saturate(${1 + 2.1*i}) hue-rotate(${174*i}deg) contrast(${1 + .38*i}) brightness(${1 + .06*i})`
   };
   app.style.filter = map[mode] || "";
 }
@@ -958,32 +961,16 @@ function addEntranceRig(layer, lighting) {
   const rig=document.createElement("div"); rig.className="entrance-rig";
   rig.style.setProperty("--rig-brightness",String(Number(lighting.brightness||.65))); rig.style.setProperty("--beam-width",String(Number(lighting.beamWidth||1)));
   const truss=document.createElement("div"); truss.className="entrance-truss"; rig.appendChild(truss);
-  const count=Math.max(2,Math.min(10,Math.round(Number(lighting.fixtureCount||6))));
+  const count=Math.max(2,Math.min(12,Math.round(Number(lighting.fixtureCount||4))));
   for(let i=0;i<count;i+=1){ const fixture=document.createElement("div"); fixture.className="entrance-light-fixture"; fixture.style.setProperty("--fixture-i",String(i)); fixture.style.setProperty("--fixture-count",String(count)); fixture.style.left=`${count===1?50:8+(84*i/(count-1))}%`; fixture.style.setProperty("--beam-color",i%2?(lighting.secondaryColor||"#FFFFFF"):(lighting.primaryColor||"#FFFFFF")); const yoke=document.createElement("i"); yoke.className="entrance-light-yoke"; const head=document.createElement("i"); head.className="entrance-light-head"; const lens=document.createElement("i"); lens.className="entrance-light-lens"; const beam=document.createElement("i"); beam.className="entrance-light-beam"; head.append(lens,beam); fixture.append(yoke,head); rig.appendChild(fixture); }
   layer.appendChild(rig);
 }
 
-function addPhoneLights(layer) {
-  const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  const field = document.createElement("div");
-  field.className = "entrance-phone-lights";
-  const count = reduced ? 36 : 110;
-  for (let i = 0; i < count; i += 1) {
-    const light = document.createElement("i");
-    light.className = "entrance-phone-light";
-    light.style.setProperty("--phone-x", `${2 + Math.random() * 96}%`);
-    light.style.setProperty("--phone-y", `${30 + Math.random() * 65}%`);
-    light.style.setProperty("--phone-delay", `${(Math.random() * 2.4).toFixed(2)}s`);
-    light.style.setProperty("--phone-scale", `${(.55 + Math.random() * 1.2).toFixed(2)}`);
-    field.appendChild(light);
-  }
-  layer.appendChild(field);
-}
-
-function addLightningStrike(layer) {
+function addLightningStrike(layer, branching = false) {
   const wrapper = document.createElement("div");
-  wrapper.className = "entrance-lightning-wrap";
-  wrapper.innerHTML = `<div class="entrance-lightning-flash"></div><svg class="entrance-lightning-bolt" viewBox="0 0 120 520" aria-hidden="true"><polyline points="72,0 44,125 70,125 35,255 61,255 26,390 57,390 42,520"/></svg>`;
+  wrapper.className = `entrance-lightning-wrap${branching ? " branching" : ""}`;
+  const branches = branching ? `<polyline class="entrance-lightning-branch" points="58,210 22,270 38,270 12,350"/><polyline class="entrance-lightning-branch" points="54,300 91,346 76,346 104,420"/>` : "";
+  wrapper.innerHTML = `<div class="entrance-lightning-flash"></div><svg class="entrance-lightning-bolt" viewBox="0 0 120 520" aria-hidden="true"><polyline points="72,0 44,125 70,125 35,255 61,255 26,390 57,390 42,520"/>${branches}</svg>`;
   layer.appendChild(wrapper);
   requestAnimationFrame(() => wrapper.classList.add("strike"));
   setTimeout(() => wrapper.remove(), 900);
@@ -1000,12 +987,12 @@ function addEntranceFilter(layer, filter) {
 function addEntranceNameplate(layer, username, tier, config, timing = {}) {
   const plate=config.nameplate||{}; if(plate.enabled===false)return null;
   const nameplate=document.createElement("div"); nameplate.className=`entrance-nameplate entrance-nameplate-${plate.style||"arena"} entrance-nameplate-anim-${plate.animation||"slide"}${plate.glow?" glow":""}`;
-  const name=document.createElement("strong"); name.textContent=config.wrestlingName||username||"ENTRANCE"; const sub=document.createElement("span"); sub.textContent=config.subtitle||(tier==="champion"?"CHAMPION":username||""); nameplate.append(name,sub); layer.appendChild(nameplate); requestAnimationFrame(()=>nameplate.classList.add("show"));
+  const name=document.createElement("strong"); name.textContent=config.wrestlingName||username||"ENTRANCE"; const sub=document.createElement("span"); sub.textContent=config.subtitle||(username||""); nameplate.append(name,sub); layer.appendChild(nameplate); requestAnimationFrame(()=>nameplate.classList.add("show"));
   const leaveAt=Math.max(1800,Math.min(6000,(Number(timing.totalDuration||6)-1.2)*1000)); setTimeout(()=>nameplate.classList.add("leaving"),leaveAt); setTimeout(()=>nameplate.remove(),leaveAt+700); return nameplate;
 }
 
 function entranceFlameBurst(layer, color, height, width, intensity, positions = ["left","right"]) {
-  positions.forEach((side,idx)=>{ const flame=document.createElement("div"); flame.className=`entrance-flame entrance-flame-${side}`; flame.style.setProperty("--flame-color",color||"#F97316"); flame.style.setProperty("--flame-height",`${Math.max(100,window.innerHeight*height)}px`); flame.style.setProperty("--flame-width",`${Math.max(.6,width)}`); flame.style.setProperty("--flame-intensity",String(intensity)); if(side.startsWith("center")){ flame.style.left=side==="center-left"?"46%":"54%"; } layer.appendChild(flame); setTimeout(()=>flame.remove(),1100); });
+  positions.forEach((side,idx)=>{ const flame=document.createElement("div"); flame.className=`entrance-flame entrance-flame-${typeof side==="number"?"wall":side}`; flame.style.setProperty("--flame-color",color||"#F97316"); flame.style.setProperty("--flame-height",`${Math.max(100,window.innerHeight*height)}px`); flame.style.setProperty("--flame-width",`${Math.max(.6,width)}`); flame.style.setProperty("--flame-intensity",String(intensity)); if(typeof side==="number")flame.style.left=`${side}%`; else if(side.startsWith("center"))flame.style.left=side==="center-left"?"46%":"54%"; layer.appendChild(flame); setTimeout(()=>flame.remove(),1100); });
 }
 
 function addGlassShatter(layer, fx={}) {
@@ -1091,14 +1078,17 @@ function renderEntrance(username, entrance, { preview = false } = {}) {
   const pyro=config.pyro||{}, lighting=config.lighting||{}, filter=config.filter||{}, timing=config.timing||{}, fx=config.screenFx||{};
   const duration=Math.max(1,Math.min(15,Number(pyro.duration||4))), frequency=Math.max(.25,Math.min(3,Number(pyro.frequency||.8))), height=Math.max(.2,Math.min(1,Number(pyro.height||.72))), intensity=Math.max(1,Math.min(4,Number(pyro.intensity||2))), width=Math.max(.4,Math.min(3,Number(pyro.width||1))), burstCount=Math.max(1,Math.min(8,Math.round(Number(pyro.burstCount||3))));
   const primary=lighting.primaryColor||"#FFFFFF", secondary=lighting.secondaryColor||primary, delay=Math.max(0,Number(timing.entranceDelay||0))*1000, total=Math.max(3,Math.min(15,Number(timing.totalDuration||Math.max(6,duration))))*1000;
-  layer.className=`entrance-layer active entrance-tier-${tier} entrance-motion-${lighting.motion||"none"}${lighting.blackout?" entrance-blackout":""}`; layer.style.setProperty("--entrance-primary",primary); layer.style.setProperty("--entrance-secondary",secondary); layer.style.setProperty("--entrance-speed",`${Math.max(.3,Math.min(3,Number(lighting.speed||1)))}s`);
-  if(lighting.blackout){const blackout=document.createElement("div");blackout.className="entrance-blackout-screen";layer.appendChild(blackout);} addEntranceFilter(layer,filter); applyEntranceScreenFilter(filter);
+  const dimming=String(lighting.dimming||(lighting.blackout?"blackout":"moderate"));
+  layer.className=`entrance-layer active entrance-tier-${tier} entrance-motion-${lighting.motion||"none"}`; layer.style.setProperty("--entrance-primary",primary); layer.style.setProperty("--entrance-secondary",secondary); layer.style.setProperty("--entrance-speed",`${Math.max(.3,Math.min(3,Number(lighting.speed||1)))}s`);
+  const dimOpacity={light:.24,moderate:.42,strong:.62,blackout:.88}[dimming]||.42; const blackout=document.createElement("div"); blackout.className="entrance-blackout-screen"; blackout.style.setProperty("--entrance-dim-opacity",String(dimOpacity)); layer.appendChild(blackout); addEntranceFilter(layer,filter); applyEntranceScreenFilter(filter);
   const at=(seconds,fn)=>setTimeout(fn,delay+Math.max(0,Number(seconds||0))*1000);
-  at(.15,()=>addEntranceRig(layer,lighting)); if(lighting.phoneLights)at(.35,()=>addPhoneLights(layer)); at(timing.atmosphereStart??.3,()=>addEntranceAtmosphere(layer,config.atmosphere||{})); at(timing.nameplateStart??.6,()=>addEntranceNameplate(layer,username,tier,config,timing)); if(lighting.lightning)at(1.2,()=>addLightningStrike(layer)); at(timing.screenFxStart??.8,()=>addEntranceScreenFx(layer,fx));
+  at(.15,()=>addEntranceRig(layer,lighting)); at(timing.atmosphereStart??.3,()=>addEntranceAtmosphere(layer,config.atmosphere||{})); at(timing.nameplateStart??.6,()=>addEntranceNameplate(layer,username,tier,config,timing)); if(lighting.lightning)at(1.2,()=>addLightningStrike(layer,Boolean(lighting.branchingLightning))); at(timing.screenFxStart??.8,()=>addEntranceScreenFx(layer,fx));
   const fireBurst=(burstIndex=0)=>{ if(pyro.enabled===false)return; const style=pyro.style||"jets",color=pyro.color||"#FFFFFF",pos=pyro.position||"both";
+    if(pyro.layeredEffects && !["flame_jets","alternating_flames","flame_wall"].includes(style)){ entranceFlameBurst(layer,"#F97316",Math.min(1,height*.9),Math.min(1.4,width),intensity,[12,28,72,88]); setTimeout(()=>entranceParticle(layer,"center",color,Math.min(1,height*.92),"center_blast",Math.max(2,intensity),Math.min(2,width)),90); }
     if(style==="rain"||style==="curtain"){entrancePyroRain(layer,color,intensity,width,style==="curtain");return;}
-    if(style==="flame_jets"||style==="alternating_flames"){ let positions=pos==="center"?["center-left","center-right"]:(pos==="left"?["left"]:(pos==="right"?["right"]:["left","right"])); if(style==="alternating_flames"&&positions.length>1)positions=[positions[burstIndex%positions.length]]; entranceFlameBurst(layer,color,height,width,intensity,positions); return; }
+    if(style==="flame_jets"||style==="alternating_flames"||style==="flame_wall"){ let positions=style==="flame_wall"?[8,20,32,44,56,68,80,92]:(pos==="center"?["center-left","center-right"]:(pos==="left"?["left"]:(pos==="right"?["right"]:["left","right"]))); if(style==="alternating_flames"&&positions.length>1)positions=[positions[burstIndex%positions.length]]; entranceFlameBurst(layer,color,height,width,intensity,positions); return; }
     if(style==="center_blast"||style==="dual_center"){ if(style==="dual_center"){ entranceParticle(layer,"center",color,height,"center_blast",intensity,width,-4); entranceParticle(layer,"center",color,height,"center_blast",intensity,width,4); } else entranceParticle(layer,"center",color,height,"center_blast",intensity,width); return; }
+    if(style==="full_stage"){[-42,-28,-14,0,14,28,42].forEach((off,i)=>setTimeout(()=>entranceParticle(layer,"center",color,height,"bursts",intensity,width,off),i*45));return;}
     if(style==="multi_burst"||style==="finale"){ [0,12,24].forEach((off,i)=>{setTimeout(()=>entranceParticle(layer,"left",color,height,"bursts",intensity,width,off),i*70);setTimeout(()=>entranceParticle(layer,"right",color,height,"bursts",intensity,width,off),i*70);}); if(style==="finale")setTimeout(()=>entranceParticle(layer,"center",color,height,"center_blast",intensity,width*1.2),120); return; }
     const sides=pos==="left"?["left"]:(pos==="right"?["right"]:(pos==="center"?["center"]:["left","right"])); const offsets=style==="wide_fountain"?[0,10,20]:style==="fan"?[0,14]:[0]; sides.forEach(side=>offsets.forEach((offset,idx)=>setTimeout(()=>entranceParticle(layer,side,color,height,style,intensity,width,offset),idx*55)));
   };
