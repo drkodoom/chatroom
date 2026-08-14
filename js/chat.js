@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.16.8";
-import { apiFetch } from "./api.js?v=0.16.8";
-import { getToken, state } from "./state.js?v=0.16.8";
-import { openMemberByUsername } from "./admin.js?v=0.16.8";
-import { openProfileByUsername } from "./profile.js?v=0.16.8";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.16.8";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.17.0";
+import { apiFetch } from "./api.js?v=0.17.0";
+import { getToken, state } from "./state.js?v=0.17.0";
+import { openMemberByUsername } from "./admin.js?v=0.17.0";
+import { openProfileByUsername } from "./profile.js?v=0.17.0";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.17.0";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -772,6 +772,10 @@ function renderRoomEffect(effect, target = "", message = "", actor = "") {
 
 function sendAdminEffect(effect) {
   if (!isAdmin()) return;
+  if (effect === "confetti") {
+    sendSocket({ type: "admin_confetti" });
+    return;
+  }
   const target = el("effectsTargetSelect").value.trim();
   const message = el("effectsMessageInput").value.trim();
   const messageBox = el("effectsMessage");
@@ -792,6 +796,105 @@ function sendAdminEffect(effect) {
 function stopRoomEffectsForEveryone() {
   if (!isAdmin()) return;
   sendSocket({ type: "admin_effect", effect: "stop" });
+}
+
+
+let entranceTimer = null;
+let entranceBurstTimer = null;
+
+function stopEntranceLocal() {
+  clearTimeout(entranceTimer);
+  clearInterval(entranceBurstTimer);
+  entranceTimer = null;
+  entranceBurstTimer = null;
+  const layer = el("entranceLayer");
+  if (!layer) return;
+  layer.className = "entrance-layer";
+  layer.innerHTML = "";
+}
+
+function entranceParticle(layer, side, color, height, style, intensity) {
+  const spark = document.createElement("i");
+  spark.className = `entrance-pyro entrance-pyro-${style} entrance-pyro-${side}`;
+  spark.style.setProperty("--pyro-color", color);
+  spark.style.setProperty("--pyro-height", `${Math.round(height * 100)}vh`);
+  spark.style.setProperty("--pyro-intensity", String(intensity));
+  layer.appendChild(spark);
+  setTimeout(() => spark.remove(), 1200);
+}
+
+function addEntranceAtmosphere(layer, atmosphere) {
+  if (!atmosphere || atmosphere.type === "none") return;
+  const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  const total = reduced ? 6 : Math.max(8, Math.round(28 * Number(atmosphere.density || .45)));
+  for (let i = 0; i < total; i += 1) {
+    const puff = document.createElement("i");
+    puff.className = `entrance-atmosphere entrance-${atmosphere.type}`;
+    puff.style.setProperty("--fog-color", atmosphere.color || "#FFFFFF");
+    puff.style.setProperty("--fog-x", `${Math.random() * 100}%`);
+    puff.style.setProperty("--fog-delay", `${(Math.random() * 1.8).toFixed(2)}s`);
+    puff.style.setProperty("--fog-size", `${Math.round(80 + Math.random() * 150)}px`);
+    layer.appendChild(puff);
+  }
+}
+
+function renderEntrance(username, entrance, { preview = false } = {}) {
+  const tier = String(entrance?.tier || "none");
+  const config = entrance?.config || {};
+  if (tier === "none" || !config.enabled) {
+    if (preview) addSystemLine("This entrance is disabled or has no Entrance Status.");
+    return;
+  }
+  stopRoomEffectsLocal();
+  stopEntranceLocal();
+  const layer = el("entranceLayer");
+  if (!layer) return;
+  const pyro = config.pyro || {};
+  const lighting = config.lighting || {};
+  const plate = config.nameplate || {};
+  const duration = Math.max(2, Math.min(10, Number(pyro.duration || 4)));
+  const frequency = Math.max(.35, Math.min(2.5, Number(pyro.frequency || .8)));
+  const height = Math.max(.3, Math.min(.95, Number(pyro.height || .72)));
+  const intensity = Math.max(1, Math.min(3, Number(pyro.intensity || 2)));
+  const primary = lighting.primaryColor || "#FFFFFF";
+  const secondary = lighting.secondaryColor || primary;
+
+  layer.className = `entrance-layer active entrance-tier-${tier} entrance-motion-${lighting.motion || "none"}${lighting.blackout ? " entrance-blackout" : ""}${lighting.spotlight ? " entrance-spotlight" : ""}`;
+  layer.style.setProperty("--entrance-primary", primary);
+  layer.style.setProperty("--entrance-secondary", secondary);
+  layer.style.setProperty("--entrance-speed", `${Math.max(.4, Math.min(2.2, Number(lighting.speed || 1)))}s`);
+
+  const truss = document.createElement("div");
+  truss.className = "entrance-truss";
+  layer.appendChild(truss);
+  for (let i = 0; i < 6; i += 1) {
+    const beam = document.createElement("i");
+    beam.className = "entrance-beam";
+    beam.style.setProperty("--beam-i", String(i));
+    beam.style.setProperty("--beam-color", i % 2 ? secondary : primary);
+    layer.appendChild(beam);
+  }
+
+  addEntranceAtmosphere(layer, config.atmosphere || {});
+
+  const nameplate = document.createElement("div");
+  nameplate.className = `entrance-nameplate entrance-nameplate-${plate.style || "arena"}${plate.glow ? " glow" : ""}`;
+  const name = document.createElement("strong");
+  name.textContent = config.wrestlingName || username || "ENTRANCE";
+  const sub = document.createElement("span");
+  sub.textContent = config.subtitle || (tier === "champion" ? "CHAMPION" : username || "");
+  nameplate.append(name, sub);
+  layer.appendChild(nameplate);
+
+  const fireBurst = () => {
+    for (let n = 0; n < intensity; n += 1) {
+      setTimeout(() => entranceParticle(layer, "left", pyro.color || "#FFFFFF", height, pyro.style || "jets", intensity), n * 90);
+      setTimeout(() => entranceParticle(layer, "right", pyro.color || "#FFFFFF", height, pyro.style || "jets", intensity), n * 90);
+    }
+  };
+  fireBurst();
+  if (!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) entranceBurstTimer = setInterval(fireBurst, frequency * 1000);
+  entranceTimer = setTimeout(stopEntranceLocal, duration * 1000);
 }
 
 function connectChatSocket() {
@@ -952,6 +1055,10 @@ function connectChatSocket() {
     if (data.type === "room_effect") {
       if (data.effect === "stop") stopRoomEffectsLocal();
       else renderRoomEffect(data.effect || "", data.target || "", data.message || "", data.actor || "");
+      return;
+    }
+    if (data.type === "entrance") {
+      renderEntrance(data.username || "", data.entrance || {});
       return;
     }
     if (data.type === "admin_identity") {
@@ -1884,6 +1991,16 @@ export function initChatUI() {
   window.addEventListener("drk:admin-kick", (event) => {
     const username = event.detail?.username;
     if (username) sendSocket({ type: "admin_kick", username });
+  });
+
+  window.addEventListener("drk:preview-entrance", (event) => {
+    renderEntrance(event.detail?.username || state.currentUser?.username || "", event.detail?.entrance || {}, { preview: true });
+  });
+
+  window.addEventListener("drk:trigger-entrance", (event) => {
+    if (!isAdmin()) return;
+    const username = event.detail?.username;
+    if (username) sendSocket({ type: "admin_trigger_entrance", username });
   });
 
   window.addEventListener("drk:user-style-updated", (event) => {

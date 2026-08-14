@@ -1,6 +1,6 @@
-import { apiFetch } from "./api.js?v=0.16.8";
-import { state } from "./state.js?v=0.16.8";
-import { openMemberByUsername } from "./admin.js?v=0.16.8";
+import { apiFetch } from "./api.js?v=0.17.0";
+import { state } from "./state.js?v=0.17.0";
+import { openMemberByUsername } from "./admin.js?v=0.17.0";
 
 const el = (id) => document.getElementById(id);
 let activeProfile = null;
@@ -329,6 +329,14 @@ function renderProfile(data) {
     });
     actions.appendChild(rps);
   }
+  const entranceButton = document.createElement("button");
+  entranceButton.type = "button";
+  entranceButton.textContent = data.can_edit ? "MY ENTRANCE" : (state.currentUser?.role === "admin" ? "EDIT ENTRANCE" : "");
+  if (entranceButton.textContent) {
+    entranceButton.addEventListener("click", () => openEntranceEditor(data));
+    actions.appendChild(entranceButton);
+  }
+
   if (state.currentUser?.role === "admin") {
     const info = document.createElement("button");
     info.type = "button";
@@ -352,6 +360,7 @@ function renderProfile(data) {
   basicTitle.textContent = "Basics";
   const rows = [
     ["Member since", formatDate(data.user.created_at, true)],
+    ["Entrance status", String(data.entrance?.tier || "none").toUpperCase()],
     ["Location", data.profile?.profile_location || "Not listed"],
     ["RPS record", `${data.stats?.rps_wins || 0}–${data.stats?.rps_losses || 0}`],
     ["Tournament wins", String(data.stats?.rps_tournament_wins || 0)],
@@ -651,6 +660,167 @@ async function saveRewardDisplay() {
   }
 }
 
+
+function entranceDefaults() {
+  return {
+    enabled: false,
+    wrestlingName: "",
+    subtitle: "",
+    pyro: { style: "jets", color: "#FFFFFF", duration: 4, frequency: 0.8, height: 0.72, intensity: 2 },
+    atmosphere: { type: "none", color: "#FFFFFF", density: 0.45 },
+    lighting: { blackout: true, spotlight: true, primaryColor: "#FFFFFF", secondaryColor: "#FFFFFF", motion: "sweep", speed: 1 },
+    nameplate: { style: "arena", glow: true }
+  };
+}
+
+function mergeEntranceConfig(value) {
+  const d = entranceDefaults();
+  const raw = value && typeof value === "object" ? value : {};
+  return {
+    ...d,
+    ...raw,
+    pyro: { ...d.pyro, ...(raw.pyro || {}) },
+    atmosphere: { ...d.atmosphere, ...(raw.atmosphere || {}) },
+    lighting: { ...d.lighting, ...(raw.lighting || {}) },
+    nameplate: { ...d.nameplate, ...(raw.nameplate || {}) }
+  };
+}
+
+function entranceTierText(tier) {
+  return String(tier || "none").toUpperCase();
+}
+
+function fillEntranceRanges() {
+  el("entrancePyroDurationValue").textContent = `${Number(el("entrancePyroDurationInput").value).toFixed(1)} sec`;
+  el("entrancePyroFrequencyValue").textContent = `every ${Number(el("entrancePyroFrequencyInput").value).toFixed(2)} sec`;
+  el("entrancePyroHeightValue").textContent = `${Math.round(Number(el("entrancePyroHeightInput").value) * 100)}% screen`;
+}
+
+function currentEntranceForm() {
+  return {
+    enabled: el("entranceEnabledInput").checked,
+    wrestlingName: el("entranceWrestlingNameInput").value.trim(),
+    subtitle: el("entranceSubtitleInput").value.trim(),
+    pyro: {
+      style: el("entrancePyroStyleSelect").value,
+      color: el("entrancePyroColorInput").value,
+      duration: Number(el("entrancePyroDurationInput").value),
+      frequency: Number(el("entrancePyroFrequencyInput").value),
+      height: Number(el("entrancePyroHeightInput").value),
+      intensity: Number(el("entrancePyroIntensitySelect").value)
+    },
+    atmosphere: {
+      type: el("entranceAtmosphereSelect").value,
+      color: el("entranceAtmosphereColorInput").value,
+      density: Number(el("entranceAtmosphereDensityInput").value)
+    },
+    lighting: {
+      blackout: el("entranceBlackoutInput").checked,
+      spotlight: el("entranceSpotlightInput").checked,
+      primaryColor: el("entranceLightPrimaryInput").value,
+      secondaryColor: el("entranceLightSecondaryInput").value,
+      motion: el("entranceLightMotionSelect").value,
+      speed: Number(el("entranceLightSpeedInput").value)
+    },
+    nameplate: {
+      style: el("entranceNameplateStyleSelect").value,
+      glow: el("entranceNameplateGlowInput").checked
+    }
+  };
+}
+
+function setEntranceForm(config) {
+  const c = mergeEntranceConfig(config);
+  el("entranceEnabledInput").checked = Boolean(c.enabled);
+  el("entranceWrestlingNameInput").value = c.wrestlingName || activeProfile?.user?.username || "";
+  el("entranceSubtitleInput").value = c.subtitle || "";
+  el("entrancePyroStyleSelect").value = c.pyro.style;
+  el("entrancePyroColorInput").value = c.pyro.color || "#FFFFFF";
+  el("entrancePyroDurationInput").value = String(c.pyro.duration);
+  el("entrancePyroFrequencyInput").value = String(c.pyro.frequency);
+  el("entrancePyroHeightInput").value = String(c.pyro.height);
+  el("entrancePyroIntensitySelect").value = String(c.pyro.intensity);
+  el("entranceAtmosphereSelect").value = c.atmosphere.type;
+  el("entranceAtmosphereColorInput").value = c.atmosphere.color || "#FFFFFF";
+  el("entranceAtmosphereDensityInput").value = String(c.atmosphere.density);
+  el("entranceBlackoutInput").checked = Boolean(c.lighting.blackout);
+  el("entranceSpotlightInput").checked = Boolean(c.lighting.spotlight);
+  el("entranceLightPrimaryInput").value = c.lighting.primaryColor || "#FFFFFF";
+  el("entranceLightSecondaryInput").value = c.lighting.secondaryColor || "#FFFFFF";
+  el("entranceLightMotionSelect").value = c.lighting.motion;
+  el("entranceLightSpeedInput").value = String(c.lighting.speed);
+  el("entranceNameplateStyleSelect").value = c.nameplate.style;
+  el("entranceNameplateGlowInput").checked = Boolean(c.nameplate.glow);
+  fillEntranceRanges();
+}
+
+function applyEntranceTierUI() {
+  const isAdminViewer = state.currentUser?.role === "admin";
+  const tier = isAdminViewer ? el("entranceTierSelect").value : (activeProfile?.entrance?.tier || "none");
+  el("entranceTierLabel").textContent = entranceTierText(tier);
+  const locked = tier === "none";
+  el("entranceLockedMessage").classList.toggle("hidden", !locked);
+  [...el("entranceForm").querySelectorAll("input,select,button")].forEach((control) => {
+    if (control.id === "entranceTriggerButton" && isAdminViewer) return;
+    control.disabled = locked;
+  });
+  const palette = tier === "champion" ? "any custom color" : tier === "epic" ? "white, blue, red, green, purple, gold, cyan, or pink" : tier === "rare" ? "white, blue, red, green, or purple" : "white only";
+  el("entrancePaletteNote").textContent = `Your ${entranceTierText(tier)} status allows ${palette}. Disallowed colors are automatically converted to an allowed color when saved.`;
+  el("entranceNameplateStyleSelect").querySelector('option[value="championship"]').disabled = tier !== "champion";
+}
+
+function openEntranceEditor(profileData) {
+  activeProfile = profileData;
+  const isAdminViewer = state.currentUser?.role === "admin";
+  el("entranceMemberName").textContent = `${profileData.user.username} — Entrance`;
+  el("entranceAdminTierRow").classList.toggle("hidden", !isAdminViewer);
+  el("entranceTriggerButton").classList.toggle("hidden", !isAdminViewer);
+  el("entranceTierSelect").value = profileData.entrance?.tier || "none";
+  setEntranceForm(profileData.entrance?.config || null);
+  applyEntranceTierUI();
+  el("entranceMessage").textContent = "";
+  el("entranceOverlay").classList.remove("hidden");
+}
+
+function closeEntranceEditor() {
+  el("entranceOverlay").classList.add("hidden");
+}
+
+async function saveEntrance(event) {
+  event.preventDefault();
+  if (!activeProfile?.user?.username) return;
+  const message = el("entranceMessage");
+  message.className = "message";
+  message.textContent = "Saving entrance...";
+  const body = { entrance: currentEntranceForm() };
+  if (state.currentUser?.role === "admin") {
+    body.username = activeProfile.user.username;
+    body.tier = el("entranceTierSelect").value;
+  }
+  try {
+    const { response, data } = await apiFetch("/profile/entrance", { method: "POST", body: JSON.stringify(body) }, true);
+    if (!response.ok || !data.ok) throw new Error(data.error || "Could not save entrance.");
+    activeProfile = data;
+    message.className = "message success";
+    message.textContent = "Entrance saved. It will play the next time this member enters the room.";
+    applyEntranceTierUI();
+  } catch (error) {
+    message.className = "message error";
+    message.textContent = error.message || "Could not save entrance.";
+  }
+}
+
+function previewEntrance() {
+  const tier = state.currentUser?.role === "admin" ? el("entranceTierSelect").value : (activeProfile?.entrance?.tier || "none");
+  window.dispatchEvent(new CustomEvent("drk:preview-entrance", { detail: { username: activeProfile?.user?.username || state.currentUser?.username, entrance: { tier, config: currentEntranceForm() } } }));
+}
+
+function triggerEntranceNow() {
+  if (state.currentUser?.role !== "admin" || !activeProfile?.user?.username) return;
+  window.dispatchEvent(new CustomEvent("drk:trigger-entrance", { detail: { username: activeProfile.user.username } }));
+  closeEntranceEditor();
+}
+
 export function closeProfile() {
   el("profileOverlay").classList.add("hidden");
   el("profileView").innerHTML = "";
@@ -685,4 +855,11 @@ export function initProfiles() {
   el("profileEditForm").addEventListener("submit", saveProfile);
   el("profileSaveRewardsButton").addEventListener("click", saveRewardDisplay);
   el("myProfileButton").addEventListener("click", openOwnProfile);
+  el("entranceCloseButton").addEventListener("click", closeEntranceEditor);
+  el("entranceOverlay").addEventListener("click", (event) => { if (event.target === el("entranceOverlay")) closeEntranceEditor(); });
+  el("entranceForm").addEventListener("submit", saveEntrance);
+  el("entrancePreviewButton").addEventListener("click", previewEntrance);
+  el("entranceTriggerButton").addEventListener("click", triggerEntranceNow);
+  el("entranceTierSelect").addEventListener("change", applyEntranceTierUI);
+  ["entrancePyroDurationInput", "entrancePyroFrequencyInput", "entrancePyroHeightInput"].forEach((id) => el(id).addEventListener("input", fillEntranceRanges));
 }

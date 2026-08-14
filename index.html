@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0b0f17">
   <title>DRK.CHAT</title>
-  <link rel="stylesheet" href="./css/base.css?v=0.16.8">
-  <link rel="stylesheet" href="./css/themes.css?v=0.16.8">
+  <link rel="stylesheet" href="./css/base.css?v=0.17.0">
+  <link rel="stylesheet" href="./css/themes.css?v=0.17.0">
 </head>
 <body class="theme-modern">
   <main class="app-window" id="appWindow">
     <header class="titlebar">
       <div class="titlebar-copy">
         <span id="clientTitle">DRK CHAT</span>
-        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.16.8</button>
+        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.17.0</button>
       </div>
       <span class="classic-window-controls aol-only" aria-hidden="true">[_][□][X]</span>
     </header>
@@ -350,6 +350,7 @@
                 <select id="effectsTargetSelect" aria-label="Target member"><option value="">Target: everyone</option></select>
                 <input id="effectsMessageInput" maxlength="180" placeholder="Broadcast message (optional)" aria-label="Broadcast message">
                 <div class="effects-grid effects-grid-scroll">
+                  <button type="button" data-room-effect="confetti">CONFETTI</button>
                   <button type="button" data-room-effect="police_lights">POLICE</button>
                   <button type="button" data-room-effect="spotlight">SPOTLIGHT</button>
                   <button type="button" data-room-effect="glitch">GLITCH</button>
@@ -423,7 +424,7 @@
   </div>
 
 
-  <!-- v0.16.8 MEMBER PROFILE -->
+  <!-- v0.17.0 MEMBER PROFILE -->
   <div class="modal-overlay hidden" id="profileOverlay" role="dialog" aria-modal="true" aria-labelledby="profileDialogTitle">
     <div class="modal-window profile-dialog">
       <div class="modal-titlebar profile-modal-titlebar">
@@ -547,6 +548,51 @@
     </div>
   </div>
 
+  <!-- ENTRANCE EDITOR -->
+  <div class="modal-overlay hidden" id="entranceOverlay" role="dialog" aria-modal="true" aria-labelledby="entranceDialogTitle">
+    <div class="modal-window entrance-dialog">
+      <div class="modal-titlebar profile-modal-titlebar"><span id="entranceDialogTitle">ENTRANCE</span><button id="entranceCloseButton" type="button" class="profile-close-button">×</button></div>
+      <div class="modal-content">
+        <div class="entrance-editor-head">
+          <div><p class="eyebrow">PRO WRESTLING STYLE</p><h2 id="entranceMemberName">Entrance Builder</h2></div>
+          <div><span class="small">STATUS</span><strong id="entranceTierLabel">NONE</strong></div>
+        </div>
+        <div id="entranceLockedMessage" class="status-box hidden">Your entrance is locked. An administrator must grant you an Entrance Status first.</div>
+        <div id="entranceAdminTierRow" class="hidden">
+          <label for="entranceTierSelect">Admin: Entrance Status</label>
+          <select id="entranceTierSelect"><option value="none">None</option><option value="basic">Basic</option><option value="rare">Rare</option><option value="epic">Epic</option><option value="champion">Champion</option></select>
+        </div>
+        <form id="entranceForm" class="stack-form entrance-form">
+          <label class="identity-check"><input id="entranceEnabledInput" type="checkbox"> Play this entrance when I enter the room</label>
+          <div class="entrance-grid">
+            <div><label for="entranceWrestlingNameInput">Wrestling Name</label><input id="entranceWrestlingNameInput" maxlength="32" placeholder="THE DOOM"></div>
+            <div><label for="entranceSubtitleInput">Nameplate subtitle</label><input id="entranceSubtitleInput" maxlength="60" placeholder="Optional title or catchphrase"></div>
+            <div><label for="entrancePyroStyleSelect">Pyro Style</label><select id="entrancePyroStyleSelect"><option value="jets">Side Jets</option><option value="bursts">Burst Cannons</option><option value="fountain">Fountains</option></select></div>
+            <div><label for="entrancePyroColorInput">Pyro Color</label><input id="entrancePyroColorInput" type="color" value="#ffffff"></div>
+            <div><label for="entrancePyroDurationInput">Pyro Duration</label><input id="entrancePyroDurationInput" type="range" min="2" max="10" step="0.5" value="4"><span id="entrancePyroDurationValue" class="small"></span></div>
+            <div><label for="entrancePyroFrequencyInput">Burst Frequency</label><input id="entrancePyroFrequencyInput" type="range" min="0.35" max="2.5" step="0.05" value="0.8"><span id="entrancePyroFrequencyValue" class="small"></span></div>
+            <div><label for="entrancePyroHeightInput">Pyro Height</label><input id="entrancePyroHeightInput" type="range" min="0.3" max="0.95" step="0.05" value="0.72"><span id="entrancePyroHeightValue" class="small"></span></div>
+            <div><label for="entrancePyroIntensitySelect">Pyro Intensity</label><select id="entrancePyroIntensitySelect"><option value="1">Low</option><option value="2">Medium</option><option value="3">High</option></select></div>
+            <div><label for="entranceAtmosphereSelect">Atmosphere</label><select id="entranceAtmosphereSelect"><option value="none">None</option><option value="fog">Fog</option><option value="smoke">Smoke</option></select></div>
+            <div><label for="entranceAtmosphereColorInput">Fog / Smoke Color</label><input id="entranceAtmosphereColorInput" type="color" value="#ffffff"></div>
+            <div><label for="entranceAtmosphereDensityInput">Fog / Smoke Density</label><input id="entranceAtmosphereDensityInput" type="range" min="0.15" max="0.9" step="0.05" value="0.45"></div>
+            <div><label for="entranceNameplateStyleSelect">Nameplate Style</label><select id="entranceNameplateStyleSelect"><option value="arena">Arena</option><option value="steel">Steel</option><option value="neon">Neon</option><option value="championship">Championship</option></select></div>
+            <div><label for="entranceLightPrimaryInput">Primary Light</label><input id="entranceLightPrimaryInput" type="color" value="#ffffff"></div>
+            <div><label for="entranceLightSecondaryInput">Secondary Light</label><input id="entranceLightSecondaryInput" type="color" value="#ffffff"></div>
+            <div><label for="entranceLightMotionSelect">Light Motion</label><select id="entranceLightMotionSelect"><option value="none">Still</option><option value="sweep">Sweep</option><option value="cross">Cross</option><option value="pulse">Pulse</option></select></div>
+            <div><label for="entranceLightSpeedInput">Light Speed</label><input id="entranceLightSpeedInput" type="range" min="0.4" max="2.2" step="0.1" value="1"></div>
+          </div>
+          <div class="entrance-toggle-row"><label><input id="entranceBlackoutInput" type="checkbox" checked> Dim room lights</label><label><input id="entranceSpotlightInput" type="checkbox" checked> Center spotlight</label><label><input id="entranceNameplateGlowInput" type="checkbox" checked> Nameplate glow</label></div>
+          <p id="entrancePaletteNote" class="field-note"></p>
+          <div id="entranceMessage" class="message"></div>
+          <div class="button-row"><button id="entrancePreviewButton" type="button">PREVIEW ENTRANCE</button><button id="entranceTriggerButton" type="button" class="hidden">TRIGGER NOW</button><button type="submit" class="primary-action">SAVE ENTRANCE</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="entranceLayer" class="entrance-layer" aria-hidden="true"></div>
+
   <!-- GAME SETUP DIALOG -->
   <div class="modal-overlay hidden" id="gameOverlay" role="dialog" aria-modal="true" aria-labelledby="gameDialogTitle">
     <div class="modal-window game-dialog">
@@ -666,6 +712,6 @@
   <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
   <div id="roomEffectLayer" class="room-effect-layer" aria-hidden="true"></div>
 
-  <script type="module" src="./js/app.js?v=0.16.8"></script>
+  <script type="module" src="./js/app.js?v=0.17.0"></script>
 </body>
 </html>
