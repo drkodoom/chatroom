@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.17.0";
-import { apiFetch } from "./api.js?v=0.17.0";
-import { getToken, state } from "./state.js?v=0.17.0";
-import { openMemberByUsername } from "./admin.js?v=0.17.0";
-import { openProfileByUsername } from "./profile.js?v=0.17.0";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.17.0";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.17.1";
+import { apiFetch } from "./api.js?v=0.17.1";
+import { getToken, state } from "./state.js?v=0.17.1";
+import { openMemberByUsername } from "./admin.js?v=0.17.1";
+import { openProfileByUsername } from "./profile.js?v=0.17.1";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.17.1";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -814,13 +814,56 @@ function stopEntranceLocal() {
 }
 
 function entranceParticle(layer, side, color, height, style, intensity) {
-  const spark = document.createElement("i");
-  spark.className = `entrance-pyro entrance-pyro-${style} entrance-pyro-${side}`;
-  spark.style.setProperty("--pyro-color", color);
-  spark.style.setProperty("--pyro-height", `${Math.round(height * 100)}vh`);
-  spark.style.setProperty("--pyro-intensity", String(intensity));
-  layer.appendChild(spark);
-  setTimeout(() => spark.remove(), 1200);
+  const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  const burst = document.createElement("div");
+  burst.className = `entrance-pyro-burst entrance-pyro-${style} entrance-pyro-${side}`;
+  burst.style.setProperty("--pyro-color", color);
+  burst.style.setProperty("--pyro-height", `${Math.round(height * 100)}vh`);
+  burst.style.setProperty("--pyro-intensity", String(intensity));
+
+  const flash = document.createElement("i");
+  flash.className = "entrance-pyro-flash";
+  burst.appendChild(flash);
+
+  const core = document.createElement("i");
+  core.className = "entrance-pyro-core";
+  burst.appendChild(core);
+
+  const particleCount = reduced ? 8 : (style === "bursts" ? 34 : style === "fountain" ? 28 : 22) + intensity * 6;
+  for (let i = 0; i < particleCount; i += 1) {
+    const spark = document.createElement("i");
+    spark.className = "entrance-pyro-spark";
+    const spread = style === "bursts" ? 115 : style === "fountain" ? 58 : 42;
+    const angle = (-90 + (Math.random() - .5) * spread) * Math.PI / 180;
+    const distanceFactor = style === "bursts" ? (.45 + Math.random() * .55) : (.55 + Math.random() * .45);
+    const distance = Math.max(90, window.innerHeight * height * distanceFactor);
+    const dx = Math.cos(angle) * distance;
+    const dy = Math.sin(angle) * distance;
+    const drift = (Math.random() - .5) * (style === "bursts" ? 100 : 46);
+    const size = 2 + Math.random() * (intensity + 2.4);
+    const duration = .58 + Math.random() * .55;
+    const delay = Math.random() * .08;
+    spark.style.setProperty("--spark-x", `${(dx + drift).toFixed(1)}px`);
+    spark.style.setProperty("--spark-y", `${dy.toFixed(1)}px`);
+    spark.style.setProperty("--spark-size", `${size.toFixed(1)}px`);
+    spark.style.setProperty("--spark-duration", `${duration.toFixed(2)}s`);
+    spark.style.setProperty("--spark-delay", `${delay.toFixed(2)}s`);
+    burst.appendChild(spark);
+  }
+
+  // Bright white-hot comet trails make the effect read as stage pyrotechnics rather than light beams.
+  const cometCount = reduced ? 1 : Math.max(2, intensity + (style === "fountain" ? 2 : 0));
+  for (let i = 0; i < cometCount; i += 1) {
+    const comet = document.createElement("i");
+    comet.className = "entrance-pyro-comet";
+    comet.style.setProperty("--comet-offset", `${(i - (cometCount - 1) / 2) * 10}px`);
+    comet.style.setProperty("--comet-tilt", `${(Math.random() - .5) * (style === "bursts" ? 22 : 10)}deg`);
+    comet.style.setProperty("--comet-duration", `${(.5 + Math.random() * .22).toFixed(2)}s`);
+    burst.appendChild(comet);
+  }
+
+  layer.appendChild(burst);
+  setTimeout(() => burst.remove(), 1450);
 }
 
 function addEntranceAtmosphere(layer, atmosphere) {

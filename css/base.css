@@ -1927,7 +1927,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 
-/* v0.17.0 — minimalist cleanup */
+/* v0.17.1 — minimalist cleanup */
 .online-user-button,
 .chat-sidebar #onlineUsers > span,
 .chat-sidebar #onlineUsers > button {
@@ -1959,7 +1959,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 /* =====================================================
-   v0.17.0 — profiles + RPS
+   v0.17.1 — profiles + RPS
    ===================================================== */
 
 .profile-dialog {
@@ -2470,7 +2470,7 @@ body.theme-newsroom .werewolf-role-card {
   .rps-choice-row button { min-width: 0; flex: 1 1 90px; }
 }
 
-/* v0.17.0 avatar builder expansion */
+/* v0.17.1 avatar builder expansion */
 .avatar-earring-control {
   display: grid !important;
   grid-template-columns: 1fr;
@@ -2484,7 +2484,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 /* =====================================================
-   v0.17.0 — admin room effects
+   v0.17.1 — admin room effects
    ===================================================== */
 .effects-menu-wrap {
   position: relative;
@@ -2781,7 +2781,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 
 
 /* =====================================================
-   v0.17.0 — docked admin room effects
+   v0.17.1 — docked admin room effects
    ===================================================== */
 .chat-sidebar {
   display: flex;
@@ -2891,7 +2891,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 }
 
 /* =====================================================
-   v0.17.0 — entrances
+   v0.17.1 — entrances
    ===================================================== */
 .entrance-dialog { width:min(96vw, 900px); max-height:min(92dvh, 900px); }
 .entrance-editor-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:14px; }
@@ -2928,21 +2928,104 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 .entrance-nameplate-championship { border:2px solid #f5c94a; background:linear-gradient(135deg,#211500,#4a3200,#171006); color:#ffe89a; }
 .entrance-nameplate-championship::before { content:"CHAMPIONSHIP ENTRANCE"; display:block; margin-bottom:7px; font-size:9px; letter-spacing:.24em; color:#f5c94a; }
 
-.entrance-pyro { position:absolute; bottom:0; width:18px; height:var(--pyro-height,72vh); filter:drop-shadow(0 0 12px var(--pyro-color)); opacity:.96; transform-origin:50% 100%; animation:entrancePyro 1.05s ease-out forwards; }
-.entrance-pyro-left { left:4.5%; }
-.entrance-pyro-right { right:4.5%; }
-.entrance-pyro::before { content:""; position:absolute; left:50%; bottom:0; width:100%; height:100%; transform:translateX(-50%); background:linear-gradient(0deg,var(--pyro-color),color-mix(in srgb,var(--pyro-color) 65%,transparent) 35%,transparent 100%); clip-path:polygon(46% 100%,54% 100%,74% 28%,58% 45%,68% 0,49% 38%,38% 12%,42% 53%,24% 30%); }
-.entrance-pyro-bursts { width:30px; }
-.entrance-pyro-fountain { width:42px; filter:drop-shadow(0 0 18px var(--pyro-color)); }
-@keyframes entrancePyro { 0% { transform:scaleY(.05) scaleX(.75); opacity:0; } 18% { opacity:1; } 72% { transform:scaleY(1) scaleX(1); opacity:1; } 100% { transform:scaleY(.72) scaleX(.4); opacity:0; } }
+.entrance-pyro-burst { position:absolute; bottom:0; width:1px; height:1px; pointer-events:none; --pyro-color:#fff; }
+.entrance-pyro-left { left:5.5%; }
+.entrance-pyro-right { right:5.5%; }
+
+.entrance-pyro-flash {
+  position:absolute;
+  left:50%;
+  bottom:-12px;
+  width:70px;
+  height:70px;
+  transform:translate(-50%, 0) scale(.25);
+  border-radius:50%;
+  background:radial-gradient(circle, #fff 0 8%, color-mix(in srgb, var(--pyro-color) 88%, #fff) 18%, color-mix(in srgb, var(--pyro-color) 48%, transparent) 42%, transparent 70%);
+  filter:blur(2px) drop-shadow(0 0 20px var(--pyro-color));
+  animation:entrancePyroFlash .34s ease-out forwards;
+}
+
+.entrance-pyro-core {
+  position:absolute;
+  left:50%;
+  bottom:-4px;
+  width:14px;
+  height:min(var(--pyro-height,72vh), 84vh);
+  transform:translateX(-50%) scaleY(.05);
+  transform-origin:50% 100%;
+  background:linear-gradient(180deg, transparent 0 2%, color-mix(in srgb,var(--pyro-color) 55%,#fff) 25%, #fff 65%, color-mix(in srgb,var(--pyro-color) 70%,#fff) 88%, transparent 100%);
+  clip-path:polygon(50% 0, 68% 10%, 59% 31%, 73% 48%, 60% 62%, 66% 80%, 51% 100%, 43% 79%, 31% 64%, 40% 46%, 31% 29%, 43% 12%);
+  filter:blur(.6px) drop-shadow(0 0 7px #fff) drop-shadow(0 0 18px var(--pyro-color));
+  opacity:0;
+  animation:entrancePyroCore .76s cubic-bezier(.16,.84,.2,1) forwards;
+}
+
+.entrance-pyro-spark {
+  position:absolute;
+  left:0;
+  bottom:0;
+  width:var(--spark-size,4px);
+  height:calc(var(--spark-size,4px) * 2.6);
+  border-radius:999px;
+  background:linear-gradient(180deg,#fff 0 20%, color-mix(in srgb,var(--pyro-color) 82%,#fff) 42%, var(--pyro-color) 70%, transparent 100%);
+  box-shadow:0 0 5px #fff, 0 0 11px var(--pyro-color);
+  transform:translate(-50%,0) scale(.5);
+  opacity:0;
+  animation:entrancePyroSpark var(--spark-duration,.85s) cubic-bezier(.15,.7,.25,1) var(--spark-delay,0s) forwards;
+}
+
+.entrance-pyro-comet {
+  position:absolute;
+  left:var(--comet-offset,0px);
+  bottom:0;
+  width:5px;
+  height:34px;
+  border-radius:999px;
+  transform-origin:50% 100%;
+  transform:translateX(-50%) rotate(var(--comet-tilt,0deg));
+  background:linear-gradient(180deg,#fff, color-mix(in srgb,var(--pyro-color) 75%,#fff) 45%, transparent 100%);
+  box-shadow:0 0 8px #fff, 0 0 15px var(--pyro-color);
+  opacity:0;
+  animation:entrancePyroComet var(--comet-duration,.62s) ease-out forwards;
+}
+
+.entrance-pyro-bursts .entrance-pyro-core { height:calc(min(var(--pyro-height,72vh),84vh) * .68); width:11px; }
+.entrance-pyro-bursts .entrance-pyro-spark { box-shadow:0 0 6px #fff,0 0 14px var(--pyro-color); }
+.entrance-pyro-fountain .entrance-pyro-core { width:20px; opacity:.9; filter:blur(1px) drop-shadow(0 0 10px #fff) drop-shadow(0 0 22px var(--pyro-color)); }
+.entrance-pyro-fountain .entrance-pyro-spark { height:calc(var(--spark-size,4px) * 3.4); }
+
+@keyframes entrancePyroFlash {
+  0% { transform:translate(-50%,0) scale(.12); opacity:0; }
+  22% { opacity:1; }
+  65% { transform:translate(-50%,-8px) scale(1); opacity:.95; }
+  100% { transform:translate(-50%,-12px) scale(1.65); opacity:0; }
+}
+@keyframes entrancePyroCore {
+  0% { transform:translateX(-50%) scaleY(.04) scaleX(.45); opacity:0; }
+  10% { opacity:1; }
+  42% { transform:translateX(-50%) scaleY(1) scaleX(1); opacity:1; }
+  72% { transform:translateX(-50%) scaleY(.88) scaleX(.75); opacity:.9; }
+  100% { transform:translateX(-50%) scaleY(.32) scaleX(.3); opacity:0; }
+}
+@keyframes entrancePyroSpark {
+  0% { transform:translate(-50%,0) scale(.35); opacity:0; }
+  10% { opacity:1; }
+  68% { opacity:1; }
+  100% { transform:translate(calc(-50% + var(--spark-x)), var(--spark-y)) scale(.08) rotate(24deg); opacity:0; }
+}
+@keyframes entrancePyroComet {
+  0% { transform:translateX(-50%) translateY(0) rotate(var(--comet-tilt,0deg)) scaleY(.2); opacity:0; }
+  12% { opacity:1; }
+  100% { transform:translateX(-50%) translateY(calc(var(--pyro-height,72vh) * -0.78)) rotate(var(--comet-tilt,0deg)) scaleY(1.45); opacity:0; }
+}
 
 .entrance-atmosphere { position:absolute; bottom:-20px; left:var(--fog-x); width:var(--fog-size); height:calc(var(--fog-size) * .55); border-radius:50%; background:color-mix(in srgb,var(--fog-color) 40%,transparent); filter:blur(26px); opacity:.38; animation:entranceFog 4.5s ease-out var(--fog-delay) both; }
 .entrance-smoke { opacity:.55; filter:blur(18px); }
 @keyframes entranceFog { from { transform:translate(-50%,40px) scale(.6); opacity:0; } 35% { opacity:.5; } to { transform:translate(-50%,-110px) scale(1.8); opacity:0; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .entrance-beam, .entrance-pyro, .entrance-atmosphere { animation:none !important; }
-  .entrance-pyro { opacity:.55; height:42vh; }
+  .entrance-beam, .entrance-pyro-core, .entrance-pyro-spark, .entrance-pyro-comet, .entrance-pyro-flash, .entrance-atmosphere { animation:none !important; }
+  .entrance-pyro-core { opacity:.55; height:42vh; transform:translateX(-50%) scaleY(.8); }
 }
 
 @media (max-width:700px) {
