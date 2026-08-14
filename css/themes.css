@@ -1478,3 +1478,86 @@ body.theme-coffee .staff-tools-menu {
   background: #f2e2cb;
   border-color: #9e7857;
 }
+
+/* =====================================================
+   v0.17.2 — PRO WRESTLING arena polish
+   ===================================================== */
+body.theme-wrestling {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(209,30,36,.18), transparent 24%),
+    radial-gradient(ellipse at 15% 100%, rgba(241,181,44,.08), transparent 30%),
+    #060607;
+}
+body.theme-wrestling .app-window {
+  position:relative;
+  border-color:#8a6c37;
+  background:linear-gradient(180deg,#11100f,#08090b 34%,#0d0d0e);
+  box-shadow:0 0 0 3px #050505,0 0 0 4px #72582f,0 30px 100px rgba(0,0,0,.78);
+}
+body.theme-wrestling .app-window::before {
+  content:"";
+  position:absolute;
+  left:0; right:0; top:44px;
+  height:5px;
+  z-index:1;
+  pointer-events:none;
+  background:linear-gradient(90deg,#b9141b,#e5b741 18%,#1a1a1a 42% 58%,#e5b741 82%,#b9141b);
+  box-shadow:0 0 12px rgba(225,178,62,.26);
+}
+body.theme-wrestling .chat-toolbar {
+  background:linear-gradient(180deg,#24201a,#131313);
+  border-bottom-color:#7b602f;
+}
+body.theme-wrestling .chat-layout {
+  border:1px solid #70572c;
+  border-radius:10px;
+  background:#111;
+  box-shadow:inset 0 1px 0 rgba(239,193,81,.16),inset 0 -2px 0 #8e1015;
+}
+body.theme-wrestling .chat-main {
+  position:relative;
+  background:
+    radial-gradient(ellipse at 50% 100%,rgba(190,20,27,.08),transparent 46%),
+    #0e0f10;
+}
+body.theme-wrestling .chat-messages {
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px),
+    linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),
+    radial-gradient(ellipse at 50% 0%,rgba(240,184,53,.055),transparent 40%),
+    #0e0f10;
+  background-size:54px 54px,54px 54px,auto,auto;
+}
+body.theme-wrestling .chat-sidebar {
+  background:linear-gradient(180deg,#24211d,#151515);
+  border-left-color:#6f562e;
+}
+body.theme-wrestling .chat-sidebar-title::after {
+  content:" // LIVE ROSTER";
+  color:#8f7b5b;
+  font-size:8px;
+  letter-spacing:.08em;
+}
+body.theme-wrestling .chat-compose {
+  background:linear-gradient(180deg,#1b1c1f,#101113);
+  border-top-color:#5a482c;
+}
+body.theme-wrestling .chat-compose input {
+  background:#090a0c;
+  border-color:#4f4332;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.02);
+}
+body.theme-wrestling .room-effects-dock {
+  border-top-color:#6b542f;
+}
+body.theme-wrestling .room-effects-dock-title::before {
+  content:"PRODUCTION // ";
+  color:#c91e25;
+}
+body.theme-wrestling #staffToolsTitle::before {
+  content:"GORILLA POSITION // ";
+  color:#d7ad45;
+}
+body.theme-wrestling .entrance-first-message {
+  color:#fff7dc;
+}

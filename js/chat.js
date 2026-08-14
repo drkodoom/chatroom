@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.17.1";
-import { apiFetch } from "./api.js?v=0.17.1";
-import { getToken, state } from "./state.js?v=0.17.1";
-import { openMemberByUsername } from "./admin.js?v=0.17.1";
-import { openProfileByUsername } from "./profile.js?v=0.17.1";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.17.1";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.17.2";
+import { apiFetch } from "./api.js?v=0.17.2";
+import { getToken, state } from "./state.js?v=0.17.2";
+import { openMemberByUsername } from "./admin.js?v=0.17.2";
+import { openProfileByUsername } from "./profile.js?v=0.17.2";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.17.2";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -283,11 +283,12 @@ function buildActions(message) {
   return actions;
 }
 
-function addChatLine(message, { forceBottom = false } = {}) {
+function addChatLine(message, { forceBottom = false, suppressEntranceSpotlight = false } = {}) {
   const wasBottom = isNearBottom();
   const line = document.createElement("div");
   line.className = `chat-line${message.role === "admin" ? " admin-message" : ""}${message.role === "mod" ? " mod-message" : ""}`;
   line.dataset.messageId = message.id || "";
+  line.dataset.username = String(message.user || "");
   line.dataset.searchText = `${message.user || ""} ${message.content || ""}`.toLowerCase();
   line.addEventListener("click", (event) => {
     if (event.target.closest("button, input, select, a")) return;
@@ -345,6 +346,7 @@ function addChatLine(message, { forceBottom = false } = {}) {
 
   el("chatMessages").appendChild(line);
   applySearchFilter();
+  if (!suppressEntranceSpotlight) maybeSpotlightEntranceMessage(message, line);
 
   const own = String(message.user || "").toLowerCase() === String(state.currentUser?.username || "").toLowerCase();
   if (forceBottom || wasBottom || own) scrollChatToBottom();
@@ -356,7 +358,7 @@ function renderAllMessages({ forceBottom = false } = {}) {
   const wasBottom = isNearBottom();
   const previousTop = box.scrollTop;
   box.innerHTML = "";
-  state.messages.forEach((message) => addChatLine(message, { forceBottom: false }));
+  state.messages.forEach((message) => addChatLine(message, { forceBottom: false, suppressEntranceSpotlight: true }));
   if (forceBottom || wasBottom) scrollChatToBottom();
   else box.scrollTop = previousTop;
   updatePinnedBar();
@@ -801,16 +803,25 @@ function stopRoomEffectsForEveryone() {
 
 let entranceTimer = null;
 let entranceBurstTimer = null;
+let entranceWaitTimer = null;
+let entrancePendingSpotlight = null;
 
-function stopEntranceLocal() {
+function stopEntranceLocal({ keepPending = false } = {}) {
   clearTimeout(entranceTimer);
   clearInterval(entranceBurstTimer);
   entranceTimer = null;
   entranceBurstTimer = null;
   const layer = el("entranceLayer");
-  if (!layer) return;
-  layer.className = "entrance-layer";
-  layer.innerHTML = "";
+  if (layer) {
+    layer.className = "entrance-layer";
+    layer.innerHTML = "";
+    layer.removeAttribute("style");
+  }
+  if (!keepPending) {
+    clearTimeout(entranceWaitTimer);
+    entranceWaitTimer = null;
+    entrancePendingSpotlight = null;
+  }
 }
 
 function entranceParticle(layer, side, color, height, style, intensity) {
@@ -824,7 +835,6 @@ function entranceParticle(layer, side, color, height, style, intensity) {
   const flash = document.createElement("i");
   flash.className = "entrance-pyro-flash";
   burst.appendChild(flash);
-
   const core = document.createElement("i");
   core.className = "entrance-pyro-core";
   burst.appendChild(core);
@@ -851,7 +861,6 @@ function entranceParticle(layer, side, color, height, style, intensity) {
     burst.appendChild(spark);
   }
 
-  // Bright white-hot comet trails make the effect read as stage pyrotechnics rather than light beams.
   const cometCount = reduced ? 1 : Math.max(2, intensity + (style === "fountain" ? 2 : 0));
   for (let i = 0; i < cometCount; i += 1) {
     const comet = document.createElement("i");
@@ -881,6 +890,147 @@ function addEntranceAtmosphere(layer, atmosphere) {
   }
 }
 
+function addEntranceRig(layer, lighting) {
+  if (lighting?.enabled === false) return;
+  const rig = document.createElement("div");
+  rig.className = "entrance-rig";
+  const truss = document.createElement("div");
+  truss.className = "entrance-truss";
+  rig.appendChild(truss);
+  for (let i = 0; i < 6; i += 1) {
+    const fixture = document.createElement("div");
+    fixture.className = "entrance-light-fixture";
+    fixture.style.setProperty("--fixture-i", String(i));
+    fixture.style.setProperty("--beam-color", i % 2 ? (lighting.secondaryColor || "#FFFFFF") : (lighting.primaryColor || "#FFFFFF"));
+    const yoke = document.createElement("i");
+    yoke.className = "entrance-light-yoke";
+    const head = document.createElement("i");
+    head.className = "entrance-light-head";
+    const lens = document.createElement("i");
+    lens.className = "entrance-light-lens";
+    const beam = document.createElement("i");
+    beam.className = "entrance-light-beam";
+    head.append(lens, beam);
+    fixture.append(yoke, head);
+    rig.appendChild(fixture);
+  }
+  layer.appendChild(rig);
+}
+
+function addPhoneLights(layer) {
+  const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  const field = document.createElement("div");
+  field.className = "entrance-phone-lights";
+  const count = reduced ? 36 : 110;
+  for (let i = 0; i < count; i += 1) {
+    const light = document.createElement("i");
+    light.className = "entrance-phone-light";
+    light.style.setProperty("--phone-x", `${2 + Math.random() * 96}%`);
+    light.style.setProperty("--phone-y", `${30 + Math.random() * 65}%`);
+    light.style.setProperty("--phone-delay", `${(Math.random() * 2.4).toFixed(2)}s`);
+    light.style.setProperty("--phone-scale", `${(.55 + Math.random() * 1.2).toFixed(2)}`);
+    field.appendChild(light);
+  }
+  layer.appendChild(field);
+}
+
+function addLightningStrike(layer) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "entrance-lightning-wrap";
+  wrapper.innerHTML = `<div class="entrance-lightning-flash"></div><svg class="entrance-lightning-bolt" viewBox="0 0 120 520" aria-hidden="true"><polyline points="72,0 44,125 70,125 35,255 61,255 26,390 57,390 42,520"/></svg>`;
+  layer.appendChild(wrapper);
+  requestAnimationFrame(() => wrapper.classList.add("strike"));
+  setTimeout(() => wrapper.remove(), 900);
+}
+
+function addEntranceFilter(layer, filter) {
+  if (!filter || filter.mode === "none" || Number(filter.intensity || 0) <= 0) return;
+  const overlay = document.createElement("div");
+  overlay.className = `entrance-color-filter entrance-filter-${filter.mode}`;
+  overlay.style.setProperty("--filter-intensity", String(Math.max(0, Math.min(1, Number(filter.intensity || .55)))));
+  layer.appendChild(overlay);
+}
+
+function addEntranceNameplate(layer, username, tier, config) {
+  const plate = config.nameplate || {};
+  if (plate.enabled === false) return null;
+  const nameplate = document.createElement("div");
+  nameplate.className = `entrance-nameplate entrance-nameplate-${plate.style || "arena"}${plate.glow ? " glow" : ""}`;
+  const name = document.createElement("strong");
+  name.textContent = config.wrestlingName || username || "ENTRANCE";
+  const sub = document.createElement("span");
+  sub.textContent = config.subtitle || (tier === "champion" ? "CHAMPION" : username || "");
+  nameplate.append(name, sub);
+  layer.appendChild(nameplate);
+  requestAnimationFrame(() => nameplate.classList.add("show"));
+  setTimeout(() => nameplate.classList.add("leaving"), 2800);
+  setTimeout(() => nameplate.remove(), 3500);
+  return nameplate;
+}
+
+function spotlightChatMessage(line, pending) {
+  if (!line || !document.body.contains(line)) return;
+  stopEntranceLocal({ keepPending: true });
+  const layer = el("entranceLayer");
+  if (!layer) return;
+  const rect = line.getBoundingClientRect();
+  layer.className = `entrance-layer active entrance-message-focus entrance-filter-${pending.filter?.mode || "none"}`;
+  layer.style.setProperty("--filter-intensity", String(Math.max(0, Math.min(1, Number(pending.filter?.intensity || .55)))));
+  addEntranceFilter(layer, pending.filter || {});
+  const focus = document.createElement("div");
+  focus.className = "entrance-message-spotlight";
+  const padX = 18;
+  const padY = 12;
+  focus.style.left = `${Math.max(8, rect.left - padX)}px`;
+  focus.style.top = `${Math.max(8, rect.top - padY)}px`;
+  focus.style.width = `${Math.min(window.innerWidth - 16, rect.width + padX * 2)}px`;
+  focus.style.height = `${Math.max(54, rect.height + padY * 2)}px`;
+  focus.style.setProperty("--spot-color", pending.primaryColor || "#FFFFFF");
+  const cone = document.createElement("div");
+  cone.className = "entrance-message-cone";
+  const centerX = rect.left + rect.width / 2;
+  const targetTop = Math.max(60, rect.top - 8);
+  cone.style.left = `${centerX}px`;
+  cone.style.height = `${targetTop}px`;
+  cone.style.setProperty("--spot-color", pending.primaryColor || "#FFFFFF");
+  layer.append(cone, focus);
+  line.classList.add("entrance-first-message");
+  setTimeout(() => line.classList.remove("entrance-first-message"), 4500);
+  clearTimeout(entranceWaitTimer);
+  entrancePendingSpotlight = null;
+  entranceWaitTimer = null;
+  entranceTimer = setTimeout(() => stopEntranceLocal(), 4300);
+}
+
+function maybeSpotlightEntranceMessage(message, line) {
+  const pending = entrancePendingSpotlight;
+  if (!pending || Date.now() > pending.expiresAt) return;
+  if (String(message.user || "").toLowerCase() !== pending.username.toLowerCase()) return;
+  if (message.deleted || !String(message.content || "").trim()) return;
+  spotlightChatMessage(line, pending);
+}
+
+function registerEntranceSpotlight(username, config, { preview = false } = {}) {
+  if (!config?.lighting?.spotlight) return;
+  const pending = {
+    username: String(username || ""),
+    primaryColor: config.lighting?.primaryColor || "#FFFFFF",
+    filter: config.filter || { mode: "none", intensity: 0 },
+    expiresAt: Date.now() + 30000
+  };
+  if (preview) {
+    setTimeout(() => {
+      const lines = [...document.querySelectorAll('.chat-line[data-username]')];
+      const target = [...lines].reverse().find((node) => String(node.dataset.username || "").toLowerCase() === pending.username.toLowerCase()) || lines.at(-1);
+      if (target) spotlightChatMessage(target, pending);
+    }, 3600);
+    return;
+  }
+  entrancePendingSpotlight = pending;
+  clearTimeout(entranceWaitTimer);
+  entranceWaitTimer = setTimeout(() => { entrancePendingSpotlight = null; entranceWaitTimer = null; }, 30000);
+}
+
 function renderEntrance(username, entrance, { preview = false } = {}) {
   const tier = String(entrance?.tier || "none");
   const config = entrance?.config || {};
@@ -894,7 +1044,7 @@ function renderEntrance(username, entrance, { preview = false } = {}) {
   if (!layer) return;
   const pyro = config.pyro || {};
   const lighting = config.lighting || {};
-  const plate = config.nameplate || {};
+  const filter = config.filter || {};
   const duration = Math.max(2, Math.min(10, Number(pyro.duration || 4)));
   const frequency = Math.max(.35, Math.min(2.5, Number(pyro.frequency || .8)));
   const height = Math.max(.3, Math.min(.95, Number(pyro.height || .72)));
@@ -902,42 +1052,38 @@ function renderEntrance(username, entrance, { preview = false } = {}) {
   const primary = lighting.primaryColor || "#FFFFFF";
   const secondary = lighting.secondaryColor || primary;
 
-  layer.className = `entrance-layer active entrance-tier-${tier} entrance-motion-${lighting.motion || "none"}${lighting.blackout ? " entrance-blackout" : ""}${lighting.spotlight ? " entrance-spotlight" : ""}`;
+  layer.className = `entrance-layer active entrance-tier-${tier} entrance-motion-${lighting.motion || "none"}${lighting.blackout ? " entrance-blackout" : ""}`;
   layer.style.setProperty("--entrance-primary", primary);
   layer.style.setProperty("--entrance-secondary", secondary);
   layer.style.setProperty("--entrance-speed", `${Math.max(.4, Math.min(2.2, Number(lighting.speed || 1)))}s`);
 
-  const truss = document.createElement("div");
-  truss.className = "entrance-truss";
-  layer.appendChild(truss);
-  for (let i = 0; i < 6; i += 1) {
-    const beam = document.createElement("i");
-    beam.className = "entrance-beam";
-    beam.style.setProperty("--beam-i", String(i));
-    beam.style.setProperty("--beam-color", i % 2 ? secondary : primary);
-    layer.appendChild(beam);
+  const blackout = document.createElement("div");
+  blackout.className = "entrance-blackout-screen";
+  if (lighting.blackout) layer.appendChild(blackout);
+  addEntranceFilter(layer, filter);
+
+  setTimeout(() => addEntranceRig(layer, lighting), 180);
+  if (lighting.phoneLights) setTimeout(() => addPhoneLights(layer), 500);
+  setTimeout(() => addEntranceAtmosphere(layer, config.atmosphere || {}), 450);
+  addEntranceNameplate(layer, username, tier, config);
+  if (lighting.lightning) setTimeout(() => addLightningStrike(layer), 1350);
+
+  if (pyro.enabled !== false) {
+    const fireBurst = () => {
+      for (let n = 0; n < intensity; n += 1) {
+        setTimeout(() => entranceParticle(layer, "left", pyro.color || "#FFFFFF", height, pyro.style || "jets", intensity), n * 90);
+        setTimeout(() => entranceParticle(layer, "right", pyro.color || "#FFFFFF", height, pyro.style || "jets", intensity), n * 90);
+      }
+    };
+    setTimeout(fireBurst, 900);
+    if (!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+      setTimeout(() => { entranceBurstTimer = setInterval(fireBurst, frequency * 1000); }, 900);
+    }
   }
 
-  addEntranceAtmosphere(layer, config.atmosphere || {});
-
-  const nameplate = document.createElement("div");
-  nameplate.className = `entrance-nameplate entrance-nameplate-${plate.style || "arena"}${plate.glow ? " glow" : ""}`;
-  const name = document.createElement("strong");
-  name.textContent = config.wrestlingName || username || "ENTRANCE";
-  const sub = document.createElement("span");
-  sub.textContent = config.subtitle || (tier === "champion" ? "CHAMPION" : username || "");
-  nameplate.append(name, sub);
-  layer.appendChild(nameplate);
-
-  const fireBurst = () => {
-    for (let n = 0; n < intensity; n += 1) {
-      setTimeout(() => entranceParticle(layer, "left", pyro.color || "#FFFFFF", height, pyro.style || "jets", intensity), n * 90);
-      setTimeout(() => entranceParticle(layer, "right", pyro.color || "#FFFFFF", height, pyro.style || "jets", intensity), n * 90);
-    }
-  };
-  fireBurst();
-  if (!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) entranceBurstTimer = setInterval(fireBurst, frequency * 1000);
-  entranceTimer = setTimeout(stopEntranceLocal, duration * 1000);
+  registerEntranceSpotlight(username, config, { preview });
+  const stageDuration = Math.max(5, pyro.enabled === false ? 5 : duration);
+  entranceTimer = setTimeout(() => stopEntranceLocal({ keepPending: !preview && Boolean(config.lighting?.spotlight) }), stageDuration * 1000);
 }
 
 function connectChatSocket() {

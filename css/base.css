@@ -1927,7 +1927,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 
-/* v0.17.1 — minimalist cleanup */
+/* v0.17.2 — minimalist cleanup */
 .online-user-button,
 .chat-sidebar #onlineUsers > span,
 .chat-sidebar #onlineUsers > button {
@@ -1959,7 +1959,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 /* =====================================================
-   v0.17.1 — profiles + RPS
+   v0.17.2 — profiles + RPS
    ===================================================== */
 
 .profile-dialog {
@@ -2470,7 +2470,7 @@ body.theme-newsroom .werewolf-role-card {
   .rps-choice-row button { min-width: 0; flex: 1 1 90px; }
 }
 
-/* v0.17.1 avatar builder expansion */
+/* v0.17.2 avatar builder expansion */
 .avatar-earring-control {
   display: grid !important;
   grid-template-columns: 1fr;
@@ -2484,7 +2484,7 @@ body.theme-newsroom .werewolf-role-card {
 }
 
 /* =====================================================
-   v0.17.1 — admin room effects
+   v0.17.2 — admin room effects
    ===================================================== */
 .effects-menu-wrap {
   position: relative;
@@ -2781,7 +2781,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 
 
 /* =====================================================
-   v0.17.1 — docked admin room effects
+   v0.17.2 — docked admin room effects
    ===================================================== */
 .chat-sidebar {
   display: flex;
@@ -2891,7 +2891,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 }
 
 /* =====================================================
-   v0.17.1 — entrances
+   v0.17.2 — entrances
    ===================================================== */
 .entrance-dialog { width:min(96vw, 900px); max-height:min(92dvh, 900px); }
 .entrance-editor-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:14px; }
@@ -3032,4 +3032,229 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
   .entrance-grid { grid-template-columns:1fr; }
   .entrance-nameplate { min-width:86vw; top:10%; }
   .entrance-truss { left:3%; right:3%; }
+}
+
+/* =====================================================
+   v0.17.2 — wrestling entrance choreography
+   ===================================================== */
+.entrance-template-row {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 10px;
+  align-items: end;
+  margin: 4px 0 12px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+.entrance-template-row button { white-space: nowrap; }
+.entrance-section-toggle { display:flex; align-items:end; }
+.entrance-section-toggle .identity-check { width:100%; min-height:42px; margin:0; }
+
+.entrance-layer.entrance-blackout { background: transparent; }
+.entrance-blackout-screen {
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.78);
+  animation:entranceBlackoutIn .45s ease both;
+}
+@keyframes entranceBlackoutIn { from { opacity:0; } to { opacity:1; } }
+
+/* A real-looking arena truss with visible moving-head fixtures. */
+.entrance-rig {
+  position:absolute;
+  inset:0;
+  z-index:4;
+  pointer-events:none;
+}
+.entrance-rig .entrance-truss {
+  left:7%; right:7%; top:4.5%; height:26px;
+  border:2px solid #98a3b3;
+  border-radius:2px;
+  background:
+    linear-gradient(#111722,#090d13),
+    repeating-linear-gradient(135deg, transparent 0 18px, rgba(220,228,238,.28) 18px 21px);
+  box-shadow:0 0 0 1px rgba(255,255,255,.16), 0 8px 22px rgba(0,0,0,.65);
+}
+.entrance-rig .entrance-truss::before,
+.entrance-rig .entrance-truss::after {
+  content:"";
+  position:absolute;
+  inset:4px 0;
+  background:repeating-linear-gradient(135deg, transparent 0 22px, rgba(190,200,214,.36) 22px 25px, transparent 25px 44px);
+  opacity:.8;
+}
+.entrance-light-fixture {
+  --beam-color:#fff;
+  position:absolute;
+  top:calc(4.5% + 20px);
+  left:calc(12% + var(--fixture-i) * 15.2%);
+  width:34px;
+  height:38px;
+  transform:translateX(-50%);
+  z-index:5;
+}
+.entrance-light-yoke {
+  position:absolute;
+  left:5px; top:0;
+  width:24px; height:17px;
+  border:3px solid #555f6d;
+  border-bottom:0;
+  border-radius:5px 5px 0 0;
+  background:#121720;
+}
+.entrance-light-head {
+  position:absolute;
+  left:2px; top:12px;
+  width:30px; height:24px;
+  border:1px solid #778292;
+  border-radius:5px 5px 9px 9px;
+  background:linear-gradient(#252d38,#0b0f15);
+  box-shadow:0 5px 10px rgba(0,0,0,.6);
+  transform-origin:50% 4px;
+}
+.entrance-light-lens {
+  position:absolute;
+  left:50%; bottom:2px;
+  width:14px; height:8px;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:var(--beam-color);
+  box-shadow:0 0 7px #fff, 0 0 17px var(--beam-color), 0 0 34px var(--beam-color);
+}
+.entrance-light-beam {
+  position:absolute;
+  left:50%; top:20px;
+  width:18vw;
+  height:82vh;
+  transform:translateX(-50%);
+  transform-origin:50% 0;
+  clip-path:polygon(47% 0,53% 0,100% 100%,0 100%);
+  background:linear-gradient(180deg,
+    color-mix(in srgb,var(--beam-color) 38%,transparent) 0%,
+    color-mix(in srgb,var(--beam-color) 15%,transparent) 55%,
+    transparent 100%);
+  filter:blur(3px);
+  opacity:.55;
+  mix-blend-mode:screen;
+}
+.entrance-motion-sweep .entrance-light-head { animation:entranceHeadSweep var(--entrance-speed,1s) ease-in-out infinite alternate; }
+.entrance-motion-cross .entrance-light-fixture:nth-child(even) .entrance-light-head { transform:rotate(-19deg); }
+.entrance-motion-cross .entrance-light-fixture:nth-child(odd) .entrance-light-head { transform:rotate(19deg); }
+.entrance-motion-pulse .entrance-light-beam { animation:entranceBeamPulse var(--entrance-speed,1s) ease-in-out infinite alternate; }
+.entrance-motion-fan .entrance-light-fixture:nth-child(2) .entrance-light-head { transform:rotate(24deg); }
+.entrance-motion-fan .entrance-light-fixture:nth-child(3) .entrance-light-head { transform:rotate(14deg); }
+.entrance-motion-fan .entrance-light-fixture:nth-child(4) .entrance-light-head { transform:rotate(5deg); }
+.entrance-motion-fan .entrance-light-fixture:nth-child(5) .entrance-light-head { transform:rotate(-5deg); }
+.entrance-motion-fan .entrance-light-fixture:nth-child(6) .entrance-light-head { transform:rotate(-14deg); }
+.entrance-motion-fan .entrance-light-fixture:nth-child(7) .entrance-light-head { transform:rotate(-24deg); }
+.entrance-motion-search .entrance-light-fixture:nth-child(odd) .entrance-light-head { animation:entranceHeadSearchA calc(var(--entrance-speed,1s) * 1.7) ease-in-out infinite alternate; }
+.entrance-motion-search .entrance-light-fixture:nth-child(even) .entrance-light-head { animation:entranceHeadSearchB calc(var(--entrance-speed,1s) * 2.05) ease-in-out infinite alternate; }
+@keyframes entranceHeadSweep { from { transform:rotate(-24deg); } to { transform:rotate(24deg); } }
+@keyframes entranceHeadSearchA { 0% { transform:rotate(-31deg); } 45% { transform:rotate(8deg); } 100% { transform:rotate(27deg); } }
+@keyframes entranceHeadSearchB { 0% { transform:rotate(24deg); } 58% { transform:rotate(-11deg); } 100% { transform:rotate(-30deg); } }
+
+/* Nameplate is a TV graphic, not the spotlight target. */
+.entrance-nameplate {
+  top:10%;
+  z-index:12;
+  opacity:0;
+  transform:translateX(-50%) translateY(-16px) scale(.96);
+  transition:opacity .35s ease, transform .45s cubic-bezier(.2,.85,.2,1);
+}
+.entrance-nameplate.show { opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
+.entrance-nameplate.leaving { opacity:0; transform:translateX(-50%) translateY(-12px) scale(.985); }
+
+/* Phone lights / fireflies. */
+.entrance-phone-lights { position:absolute; inset:0; z-index:3; overflow:hidden; }
+.entrance-phone-light {
+  position:absolute;
+  left:var(--phone-x); top:var(--phone-y);
+  width:4px; height:6px;
+  border-radius:2px;
+  background:#fffbea;
+  box-shadow:0 0 6px #fff,0 0 13px #fff6b2;
+  opacity:.2;
+  transform:scale(var(--phone-scale));
+  animation:entrancePhoneGlow 2.4s ease-in-out var(--phone-delay) infinite alternate;
+}
+@keyframes entrancePhoneGlow {
+  0% { opacity:.12; transform:translate(-2px,2px) scale(var(--phone-scale)); }
+  45% { opacity:.95; }
+  100% { opacity:.32; transform:translate(3px,-4px) scale(var(--phone-scale)); }
+}
+
+/* Lightning strike and screen flash. */
+.entrance-lightning-wrap { position:absolute; inset:0; z-index:20; opacity:0; }
+.entrance-lightning-wrap.strike { animation:entranceLightningScene .82s steps(1,end) both; }
+.entrance-lightning-flash { position:absolute; inset:0; background:#f7fbff; opacity:0; }
+.entrance-lightning-wrap.strike .entrance-lightning-flash { animation:entranceLightningFlash .72s steps(1,end) both; }
+.entrance-lightning-bolt {
+  position:absolute; left:50%; top:0;
+  width:110px; height:72vh;
+  transform:translateX(-50%);
+  overflow:visible;
+  filter:drop-shadow(0 0 6px #fff) drop-shadow(0 0 18px #8fd0ff);
+}
+.entrance-lightning-bolt polyline { fill:none; stroke:#fff; stroke-width:7; stroke-linecap:round; stroke-linejoin:round; }
+@keyframes entranceLightningScene { 0%,10%,28%,40% { opacity:1; } 11%,27%,41%,100% { opacity:0; } }
+@keyframes entranceLightningFlash { 0% { opacity:.9; } 10% { opacity:0; } 28% { opacity:.65; } 40%,100% { opacity:0; } }
+
+/* Entrance color filters. */
+.entrance-color-filter { position:absolute; inset:0; z-index:2; pointer-events:none; opacity:var(--filter-intensity,.55); mix-blend-mode:color; }
+.entrance-filter-cinematic .entrance-color-filter { background:linear-gradient(180deg,#17446a33,#f1a65022); mix-blend-mode:soft-light; }
+.entrance-filter-cool .entrance-color-filter { background:#2563eb; }
+.entrance-filter-warm .entrance-color-filter { background:#f97316; }
+.entrance-filter-red .entrance-color-filter { background:#dc2626; }
+.entrance-filter-blue .entrance-color-filter { background:#2563eb; }
+.entrance-filter-purple .entrance-color-filter { background:#7c3aed; }
+.entrance-filter-green .entrance-color-filter { background:#16a34a; }
+.entrance-filter-gold .entrance-color-filter { background:#d99b16; }
+.entrance-filter-mono .entrance-color-filter { background:#7b8492; mix-blend-mode:saturation; }
+
+/* First-message spotlight: the chat message is the star of the entrance. */
+.entrance-message-focus { z-index:1550; }
+.entrance-message-spotlight {
+  position:fixed;
+  z-index:3;
+  border-radius:22px;
+  background:radial-gradient(ellipse at center,
+    color-mix(in srgb,var(--spot-color) 10%,transparent) 0 35%,
+    transparent 72%);
+  box-shadow:
+    0 0 0 9999px rgba(0,0,0,.78),
+    0 0 26px color-mix(in srgb,var(--spot-color) 38%,transparent),
+    inset 0 0 25px color-mix(in srgb,var(--spot-color) 18%,transparent);
+  border:1px solid color-mix(in srgb,var(--spot-color) 28%,transparent);
+  animation:entranceMessageFocus .35s ease both;
+}
+.entrance-message-cone {
+  position:fixed;
+  z-index:2;
+  top:0;
+  width:230px;
+  transform:translateX(-50%);
+  transform-origin:50% 0;
+  clip-path:polygon(48% 0,52% 0,100% 100%,0 100%);
+  background:linear-gradient(180deg,
+    color-mix(in srgb,var(--spot-color) 28%,transparent),
+    color-mix(in srgb,var(--spot-color) 7%,transparent) 75%,
+    transparent);
+  filter:blur(5px);
+  mix-blend-mode:screen;
+}
+.chat-line.entrance-first-message {
+  position:relative;
+  z-index:1600;
+  filter:brightness(1.22);
+  text-shadow:0 0 10px color-mix(in srgb,var(--accent) 22%,transparent);
+}
+@keyframes entranceMessageFocus { from { opacity:0; transform:scale(.94); } to { opacity:1; transform:scale(1); } }
+
+@media (max-width:700px) {
+  .entrance-template-row { grid-template-columns:1fr; }
+  .entrance-rig .entrance-truss { left:2%; right:2%; }
+  .entrance-light-fixture { left:calc(8% + var(--fixture-i) * 16.8%); }
+  .entrance-light-beam { width:30vw; }
 }

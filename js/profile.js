@@ -1,6 +1,6 @@
-import { apiFetch } from "./api.js?v=0.17.1";
-import { state } from "./state.js?v=0.17.1";
-import { openMemberByUsername } from "./admin.js?v=0.17.1";
+import { apiFetch } from "./api.js?v=0.17.2";
+import { state } from "./state.js?v=0.17.2";
+import { openMemberByUsername } from "./admin.js?v=0.17.2";
 
 const el = (id) => document.getElementById(id);
 let activeProfile = null;
@@ -661,17 +661,71 @@ async function saveRewardDisplay() {
 }
 
 
+const ENTRANCE_TIER_RANK = { none: 0, basic: 1, rare: 2, epic: 3, champion: 4 };
+
 function entranceDefaults() {
   return {
     enabled: false,
     wrestlingName: "",
     subtitle: "",
-    pyro: { style: "jets", color: "#FFFFFF", duration: 4, frequency: 0.8, height: 0.72, intensity: 2 },
+    pyro: { enabled: true, style: "jets", color: "#FFFFFF", duration: 4, frequency: 0.8, height: 0.72, intensity: 2 },
     atmosphere: { type: "none", color: "#FFFFFF", density: 0.45 },
-    lighting: { blackout: true, spotlight: true, primaryColor: "#FFFFFF", secondaryColor: "#FFFFFF", motion: "sweep", speed: 1 },
-    nameplate: { style: "arena", glow: true }
+    lighting: { enabled: true, blackout: true, spotlight: true, phoneLights: false, lightning: false, primaryColor: "#FFFFFF", secondaryColor: "#FFFFFF", motion: "sweep", speed: 1 },
+    filter: { mode: "none", intensity: 0.55 },
+    nameplate: { enabled: true, style: "arena", glow: true }
   };
 }
+
+const ENTRANCE_TEMPLATES = {
+  basic_white_heat: {
+    tier: "basic",
+    name: "Basic — White Heat",
+    config: {
+      enabled: true,
+      pyro: { enabled: true, style: "jets", color: "#FFFFFF", duration: 3.5, frequency: 1.1, height: 0.62, intensity: 1 },
+      atmosphere: { type: "none", color: "#FFFFFF", density: 0.3 },
+      lighting: { enabled: true, blackout: true, spotlight: true, phoneLights: false, lightning: false, primaryColor: "#FFFFFF", secondaryColor: "#FFFFFF", motion: "none", speed: 1 },
+      filter: { mode: "cinematic", intensity: 0.35 },
+      nameplate: { enabled: true, style: "arena", glow: true }
+    }
+  },
+  rare_purple_haze: {
+    tier: "rare",
+    name: "Rare — Purple Haze",
+    config: {
+      enabled: true,
+      pyro: { enabled: false, style: "jets", color: "#FFFFFF", duration: 4, frequency: 1, height: 0.65, intensity: 1 },
+      atmosphere: { type: "fog", color: "#A855F7", density: 0.7 },
+      lighting: { enabled: true, blackout: true, spotlight: true, phoneLights: false, lightning: false, primaryColor: "#A855F7", secondaryColor: "#FFFFFF", motion: "sweep", speed: 1.2 },
+      filter: { mode: "purple", intensity: 0.55 },
+      nameplate: { enabled: true, style: "neon", glow: true }
+    }
+  },
+  epic_fireflies: {
+    tier: "epic",
+    name: "Epic — Fireflies",
+    config: {
+      enabled: true,
+      pyro: { enabled: false, style: "jets", color: "#FFFFFF", duration: 5, frequency: 1, height: 0.6, intensity: 1 },
+      atmosphere: { type: "fog", color: "#FFFFFF", density: 0.22 },
+      lighting: { enabled: false, blackout: true, spotlight: true, phoneLights: true, lightning: false, primaryColor: "#FFFFFF", secondaryColor: "#FFFFFF", motion: "none", speed: 1 },
+      filter: { mode: "cool", intensity: 0.7 },
+      nameplate: { enabled: true, style: "steel", glow: false }
+    }
+  },
+  champion_thunder_crown: {
+    tier: "champion",
+    name: "Champion — Thunder Crown",
+    config: {
+      enabled: true,
+      pyro: { enabled: true, style: "bursts", color: "#F59E0B", duration: 6, frequency: 0.7, height: 0.85, intensity: 3 },
+      atmosphere: { type: "smoke", color: "#FFFFFF", density: 0.6 },
+      lighting: { enabled: true, blackout: true, spotlight: true, phoneLights: false, lightning: true, primaryColor: "#F59E0B", secondaryColor: "#FFFFFF", motion: "fan", speed: 0.8 },
+      filter: { mode: "gold", intensity: 0.5 },
+      nameplate: { enabled: true, style: "championship", glow: true }
+    }
+  }
+};
 
 function mergeEntranceConfig(value) {
   const d = entranceDefaults();
@@ -682,6 +736,7 @@ function mergeEntranceConfig(value) {
     pyro: { ...d.pyro, ...(raw.pyro || {}) },
     atmosphere: { ...d.atmosphere, ...(raw.atmosphere || {}) },
     lighting: { ...d.lighting, ...(raw.lighting || {}) },
+    filter: { ...d.filter, ...(raw.filter || {}) },
     nameplate: { ...d.nameplate, ...(raw.nameplate || {}) }
   };
 }
@@ -702,6 +757,7 @@ function currentEntranceForm() {
     wrestlingName: el("entranceWrestlingNameInput").value.trim(),
     subtitle: el("entranceSubtitleInput").value.trim(),
     pyro: {
+      enabled: el("entrancePyroEnabledInput").checked,
       style: el("entrancePyroStyleSelect").value,
       color: el("entrancePyroColorInput").value,
       duration: Number(el("entrancePyroDurationInput").value),
@@ -715,14 +771,22 @@ function currentEntranceForm() {
       density: Number(el("entranceAtmosphereDensityInput").value)
     },
     lighting: {
+      enabled: el("entranceLightingEnabledInput").checked,
       blackout: el("entranceBlackoutInput").checked,
       spotlight: el("entranceSpotlightInput").checked,
+      phoneLights: el("entrancePhoneLightsInput").checked,
+      lightning: el("entranceLightningInput").checked,
       primaryColor: el("entranceLightPrimaryInput").value,
       secondaryColor: el("entranceLightSecondaryInput").value,
       motion: el("entranceLightMotionSelect").value,
       speed: Number(el("entranceLightSpeedInput").value)
     },
+    filter: {
+      mode: el("entranceFilterSelect").value,
+      intensity: Number(el("entranceFilterIntensityInput").value)
+    },
     nameplate: {
+      enabled: el("entranceNameplateEnabledInput").checked,
       style: el("entranceNameplateStyleSelect").value,
       glow: el("entranceNameplateGlowInput").checked
     }
@@ -734,6 +798,7 @@ function setEntranceForm(config) {
   el("entranceEnabledInput").checked = Boolean(c.enabled);
   el("entranceWrestlingNameInput").value = c.wrestlingName || activeProfile?.user?.username || "";
   el("entranceSubtitleInput").value = c.subtitle || "";
+  el("entrancePyroEnabledInput").checked = c.pyro.enabled !== false;
   el("entrancePyroStyleSelect").value = c.pyro.style;
   el("entrancePyroColorInput").value = c.pyro.color || "#FFFFFF";
   el("entrancePyroDurationInput").value = String(c.pyro.duration);
@@ -743,20 +808,79 @@ function setEntranceForm(config) {
   el("entranceAtmosphereSelect").value = c.atmosphere.type;
   el("entranceAtmosphereColorInput").value = c.atmosphere.color || "#FFFFFF";
   el("entranceAtmosphereDensityInput").value = String(c.atmosphere.density);
+  el("entranceLightingEnabledInput").checked = c.lighting.enabled !== false;
   el("entranceBlackoutInput").checked = Boolean(c.lighting.blackout);
   el("entranceSpotlightInput").checked = Boolean(c.lighting.spotlight);
+  el("entrancePhoneLightsInput").checked = Boolean(c.lighting.phoneLights);
+  el("entranceLightningInput").checked = Boolean(c.lighting.lightning);
   el("entranceLightPrimaryInput").value = c.lighting.primaryColor || "#FFFFFF";
   el("entranceLightSecondaryInput").value = c.lighting.secondaryColor || "#FFFFFF";
   el("entranceLightMotionSelect").value = c.lighting.motion;
   el("entranceLightSpeedInput").value = String(c.lighting.speed);
+  el("entranceFilterSelect").value = c.filter.mode || "none";
+  el("entranceFilterIntensityInput").value = String(c.filter.intensity ?? .55);
+  el("entranceNameplateEnabledInput").checked = c.nameplate.enabled !== false;
   el("entranceNameplateStyleSelect").value = c.nameplate.style;
   el("entranceNameplateGlowInput").checked = Boolean(c.nameplate.glow);
   fillEntranceRanges();
 }
 
+function currentEntranceTier() {
+  return state.currentUser?.role === "admin" ? el("entranceTierSelect").value : (activeProfile?.entrance?.tier || "none");
+}
+
+function populateEntranceTemplates() {
+  const select = el("entranceTemplateSelect");
+  const tier = currentEntranceTier();
+  const maxRank = ENTRANCE_TIER_RANK[tier] || 0;
+  select.innerHTML = "";
+  Object.entries(ENTRANCE_TEMPLATES).forEach(([key, template]) => {
+    if ((ENTRANCE_TIER_RANK[template.tier] || 0) > maxRank) return;
+    const option = document.createElement("option");
+    option.value = key;
+    option.textContent = template.name;
+    select.appendChild(option);
+  });
+  if (!select.options.length) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "No templates unlocked";
+    select.appendChild(option);
+  }
+}
+
+function applyEntranceTemplate() {
+  const template = ENTRANCE_TEMPLATES[el("entranceTemplateSelect").value];
+  if (!template) return;
+  const current = currentEntranceForm();
+  setEntranceForm({
+    ...current,
+    ...template.config,
+    wrestlingName: current.wrestlingName,
+    subtitle: current.subtitle,
+    pyro: { ...current.pyro, ...(template.config.pyro || {}) },
+    atmosphere: { ...current.atmosphere, ...(template.config.atmosphere || {}) },
+    lighting: { ...current.lighting, ...(template.config.lighting || {}) },
+    filter: { ...current.filter, ...(template.config.filter || {}) },
+    nameplate: { ...current.nameplate, ...(template.config.nameplate || {}) }
+  });
+  setEntranceControlAvailability();
+  el("entranceMessage").className = "message success";
+  el("entranceMessage").textContent = `${template.name} template applied. Customize anything you want before saving.`;
+}
+
+function setEntranceControlAvailability() {
+  const pyroEnabled = el("entrancePyroEnabledInput").checked;
+  ["entrancePyroStyleSelect","entrancePyroColorInput","entrancePyroDurationInput","entrancePyroFrequencyInput","entrancePyroHeightInput","entrancePyroIntensitySelect"].forEach((id) => { el(id).disabled = !pyroEnabled; });
+  const rigEnabled = el("entranceLightingEnabledInput").checked;
+  ["entranceLightPrimaryInput","entranceLightSecondaryInput","entranceLightMotionSelect","entranceLightSpeedInput"].forEach((id) => { el(id).disabled = !rigEnabled; });
+  const nameplateEnabled = el("entranceNameplateEnabledInput").checked;
+  ["entranceNameplateStyleSelect","entranceNameplateGlowInput"].forEach((id) => { el(id).disabled = !nameplateEnabled; });
+}
+
 function applyEntranceTierUI() {
   const isAdminViewer = state.currentUser?.role === "admin";
-  const tier = isAdminViewer ? el("entranceTierSelect").value : (activeProfile?.entrance?.tier || "none");
+  const tier = currentEntranceTier();
   el("entranceTierLabel").textContent = entranceTierText(tier);
   const locked = tier === "none";
   el("entranceLockedMessage").classList.toggle("hidden", !locked);
@@ -765,8 +889,10 @@ function applyEntranceTierUI() {
     control.disabled = locked;
   });
   const palette = tier === "champion" ? "any custom color" : tier === "epic" ? "white, blue, red, green, purple, gold, cyan, or pink" : tier === "rare" ? "white, blue, red, green, or purple" : "white only";
-  el("entrancePaletteNote").textContent = `Your ${entranceTierText(tier)} status allows ${palette}. Disallowed colors are automatically converted to an allowed color when saved.`;
+  el("entrancePaletteNote").textContent = `Your ${entranceTierText(tier)} status allows ${palette}. You can turn pyro and the overhead rig off entirely. Filter presets are available at every unlocked level.`;
   el("entranceNameplateStyleSelect").querySelector('option[value="championship"]').disabled = tier !== "champion";
+  populateEntranceTemplates();
+  if (!locked) setEntranceControlAvailability();
 }
 
 function openEntranceEditor(profileData) {
@@ -811,8 +937,12 @@ async function saveEntrance(event) {
 }
 
 function previewEntrance() {
-  const tier = state.currentUser?.role === "admin" ? el("entranceTierSelect").value : (activeProfile?.entrance?.tier || "none");
+  const tier = currentEntranceTier();
+  el("entranceOverlay").classList.add("hidden");
   window.dispatchEvent(new CustomEvent("drk:preview-entrance", { detail: { username: activeProfile?.user?.username || state.currentUser?.username, entrance: { tier, config: currentEntranceForm() } } }));
+  setTimeout(() => {
+    if (activeProfile?.user?.username) el("entranceOverlay").classList.remove("hidden");
+  }, 8200);
 }
 
 function triggerEntranceNow() {
@@ -861,5 +991,9 @@ export function initProfiles() {
   el("entrancePreviewButton").addEventListener("click", previewEntrance);
   el("entranceTriggerButton").addEventListener("click", triggerEntranceNow);
   el("entranceTierSelect").addEventListener("change", applyEntranceTierUI);
+  el("entranceApplyTemplateButton").addEventListener("click", applyEntranceTemplate);
+  el("entrancePyroEnabledInput").addEventListener("change", setEntranceControlAvailability);
+  el("entranceLightingEnabledInput").addEventListener("change", setEntranceControlAvailability);
+  el("entranceNameplateEnabledInput").addEventListener("change", setEntranceControlAvailability);
   ["entrancePyroDurationInput", "entrancePyroFrequencyInput", "entrancePyroHeightInput"].forEach((id) => el(id).addEventListener("input", fillEntranceRanges));
 }
