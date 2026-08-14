@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.17.2";
-import { apiFetch } from "./api.js?v=0.17.2";
-import { getToken, state } from "./state.js?v=0.17.2";
-import { openMemberByUsername } from "./admin.js?v=0.17.2";
-import { openProfileByUsername } from "./profile.js?v=0.17.2";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.17.2";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.17.3";
+import { apiFetch } from "./api.js?v=0.17.3";
+import { getToken, state } from "./state.js?v=0.17.3";
+import { openMemberByUsername } from "./admin.js?v=0.17.3";
+import { openProfileByUsername } from "./profile.js?v=0.17.3";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.17.3";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -805,6 +805,7 @@ let entranceTimer = null;
 let entranceBurstTimer = null;
 let entranceWaitTimer = null;
 let entrancePendingSpotlight = null;
+let entrancePreviousAppFilter = null;
 
 function stopEntranceLocal({ keepPending = false } = {}) {
   clearTimeout(entranceTimer);
@@ -817,6 +818,11 @@ function stopEntranceLocal({ keepPending = false } = {}) {
     layer.innerHTML = "";
     layer.removeAttribute("style");
   }
+  const app = el("appWindow");
+  if (app && entrancePreviousAppFilter !== null) {
+    app.style.filter = entrancePreviousAppFilter;
+    entrancePreviousAppFilter = null;
+  }
   if (!keepPending) {
     clearTimeout(entranceWaitTimer);
     entranceWaitTimer = null;
@@ -824,13 +830,17 @@ function stopEntranceLocal({ keepPending = false } = {}) {
   }
 }
 
-function entranceParticle(layer, side, color, height, style, intensity) {
+function entranceParticle(layer, side, color, height, style, intensity, width = 1, sourceOffset = 0) {
   const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   const burst = document.createElement("div");
   burst.className = `entrance-pyro-burst entrance-pyro-${style} entrance-pyro-${side}`;
   burst.style.setProperty("--pyro-color", color);
   burst.style.setProperty("--pyro-height", `${Math.round(height * 100)}vh`);
   burst.style.setProperty("--pyro-intensity", String(intensity));
+  burst.style.setProperty("--pyro-width", String(width));
+  if (side === "left") burst.style.left = `${5.5 + sourceOffset}%`;
+  if (side === "right") burst.style.right = `${5.5 + sourceOffset}%`;
+  if (side === "center") burst.style.left = "50%";
 
   const flash = document.createElement("i");
   flash.className = "entrance-pyro-flash";
@@ -839,19 +849,26 @@ function entranceParticle(layer, side, color, height, style, intensity) {
   core.className = "entrance-pyro-core";
   burst.appendChild(core);
 
-  const particleCount = reduced ? 8 : (style === "bursts" ? 34 : style === "fountain" ? 28 : 22) + intensity * 6;
+  const baseCount = style === "bursts" || style === "center_blast" ? 38 : style === "wide_fountain" || style === "fan" ? 34 : style === "fountain" ? 28 : 22;
+  const particleCount = reduced ? 8 : baseCount + intensity * 7;
   for (let i = 0; i < particleCount; i += 1) {
     const spark = document.createElement("i");
     spark.className = "entrance-pyro-spark";
-    const spread = style === "bursts" ? 115 : style === "fountain" ? 58 : 42;
+    let baseSpread = 42;
+    if (style === "bursts") baseSpread = 115;
+    if (style === "fountain") baseSpread = 58;
+    if (style === "wide_fountain") baseSpread = 86;
+    if (style === "fan") baseSpread = 135;
+    if (style === "center_blast") baseSpread = 150;
+    const spread = Math.min(175, baseSpread * Math.max(.5, width));
     const angle = (-90 + (Math.random() - .5) * spread) * Math.PI / 180;
-    const distanceFactor = style === "bursts" ? (.45 + Math.random() * .55) : (.55 + Math.random() * .45);
+    const distanceFactor = ["bursts","center_blast"].includes(style) ? (.45 + Math.random() * .55) : (.55 + Math.random() * .45);
     const distance = Math.max(90, window.innerHeight * height * distanceFactor);
     const dx = Math.cos(angle) * distance;
     const dy = Math.sin(angle) * distance;
-    const drift = (Math.random() - .5) * (style === "bursts" ? 100 : 46);
-    const size = 2 + Math.random() * (intensity + 2.4);
-    const duration = .58 + Math.random() * .55;
+    const drift = (Math.random() - .5) * ((style === "bursts" || style === "center_blast") ? 120 : 50) * Math.max(.7, width);
+    const size = 2 + Math.random() * (intensity + 2.5);
+    const duration = .58 + Math.random() * .58;
     const delay = Math.random() * .08;
     spark.style.setProperty("--spark-x", `${(dx + drift).toFixed(1)}px`);
     spark.style.setProperty("--spark-y", `${dy.toFixed(1)}px`);
@@ -861,18 +878,60 @@ function entranceParticle(layer, side, color, height, style, intensity) {
     burst.appendChild(spark);
   }
 
-  const cometCount = reduced ? 1 : Math.max(2, intensity + (style === "fountain" ? 2 : 0));
+  const cometCount = reduced ? 1 : Math.max(2, intensity + (["fountain","wide_fountain","fan"].includes(style) ? 3 : 0));
   for (let i = 0; i < cometCount; i += 1) {
     const comet = document.createElement("i");
     comet.className = "entrance-pyro-comet";
-    comet.style.setProperty("--comet-offset", `${(i - (cometCount - 1) / 2) * 10}px`);
-    comet.style.setProperty("--comet-tilt", `${(Math.random() - .5) * (style === "bursts" ? 22 : 10)}deg`);
-    comet.style.setProperty("--comet-duration", `${(.5 + Math.random() * .22).toFixed(2)}s`);
+    comet.style.setProperty("--comet-offset", `${(i - (cometCount - 1) / 2) * 11 * Math.max(.7,width)}px`);
+    comet.style.setProperty("--comet-tilt", `${(Math.random() - .5) * (["bursts","fan","center_blast"].includes(style) ? 28 : 12)}deg`);
+    comet.style.setProperty("--comet-duration", `${(.5 + Math.random() * .25).toFixed(2)}s`);
     burst.appendChild(comet);
   }
 
   layer.appendChild(burst);
-  setTimeout(() => burst.remove(), 1450);
+  setTimeout(() => burst.remove(), 1500);
+}
+
+function entrancePyroRain(layer, color, intensity, width = 1, curtain = false) {
+  const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  const field = document.createElement("div");
+  field.className = `entrance-pyro-rain${curtain ? " entrance-pyro-curtain" : ""}`;
+  field.style.setProperty("--pyro-color", color || "#FFFFFF");
+  const span = Math.min(100, 38 + Math.max(.5, width) * 30);
+  const start = (100 - span) / 2;
+  const count = reduced ? 14 : Math.round((curtain ? 70 : 48) * Math.max(.65, width) + intensity * 12);
+  for (let i = 0; i < count; i += 1) {
+    const spark = document.createElement("i");
+    spark.className = "entrance-pyro-rain-spark";
+    spark.style.setProperty("--rain-x", `${(start + Math.random() * span).toFixed(2)}%`);
+    spark.style.setProperty("--rain-delay", `${(Math.random() * .42).toFixed(2)}s`);
+    spark.style.setProperty("--rain-duration", `${(.55 + Math.random() * .65).toFixed(2)}s`);
+    spark.style.setProperty("--rain-length", `${Math.round((curtain ? 35 : 18) + Math.random() * (curtain ? 80 : 55))}px`);
+    spark.style.setProperty("--rain-drift", `${((Math.random() - .5) * 80).toFixed(1)}px`);
+    field.appendChild(spark);
+  }
+  layer.appendChild(field);
+  setTimeout(() => field.remove(), 1800);
+}
+
+function applyEntranceScreenFilter(filter) {
+  const app = el("appWindow");
+  if (!app || !filter || filter.mode === "none" || Number(filter.intensity || 0) <= 0) return;
+  if (entrancePreviousAppFilter === null) entrancePreviousAppFilter = app.style.filter || "";
+  const i = Math.max(0, Math.min(1, Number(filter.intensity || .55)));
+  const mode = String(filter.mode || "none");
+  const map = {
+    cinematic: `contrast(${1 + .22*i}) saturate(${1 + .18*i}) brightness(${1 - .08*i})`,
+    cool: `sepia(${.15*i}) saturate(${1 + .65*i}) hue-rotate(${185*i}deg) brightness(${1 - .05*i})`,
+    warm: `sepia(${.45*i}) saturate(${1 + .6*i}) hue-rotate(${-15*i}deg)`,
+    red: `sepia(${.55*i}) saturate(${1 + 1.7*i}) hue-rotate(${-35*i}deg)`,
+    blue: `sepia(${.35*i}) saturate(${1 + 1.6*i}) hue-rotate(${170*i}deg)`,
+    purple: `sepia(${.38*i}) saturate(${1 + 1.7*i}) hue-rotate(${225*i}deg)`,
+    green: `sepia(${.35*i}) saturate(${1 + 1.7*i}) hue-rotate(${78*i}deg)`,
+    gold: `sepia(${.65*i}) saturate(${1 + 1.25*i}) hue-rotate(${-8*i}deg)`,
+    mono: `grayscale(${i}) contrast(${1 + .25*i}) brightness(${1 - .05*i})`
+  };
+  app.style.filter = map[mode] || "";
 }
 
 function addEntranceAtmosphere(layer, atmosphere) {
@@ -977,6 +1036,7 @@ function spotlightChatMessage(line, pending) {
   layer.className = `entrance-layer active entrance-message-focus entrance-filter-${pending.filter?.mode || "none"}`;
   layer.style.setProperty("--filter-intensity", String(Math.max(0, Math.min(1, Number(pending.filter?.intensity || .55)))));
   addEntranceFilter(layer, pending.filter || {});
+  applyEntranceScreenFilter(pending.filter || {});
   const focus = document.createElement("div");
   focus.className = "entrance-message-spotlight";
   const padX = 18;
@@ -1049,6 +1109,7 @@ function renderEntrance(username, entrance, { preview = false } = {}) {
   const frequency = Math.max(.35, Math.min(2.5, Number(pyro.frequency || .8)));
   const height = Math.max(.3, Math.min(.95, Number(pyro.height || .72)));
   const intensity = Math.max(1, Math.min(3, Number(pyro.intensity || 2)));
+  const width = Math.max(.5, Math.min(2.4, Number(pyro.width || 1)));
   const primary = lighting.primaryColor || "#FFFFFF";
   const secondary = lighting.secondaryColor || primary;
 
@@ -1061,6 +1122,7 @@ function renderEntrance(username, entrance, { preview = false } = {}) {
   blackout.className = "entrance-blackout-screen";
   if (lighting.blackout) layer.appendChild(blackout);
   addEntranceFilter(layer, filter);
+  applyEntranceScreenFilter(filter);
 
   setTimeout(() => addEntranceRig(layer, lighting), 180);
   if (lighting.phoneLights) setTimeout(() => addPhoneLights(layer), 500);
@@ -1070,10 +1132,22 @@ function renderEntrance(username, entrance, { preview = false } = {}) {
 
   if (pyro.enabled !== false) {
     const fireBurst = () => {
-      for (let n = 0; n < intensity; n += 1) {
-        setTimeout(() => entranceParticle(layer, "left", pyro.color || "#FFFFFF", height, pyro.style || "jets", intensity), n * 90);
-        setTimeout(() => entranceParticle(layer, "right", pyro.color || "#FFFFFF", height, pyro.style || "jets", intensity), n * 90);
+      const style = pyro.style || "jets";
+      if (style === "rain" || style === "curtain") {
+        entrancePyroRain(layer, pyro.color || "#FFFFFF", intensity, width, style === "curtain");
+        return;
       }
+      if (style === "center_blast") {
+        for (let n = 0; n < intensity; n += 1) setTimeout(() => entranceParticle(layer, "center", pyro.color || "#FFFFFF", height, style, intensity, width), n * 85);
+        return;
+      }
+      const offsets = style === "wide_fountain" ? [0, 10, 20] : style === "fan" ? [0, 14] : [0];
+      offsets.forEach((offset, idx) => {
+        for (let n = 0; n < intensity; n += 1) {
+          setTimeout(() => entranceParticle(layer, "left", pyro.color || "#FFFFFF", height, style, intensity, width, offset), n * 85 + idx * 55);
+          setTimeout(() => entranceParticle(layer, "right", pyro.color || "#FFFFFF", height, style, intensity, width, offset), n * 85 + idx * 55);
+        }
+      });
     };
     setTimeout(fireBurst, 900);
     if (!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {

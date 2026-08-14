@@ -1,6 +1,6 @@
-import { apiFetch } from "./api.js?v=0.17.2";
-import { state } from "./state.js?v=0.17.2";
-import { openMemberByUsername } from "./admin.js?v=0.17.2";
+import { apiFetch } from "./api.js?v=0.17.3";
+import { state } from "./state.js?v=0.17.3";
+import { openMemberByUsername } from "./admin.js?v=0.17.3";
 
 const el = (id) => document.getElementById(id);
 let activeProfile = null;
@@ -668,7 +668,7 @@ function entranceDefaults() {
     enabled: false,
     wrestlingName: "",
     subtitle: "",
-    pyro: { enabled: true, style: "jets", color: "#FFFFFF", duration: 4, frequency: 0.8, height: 0.72, intensity: 2 },
+    pyro: { enabled: true, style: "jets", color: "#FFFFFF", duration: 4, frequency: 0.8, height: 0.72, width: 1, intensity: 2 },
     atmosphere: { type: "none", color: "#FFFFFF", density: 0.45 },
     lighting: { enabled: true, blackout: true, spotlight: true, phoneLights: false, lightning: false, primaryColor: "#FFFFFF", secondaryColor: "#FFFFFF", motion: "sweep", speed: 1 },
     filter: { mode: "none", intensity: 0.55 },
@@ -682,7 +682,7 @@ const ENTRANCE_TEMPLATES = {
     name: "Basic — White Heat",
     config: {
       enabled: true,
-      pyro: { enabled: true, style: "jets", color: "#FFFFFF", duration: 3.5, frequency: 1.1, height: 0.62, intensity: 1 },
+      pyro: { enabled: true, style: "jets", color: "#FFFFFF", duration: 3.5, frequency: 1.1, height: 0.62, width: 1, intensity: 1 },
       atmosphere: { type: "none", color: "#FFFFFF", density: 0.3 },
       lighting: { enabled: true, blackout: true, spotlight: true, phoneLights: false, lightning: false, primaryColor: "#FFFFFF", secondaryColor: "#FFFFFF", motion: "none", speed: 1 },
       filter: { mode: "cinematic", intensity: 0.35 },
@@ -694,7 +694,7 @@ const ENTRANCE_TEMPLATES = {
     name: "Rare — Purple Haze",
     config: {
       enabled: true,
-      pyro: { enabled: false, style: "jets", color: "#FFFFFF", duration: 4, frequency: 1, height: 0.65, intensity: 1 },
+      pyro: { enabled: false, style: "jets", color: "#FFFFFF", duration: 4, frequency: 1, height: 0.65, width: 1, intensity: 1 },
       atmosphere: { type: "fog", color: "#A855F7", density: 0.7 },
       lighting: { enabled: true, blackout: true, spotlight: true, phoneLights: false, lightning: false, primaryColor: "#A855F7", secondaryColor: "#FFFFFF", motion: "sweep", speed: 1.2 },
       filter: { mode: "purple", intensity: 0.55 },
@@ -706,7 +706,7 @@ const ENTRANCE_TEMPLATES = {
     name: "Epic — Fireflies",
     config: {
       enabled: true,
-      pyro: { enabled: false, style: "jets", color: "#FFFFFF", duration: 5, frequency: 1, height: 0.6, intensity: 1 },
+      pyro: { enabled: false, style: "jets", color: "#FFFFFF", duration: 5, frequency: 1, height: 0.6, width: 1, intensity: 1 },
       atmosphere: { type: "fog", color: "#FFFFFF", density: 0.22 },
       lighting: { enabled: false, blackout: true, spotlight: true, phoneLights: true, lightning: false, primaryColor: "#FFFFFF", secondaryColor: "#FFFFFF", motion: "none", speed: 1 },
       filter: { mode: "cool", intensity: 0.7 },
@@ -718,11 +718,83 @@ const ENTRANCE_TEMPLATES = {
     name: "Champion — Thunder Crown",
     config: {
       enabled: true,
-      pyro: { enabled: true, style: "bursts", color: "#F59E0B", duration: 6, frequency: 0.7, height: 0.85, intensity: 3 },
+      pyro: { enabled: true, style: "bursts", color: "#F59E0B", duration: 6, frequency: 0.7, height: 0.85, width: 1.2, intensity: 3 },
       atmosphere: { type: "smoke", color: "#FFFFFF", density: 0.6 },
       lighting: { enabled: true, blackout: true, spotlight: true, phoneLights: false, lightning: true, primaryColor: "#F59E0B", secondaryColor: "#FFFFFF", motion: "fan", speed: 0.8 },
       filter: { mode: "gold", intensity: 0.5 },
       nameplate: { enabled: true, style: "championship", glow: true }
+    }
+  },
+  rare_green_rebellion: {
+    tier: "rare",
+    name: "Rare — Green Rebellion",
+    config: {
+      enabled: true,
+      pyro: { enabled: true, style: "wide_fountain", color: "#22C55E", duration: 5, frequency: 0.85, height: 0.7, width: 1.8, intensity: 2 },
+      atmosphere: { type: "smoke", color: "#22C55E", density: 0.52 },
+      lighting: { enabled: true, blackout: true, spotlight: true, phoneLights: false, lightning: false, primaryColor: "#22C55E", secondaryColor: "#FFFFFF", motion: "cross", speed: 0.85 },
+      filter: { mode: "green", intensity: 0.42 },
+      nameplate: { enabled: true, style: "neon", glow: true }
+    }
+  },
+  rare_monochrome_invasion: {
+    tier: "rare",
+    name: "Rare — Monochrome Invasion",
+    config: {
+      enabled: true,
+      pyro: { enabled: false, style: "curtain", color: "#FFFFFF", duration: 4, frequency: 1.2, height: 0.7, width: 1.4, intensity: 1 },
+      atmosphere: { type: "smoke", color: "#FFFFFF", density: 0.42 },
+      lighting: { enabled: true, blackout: true, spotlight: true, phoneLights: false, lightning: false, primaryColor: "#FFFFFF", secondaryColor: "#FFFFFF", motion: "none", speed: 1 },
+      filter: { mode: "mono", intensity: 0.95 },
+      nameplate: { enabled: true, style: "steel", glow: false }
+    }
+  },
+  rare_glass_break: {
+    tier: "rare",
+    name: "Rare — Glass Break",
+    config: {
+      enabled: true,
+      pyro: { enabled: true, style: "center_blast", color: "#FFFFFF", duration: 3.2, frequency: 1.6, height: 0.72, width: 1.15, intensity: 2 },
+      atmosphere: { type: "none", color: "#FFFFFF", density: 0.2 },
+      lighting: { enabled: true, blackout: true, spotlight: true, phoneLights: false, lightning: true, primaryColor: "#FFFFFF", secondaryColor: "#3B82F6", motion: "pulse", speed: 0.55 },
+      filter: { mode: "cool", intensity: 0.45 },
+      nameplate: { enabled: true, style: "steel", glow: false }
+    }
+  },
+  epic_hellfire: {
+    tier: "epic",
+    name: "Epic — Hellfire",
+    config: {
+      enabled: true,
+      pyro: { enabled: true, style: "fan", color: "#EF4444", duration: 6, frequency: 0.62, height: 0.88, width: 1.7, intensity: 3 },
+      atmosphere: { type: "smoke", color: "#EF4444", density: 0.5 },
+      lighting: { enabled: true, blackout: true, spotlight: true, phoneLights: false, lightning: false, primaryColor: "#EF4444", secondaryColor: "#F59E0B", motion: "pulse", speed: 0.7 },
+      filter: { mode: "red", intensity: 0.55 },
+      nameplate: { enabled: true, style: "arena", glow: true }
+    }
+  },
+  epic_deadman: {
+    tier: "epic",
+    name: "Epic — Graveyard Walk",
+    config: {
+      enabled: true,
+      pyro: { enabled: true, style: "rain", color: "#FFFFFF", duration: 7, frequency: 1.3, height: 0.72, width: 2.1, intensity: 2 },
+      atmosphere: { type: "fog", color: "#A855F7", density: 0.82 },
+      lighting: { enabled: false, blackout: true, spotlight: true, phoneLights: false, lightning: true, primaryColor: "#A855F7", secondaryColor: "#3B82F6", motion: "none", speed: 1 },
+      filter: { mode: "purple", intensity: 0.6 },
+      nameplate: { enabled: true, style: "steel", glow: false }
+    }
+  },
+  epic_electrifying: {
+    tier: "epic",
+    name: "Epic — Electrifying",
+    config: {
+      enabled: true,
+      pyro: { enabled: true, style: "bursts", color: "#FFFFFF", duration: 5, frequency: 0.8, height: 0.8, width: 1.4, intensity: 3 },
+      atmosphere: { type: "none", color: "#FFFFFF", density: 0.2 },
+      lighting: { enabled: true, blackout: false, spotlight: true, phoneLights: false, lightning: true, primaryColor: "#3B82F6", secondaryColor: "#FFFFFF", motion: "search", speed: 0.75 },
+      filter: { mode: "blue", intensity: 0.38 },
+      nameplate: { enabled: true, style: "arena", glow: true }
     }
   }
 };
@@ -749,6 +821,7 @@ function fillEntranceRanges() {
   el("entrancePyroDurationValue").textContent = `${Number(el("entrancePyroDurationInput").value).toFixed(1)} sec`;
   el("entrancePyroFrequencyValue").textContent = `every ${Number(el("entrancePyroFrequencyInput").value).toFixed(2)} sec`;
   el("entrancePyroHeightValue").textContent = `${Math.round(Number(el("entrancePyroHeightInput").value) * 100)}% screen`;
+  el("entrancePyroWidthValue").textContent = `${Number(el("entrancePyroWidthInput").value).toFixed(1)}× spread`;
 }
 
 function currentEntranceForm() {
@@ -763,6 +836,7 @@ function currentEntranceForm() {
       duration: Number(el("entrancePyroDurationInput").value),
       frequency: Number(el("entrancePyroFrequencyInput").value),
       height: Number(el("entrancePyroHeightInput").value),
+      width: Number(el("entrancePyroWidthInput").value),
       intensity: Number(el("entrancePyroIntensitySelect").value)
     },
     atmosphere: {
@@ -804,6 +878,7 @@ function setEntranceForm(config) {
   el("entrancePyroDurationInput").value = String(c.pyro.duration);
   el("entrancePyroFrequencyInput").value = String(c.pyro.frequency);
   el("entrancePyroHeightInput").value = String(c.pyro.height);
+  el("entrancePyroWidthInput").value = String(c.pyro.width ?? 1);
   el("entrancePyroIntensitySelect").value = String(c.pyro.intensity);
   el("entranceAtmosphereSelect").value = c.atmosphere.type;
   el("entranceAtmosphereColorInput").value = c.atmosphere.color || "#FFFFFF";
@@ -871,7 +946,7 @@ function applyEntranceTemplate() {
 
 function setEntranceControlAvailability() {
   const pyroEnabled = el("entrancePyroEnabledInput").checked;
-  ["entrancePyroStyleSelect","entrancePyroColorInput","entrancePyroDurationInput","entrancePyroFrequencyInput","entrancePyroHeightInput","entrancePyroIntensitySelect"].forEach((id) => { el(id).disabled = !pyroEnabled; });
+  ["entrancePyroStyleSelect","entrancePyroColorInput","entrancePyroDurationInput","entrancePyroFrequencyInput","entrancePyroHeightInput","entrancePyroWidthInput","entrancePyroIntensitySelect"].forEach((id) => { el(id).disabled = !pyroEnabled; });
   const rigEnabled = el("entranceLightingEnabledInput").checked;
   ["entranceLightPrimaryInput","entranceLightSecondaryInput","entranceLightMotionSelect","entranceLightSpeedInput"].forEach((id) => { el(id).disabled = !rigEnabled; });
   const nameplateEnabled = el("entranceNameplateEnabledInput").checked;

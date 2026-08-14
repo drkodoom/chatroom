@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0b0f17">
   <title>DRK.CHAT</title>
-  <link rel="stylesheet" href="./css/base.css?v=0.17.2">
-  <link rel="stylesheet" href="./css/themes.css?v=0.17.2">
+  <link rel="stylesheet" href="./css/base.css?v=0.17.3">
+  <link rel="stylesheet" href="./css/themes.css?v=0.17.3">
 </head>
 <body class="theme-modern">
   <main class="app-window" id="appWindow">
     <header class="titlebar">
       <div class="titlebar-copy">
         <span id="clientTitle">DRK CHAT</span>
-        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.17.2</button>
+        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.17.3</button>
       </div>
       <span class="classic-window-controls aol-only" aria-hidden="true">[_][□][X]</span>
     </header>
@@ -424,7 +424,7 @@
   </div>
 
 
-  <!-- v0.17.2 MEMBER PROFILE -->
+  <!-- v0.17.3 MEMBER PROFILE -->
   <div class="modal-overlay hidden" id="profileOverlay" role="dialog" aria-modal="true" aria-labelledby="profileDialogTitle">
     <div class="modal-window profile-dialog">
       <div class="modal-titlebar profile-modal-titlebar">
@@ -575,11 +575,12 @@
             <div><label for="entranceSubtitleInput">Nameplate subtitle</label><input id="entranceSubtitleInput" maxlength="60" placeholder="Optional title or catchphrase"></div>
 
             <div class="entrance-section-toggle"><label class="identity-check"><input id="entrancePyroEnabledInput" type="checkbox" checked> Enable Pyro</label></div>
-            <div><label for="entrancePyroStyleSelect">Pyro Style</label><select id="entrancePyroStyleSelect"><option value="jets">Side Jets</option><option value="bursts">Burst Cannons</option><option value="fountain">Fountains</option></select></div>
+            <div><label for="entrancePyroStyleSelect">Pyro Style</label><select id="entrancePyroStyleSelect"><option value="jets">Side Jets</option><option value="bursts">Burst Cannons</option><option value="fountain">Fountains</option><option value="wide_fountain">Wide Fountains</option><option value="fan">Fan Pyro</option><option value="center_blast">Center Blast</option><option value="rain">Pyro Rain</option><option value="curtain">Spark Curtain</option></select></div>
             <div><label for="entrancePyroColorInput">Pyro Color</label><input id="entrancePyroColorInput" type="color" value="#ffffff"></div>
             <div><label for="entrancePyroDurationInput">Pyro Duration</label><input id="entrancePyroDurationInput" type="range" min="2" max="10" step="0.5" value="4"><span id="entrancePyroDurationValue" class="small"></span></div>
             <div><label for="entrancePyroFrequencyInput">Burst Frequency</label><input id="entrancePyroFrequencyInput" type="range" min="0.35" max="2.5" step="0.05" value="0.8"><span id="entrancePyroFrequencyValue" class="small"></span></div>
             <div><label for="entrancePyroHeightInput">Pyro Height</label><input id="entrancePyroHeightInput" type="range" min="0.3" max="0.95" step="0.05" value="0.72"><span id="entrancePyroHeightValue" class="small"></span></div>
+            <div><label for="entrancePyroWidthInput">Pyro Width / Spread</label><input id="entrancePyroWidthInput" type="range" min="0.5" max="2.4" step="0.1" value="1"><span id="entrancePyroWidthValue" class="small"></span></div>
             <div><label for="entrancePyroIntensitySelect">Pyro Intensity</label><select id="entrancePyroIntensitySelect"><option value="1">Low</option><option value="2">Medium</option><option value="3">High</option></select></div>
 
             <div><label for="entranceAtmosphereSelect">Atmosphere</label><select id="entranceAtmosphereSelect"><option value="none">None</option><option value="fog">Fog</option><option value="smoke">Smoke</option></select></div>
@@ -735,6 +736,6 @@
   <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
   <div id="roomEffectLayer" class="room-effect-layer" aria-hidden="true"></div>
 
-  <script type="module" src="./js/app.js?v=0.17.2"></script>
+  <script type="module" src="./js/app.js?v=0.17.3"></script>
 </body>
 </html>
