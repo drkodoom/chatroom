@@ -1,6 +1,6 @@
-import { apiFetch } from "./api.js?v=0.18.10";
-import { state } from "./state.js?v=0.18.10";
-import { openMemberByUsername } from "./admin.js?v=0.18.10";
+import { apiFetch } from "./api.js?v=0.18.12";
+import { state } from "./state.js?v=0.18.12";
+import { openMemberByUsername } from "./admin.js?v=0.18.12";
 
 const el = (id) => document.getElementById(id);
 let activeProfile = null;
@@ -785,21 +785,31 @@ const ENTRANCE_SCREEN_PRESETS = {
 
 function populateSubsystemPresets(selectId,presets,selected="custom"){
   const select=el(selectId); if(!select)return; select.innerHTML="";
-  Object.entries(presets).forEach(([key,preset])=>{const option=document.createElement("option"),locked=(ENTRANCE_TIER_RANK[preset.tier]||1)>currentEntranceRank(); option.value=key; option.disabled=locked; option.textContent=`${locked?"🔒 ":""}${preset.name}${locked?` — ${entranceTierText(preset.tier)}`:""}`; select.appendChild(option);});
+  Object.entries(presets).forEach(([key,preset])=>{if(key==="none")return;const option=document.createElement("option"),locked=(ENTRANCE_TIER_RANK[preset.tier]||1)>currentEntranceRank(); option.value=key; option.disabled=locked; option.textContent=`${locked?"🔒 ":""}${preset.name}${locked?` — ${entranceTierText(preset.tier)}`:""}`; select.appendChild(option);});
   const valid=[...select.options].find(o=>o.value===selected&&!o.disabled)||[...select.options].find(o=>!o.disabled); if(valid)select.value=valid.value;
 }
 function syncEntranceCategoryModes(openAdvanced=false){
   const specs=[["Pyro","entrancePyroModeSelect","entrancePyroPresetWrap","entranceApplyPyroPresetButton","entrancePyroCustomControls"],["Atmosphere","entranceAtmosphereModeSelect","entranceAtmospherePresetWrap","entranceApplyAtmospherePresetButton","entranceAtmosphereCustomControls"],["Lighting","entranceLightingModeSelect","entranceLightingPresetWrap","entranceApplyLightingPresetButton","entranceLightingCustomControls"],["Screen","entranceScreenModeSelect","entranceScreenPresetWrap","entranceApplyScreenPresetButton","entranceScreenCustomControls"]];
-  let customChosen=false; specs.forEach(([,modeId,presetWrapId,buttonId,customId])=>{const custom=el(modeId)?.value==="custom"; el(presetWrapId)?.classList.toggle("hidden",custom); el(buttonId)?.classList.toggle("hidden",custom); el(customId)?.classList.toggle("hidden",!custom); customChosen ||= custom;});
+  let customChosen=false;
+  specs.forEach(([,modeId,presetWrapId,buttonId,customId])=>{
+    const mode=el(modeId)?.value||"custom", preset=mode==="preset", custom=mode==="custom";
+    el(presetWrapId)?.classList.toggle("hidden",!preset);
+    el(buttonId)?.classList.toggle("hidden",!preset);
+    el(customId)?.classList.toggle("hidden",!custom);
+    customChosen ||= custom;
+  });
+  // Keep the legacy enabled fields synchronized with the new None / Preset / Custom controls.
+  if(el("entrancePyroEnabledInput"))el("entrancePyroEnabledInput").checked=el("entrancePyroModeSelect")?.value!=="none";
+  if(el("entranceLightingEnabledInput"))el("entranceLightingEnabledInput").checked=el("entranceLightingModeSelect")?.value!=="none";
   if(openAdvanced&&customChosen)setEntranceEditorMode("advanced");
+  setEntranceControlAvailability();
 }
 function applyEntrancePyroPreset(){const key=el("entrancePyroPresetSelect").value,preset=ENTRANCE_PYRO_PRESETS[key];if(!preset||(ENTRANCE_TIER_RANK[preset.tier]||1)>currentEntranceRank())return;const c=currentEntranceForm();setEntranceForm({...c,pyro:{...c.pyro,...preset.config,preset:key}});el("entrancePyroModeSelect").value="preset";syncEntranceCategoryModes(false);}
 function applyEntranceAtmospherePreset(){const key=el("entranceAtmospherePresetSelect").value,preset=ENTRANCE_ATMOSPHERE_PRESETS[key];if(!preset||(ENTRANCE_TIER_RANK[preset.tier]||1)>currentEntranceRank())return;const c=currentEntranceForm();setEntranceForm({...c,atmosphere:{...c.atmosphere,...preset.config,preset:key}});el("entranceAtmosphereModeSelect").value="preset";syncEntranceCategoryModes(false);}
 function applyEntranceScreenPreset(){const key=el("entranceScreenPresetSelect").value,preset=ENTRANCE_SCREEN_PRESETS[key];if(!preset||(ENTRANCE_TIER_RANK[preset.tier]||1)>currentEntranceRank())return;const c=currentEntranceForm();setEntranceForm({...c,filter:{...c.filter,...preset.filter},screenFx:{...c.screenFx,...preset.screenFx,preset:key}});el("entranceScreenModeSelect").value="preset";syncEntranceCategoryModes(false);}
 
 const ENTRANCE_TEMPLATES = {
-  basic_white_heat: { tier:"basic", name:"Basic — White Heat", config:{ enabled:true, signatureEffect:"none", pyro:{preset:"far_jets",enabled:true,style:"jets",position:"both",color:"#FFFFFF",duration:2.5,frequency:1.2,height:.48,width:.7,intensity:1,burstCount:1,behavior:"simultaneous",flashBurst:true}, atmosphere:{preset:"none",type:"none"}, lighting:{enabled:true,preset:"downlights",dimming:"none",blackout:false,spotlight:false,phoneLights:false,lightning:false,primaryColor:"#FFFFFF",secondaryColor:"#3B82F6",motion:"none",aim:"down",behavior:"steady",speed:1,brightness:.6,beamWidth:.9,fixtureCount:4,fixtures:buildLightingPresetFixtures("downlights",{fixtureCount:4})}, filter:{mode:"none",intensity:0}, screenFx:{preset:"none",effect:"none"}, nameplate:{enabled:true,style:"arena",glow:true,animation:"slide"}, timing:{totalDuration:5,pyroStart:0,nameplateStart:.5,atmosphereStart:.2,screenFxStart:.7} } },
-  rare_original_white_heat: { tier:"rare", name:"Rare — Original White Heat", config:{ enabled:true, signatureEffect:"none", pyro:{preset:"side_fountains",enabled:true,style:"fountain",position:"both",color:"#FFFFFF",duration:3.5,frequency:1.1,height:.62,width:1,intensity:1,burstCount:2,behavior:"simultaneous",flashBurst:false}, atmosphere:{preset:"none",type:"none"}, lighting:{enabled:true,preset:"center_focus",dimming:"strong",blackout:false,spotlight:false,phoneLights:false,lightning:false,primaryColor:"#FFFFFF",secondaryColor:"#FFFFFF",motion:"none",aim:"center",behavior:"steady",speed:1,brightness:.78,beamWidth:1,fixtureCount:6,fixtures:buildLightingPresetFixtures("center_focus",{fixtureCount:6})}, filter:{mode:"none",intensity:0}, screenFx:{preset:"none",effect:"none"}, nameplate:{enabled:true,style:"arena",glow:true,animation:"slide"}, timing:{totalDuration:6.5,pyroStart:.8,nameplateStart:.5,atmosphereStart:.2,screenFxStart:.7} } },
+  basic_white_heat: { tier:"basic", name:"Basic — White Heat", config:{ enabled:true, signatureEffect:"white_heat_original", pyro:{preset:"side_fountains",enabled:true,style:"fountain",position:"both",color:"#FFFFFF",duration:3.5,frequency:1.1,height:.62,width:1,intensity:1,burstCount:2,behavior:"simultaneous",flashBurst:false}, atmosphere:{preset:"none",type:"none"}, lighting:{enabled:true,preset:"custom",dimming:"blackout",blackout:true,spotlight:true,phoneLights:false,lightning:false,primaryColor:"#FFFFFF",secondaryColor:"#FFFFFF",motion:"none",aim:"center",behavior:"steady",speed:1,brightness:.72,beamWidth:1,fixtureCount:4,fixtures:buildLightingPresetFixtures("center_focus",{fixtureCount:4})}, filter:{mode:"cinematic",intensity:.3}, screenFx:{preset:"none",effect:"none"}, nameplate:{enabled:true,style:"arena",glow:true,animation:"slide"}, timing:{totalDuration:5,pyroStart:1,nameplateStart:.5,atmosphereStart:.2,screenFxStart:.7} } },
   rare_green_rebellion: { tier:"rare", name:"Rare — Green Rebellion", config:{ enabled:true, pyro:{preset:"cross_x",enabled:true,style:"cross_jets",position:"both",color:"#22C55E",duration:4.8,frequency:.62,height:.8,width:1.18,intensity:2,burstCount:3,behavior:"simultaneous",flashBurst:true}, atmosphere:{type:"none"}, lighting:{enabled:true,dimming:"strong",blackout:false,spotlight:false,phoneLights:false,lightning:false,primaryColor:"#22C55E",secondaryColor:"#FFFFFF",motion:"fan",speed:.8,brightness:.76,beamWidth:1.2,fixtureCount:6}, filter:{mode:"none",intensity:0}, screenFx:{effect:"none"}, nameplate:{enabled:true,style:"neon",glow:true,animation:"fade"}, timing:{totalDuration:7.5,pyroStart:.25,nameplateStart:.55} } },
   rare_monochrome_invasion: { tier:"rare", name:"Rare — Monochrome Invasion", config:{ enabled:true, pyro:{enabled:true,style:"wide_fountain",position:"both",color:"#FFFFFF",duration:4.5,frequency:1,height:.7,width:1.7,intensity:2,burstCount:3,behavior:"outside_in"}, atmosphere:{type:"none"}, lighting:{enabled:true,dimming:"strong",blackout:false,spotlight:false,phoneLights:false,lightning:false,primaryColor:"#FFFFFF",secondaryColor:"#FFFFFF",motion:"cross",speed:1,brightness:.7,beamWidth:1.1,fixtureCount:6}, filter:{mode:"cool",intensity:.2}, screenFx:{effect:"none"}, nameplate:{enabled:true,style:"steel",glow:false,animation:"fade"}, timing:{totalDuration:7} } },
   epic_glass_break: { tier:"epic", name:"Epic — Glass Break", config:{ enabled:true, signatureEffect:"none", pyro:{preset:"far_jets",enabled:true,style:"jets",position:"both",color:"#FFFFFF",duration:1.8,frequency:1.4,height:.38,width:.58,intensity:1,burstCount:1,behavior:"simultaneous",flashBurst:true}, atmosphere:{preset:"none",type:"none"}, lighting:{enabled:true,preset:"cold_impact",dimming:"strong",blackout:false,spotlight:false,phoneLights:false,lightning:false,primaryColor:"#FFFFFF",secondaryColor:"#3B82F6",motion:"sweep",aim:"ramp",behavior:"alternating",speed:.72,brightness:.95,beamWidth:1.05,fixtureCount:8,fixtures:buildLightingPresetFixtures("cold_impact",{fixtureCount:8})}, filter:{mode:"none",intensity:0}, screenFx:{preset:"glass_break",effect:"glass_shatter",shake:2,flash:1,lingerCracks:true}, nameplate:{enabled:true,style:"steel",glow:false,animation:"slide"}, timing:{totalDuration:7,screenFxStart:.15,pyroStart:.65,nameplateStart:.85} } },
@@ -812,6 +822,9 @@ const ENTRANCE_TEMPLATES = {
 function mergeEntranceConfig(value) {
   const d = entranceDefaults();
   const raw = value && typeof value === "object" ? value : {};
+  if (raw.templatePreset === "rare_original_white_heat") {
+    return mergeEntranceConfig({ ...ENTRANCE_TEMPLATES.basic_white_heat.config, templatePreset:"basic_white_heat", wrestlingName:raw.wrestlingName||"", subtitle:raw.subtitle||"" });
+  }
   const legacyDimming = raw.lighting?.dimming || (raw.lighting?.blackout ? "blackout" : d.lighting.dimming);
   const mergedPyro = { ...d.pyro, ...(raw.pyro || {}) };
   if (raw.pyro?.flashBurst == null) mergedPyro.flashBurst = ENTRANCE_PYRO_FLASH_STYLES.has(mergedPyro.style);
@@ -848,17 +861,18 @@ let entranceTemplateSelection = "custom";
 let entranceFixtureOverrides = [];
 
 function currentEntranceForm() {
-  const dimming = el("entranceDimmingSelect").value;
+  const pyroMode=el("entrancePyroModeSelect").value, atmosphereMode=el("entranceAtmosphereModeSelect").value, lightingMode=el("entranceLightingModeSelect").value, screenMode=el("entranceScreenModeSelect").value;
+  const dimming = lightingMode==="none" ? "none" : el("entranceDimmingSelect").value;
   return {
     enabled: el("entranceEnabledInput").checked,
     templatePreset: entranceTemplateSelection || "custom",
     signatureEffect: entranceSignatureEffect,
     wrestlingName: el("entranceWrestlingNameInput").value.trim(), subtitle: el("entranceSubtitleInput").value.trim(),
-    pyro: { preset:el("entrancePyroModeSelect").value==="preset"?(el("entrancePyroPresetSelect").value||"custom"):"custom", enabled: el("entrancePyroEnabledInput").checked, style: el("entrancePyroStyleSelect").value, position: el("entrancePyroPositionSelect").value, color: el("entrancePyroColorInput").value, duration:+el("entrancePyroDurationInput").value, frequency:+el("entrancePyroFrequencyInput").value, height:+el("entrancePyroHeightInput").value, width:+el("entrancePyroWidthInput").value, intensity:+el("entrancePyroIntensitySelect").value, burstCount:+el("entrancePyroBurstCountInput").value, behavior:el("entrancePyroBehaviorSelect").value, flashBurst:el("entrancePyroFlashBurstInput").checked, layeredEffects:el("entranceLayeredEffectsInput").checked },
-    atmosphere: { preset:el("entranceAtmosphereModeSelect").value==="preset"?(el("entranceAtmospherePresetSelect").value||"custom"):"custom", type:el("entranceAtmosphereSelect").value, color:el("entranceAtmosphereColorInput").value, density:+el("entranceAtmosphereDensityInput").value, spread:+el("entranceAtmosphereSpreadInput").value, placement:el("entranceAtmospherePlacementSelect").value, fade:+el("entranceAtmosphereFadeInput").value },
-    lighting: { enabled:el("entranceLightingEnabledInput").checked, preset:el("entranceLightingModeSelect").value==="preset"?(el("entranceLightingPresetSelect")?.value||"custom"):"custom", dimming, blackout:dimming==="blackout", spotlight:el("entranceSpotlightInput").checked, phoneLights:false, lightning:el("entranceLightningInput").checked, branchingLightning:el("entranceBranchingLightningInput").checked, primaryColor:el("entranceLightPrimaryInput").value, secondaryColor:el("entranceLightSecondaryInput").value, motion:el("entranceLightMotionSelect").value, aim:el("entranceLightAimSelect").value, behavior:el("entranceLightBehaviorSelect").value, speed:+el("entranceLightSpeedInput").value, brightness:+el("entranceLightBrightnessInput").value, beamWidth:+el("entranceLightBeamWidthInput").value, fixtureCount:+el("entranceLightFixtureCountInput").value, fixtures:entranceFixtureOverrides.slice(0,+el("entranceLightFixtureCountInput").value).map(x=>({...x})) },
-    filter: { mode:el("entranceFilterSelect").value, intensity:+el("entranceFilterIntensityInput").value },
-    screenFx: { preset:el("entranceScreenModeSelect").value==="preset"?(el("entranceScreenPresetSelect").value||"custom"):"custom", effect:el("entranceScreenFxSelect").value, shake:+el("entranceScreenShakeInput").value, flash:+el("entranceScreenFlashInput").value, lingerCracks:el("entranceGlassLingerInput").checked },
+    pyro: { preset:pyroMode==="preset"?(el("entrancePyroPresetSelect").value||"custom"):(pyroMode==="none"?"none":"custom"), enabled: pyroMode!=="none", style: el("entrancePyroStyleSelect").value, position: el("entrancePyroPositionSelect").value, color: el("entrancePyroColorInput").value, duration:+el("entrancePyroDurationInput").value, frequency:+el("entrancePyroFrequencyInput").value, height:+el("entrancePyroHeightInput").value, width:+el("entrancePyroWidthInput").value, intensity:+el("entrancePyroIntensitySelect").value, burstCount:+el("entrancePyroBurstCountInput").value, behavior:el("entrancePyroBehaviorSelect").value, flashBurst:el("entrancePyroFlashBurstInput").checked, layeredEffects:el("entranceLayeredEffectsInput").checked },
+    atmosphere: { preset:atmosphereMode==="preset"?(el("entranceAtmospherePresetSelect").value||"custom"):(atmosphereMode==="none"?"none":"custom"), type:atmosphereMode==="none"?"none":el("entranceAtmosphereSelect").value, color:el("entranceAtmosphereColorInput").value, density:+el("entranceAtmosphereDensityInput").value, spread:+el("entranceAtmosphereSpreadInput").value, placement:el("entranceAtmospherePlacementSelect").value, fade:+el("entranceAtmosphereFadeInput").value },
+    lighting: { enabled:lightingMode!=="none", preset:lightingMode==="preset"?(el("entranceLightingPresetSelect")?.value||"custom"):(lightingMode==="none"?"none":"custom"), dimming, blackout:lightingMode!=="none"&&dimming==="blackout", spotlight:lightingMode!=="none"&&el("entranceSpotlightInput").checked, phoneLights:false, lightning:lightingMode!=="none"&&el("entranceLightningInput").checked, branchingLightning:lightingMode!=="none"&&el("entranceBranchingLightningInput").checked, primaryColor:el("entranceLightPrimaryInput").value, secondaryColor:el("entranceLightSecondaryInput").value, motion:el("entranceLightMotionSelect").value, aim:el("entranceLightAimSelect").value, behavior:el("entranceLightBehaviorSelect").value, speed:+el("entranceLightSpeedInput").value, brightness:+el("entranceLightBrightnessInput").value, beamWidth:+el("entranceLightBeamWidthInput").value, fixtureCount:+el("entranceLightFixtureCountInput").value, fixtures:entranceFixtureOverrides.slice(0,+el("entranceLightFixtureCountInput").value).map(x=>({...x})) },
+    filter: { mode:screenMode==="none"?"none":el("entranceFilterSelect").value, intensity:screenMode==="none"?0:+el("entranceFilterIntensityInput").value },
+    screenFx: { preset:screenMode==="preset"?(el("entranceScreenPresetSelect").value||"custom"):(screenMode==="none"?"none":"custom"), effect:screenMode==="none"?"none":el("entranceScreenFxSelect").value, shake:screenMode==="none"?0:+el("entranceScreenShakeInput").value, flash:screenMode==="none"?0:+el("entranceScreenFlashInput").value, lingerCracks:screenMode!=="none"&&el("entranceGlassLingerInput").checked },
     nameplate: { enabled:el("entranceNameplateEnabledInput").checked, style:el("entranceNameplateStyleSelect").value, glow:el("entranceNameplateGlowInput").checked, animation:el("entranceNameplateAnimationSelect").value },
     timing: { totalDuration:+el("entranceTotalDurationInput").value, entranceDelay:+el("entranceDelayInput").value, nameplateStart:+el("entranceNameplateStartInput").value, pyroStart:+el("entrancePyroStartInput").value, atmosphereStart:+el("entranceAtmosphereStartInput").value, screenFxStart:+el("entranceScreenFxStartInput").value }
   };
@@ -869,13 +883,13 @@ function setEntranceForm(config) {
   entranceSignatureEffect = c.signatureEffect || "none";
   entranceTemplateSelection = c.templatePreset || "custom";
   el("entranceEnabledInput").checked=!!c.enabled; el("entranceWrestlingNameInput").value=c.wrestlingName||activeProfile?.user?.username||""; el("entranceSubtitleInput").value=c.subtitle||"";
-  el("entrancePyroModeSelect").value=c.pyro.preset&&c.pyro.preset!=="custom"?"preset":"custom"; populateSubsystemPresets("entrancePyroPresetSelect",ENTRANCE_PYRO_PRESETS,c.pyro.preset||"far_jets");
+  el("entrancePyroModeSelect").value=c.pyro.enabled===false?"none":(c.pyro.preset&&c.pyro.preset!=="custom"&&c.pyro.preset!=="none"?"preset":"custom"); populateSubsystemPresets("entrancePyroPresetSelect",ENTRANCE_PYRO_PRESETS,c.pyro.preset||"far_jets");
     el("entrancePyroEnabledInput").checked=c.pyro.enabled!==false; el("entrancePyroStyleSelect").value=c.pyro.style; el("entrancePyroPositionSelect").value=c.pyro.position||"both"; el("entrancePyroColorInput").value=c.pyro.color||"#FFFFFF"; el("entrancePyroDurationInput").value=c.pyro.duration; el("entrancePyroFrequencyInput").value=c.pyro.frequency; el("entrancePyroHeightInput").value=c.pyro.height; el("entrancePyroWidthInput").value=c.pyro.width; el("entrancePyroIntensitySelect").value=String(c.pyro.intensity); el("entrancePyroBurstCountInput").value=c.pyro.burstCount||3; el("entrancePyroBehaviorSelect").value=c.pyro.behavior||"simultaneous"; el("entrancePyroFlashBurstInput").checked=c.pyro.flashBurst!==false; el("entranceLayeredEffectsInput").checked=!!c.pyro.layeredEffects;
-  el("entranceAtmosphereModeSelect").value=c.atmosphere.preset&&c.atmosphere.preset!=="custom"?"preset":"custom"; populateSubsystemPresets("entranceAtmospherePresetSelect",ENTRANCE_ATMOSPHERE_PRESETS,c.atmosphere.preset||"none");
+  el("entranceAtmosphereModeSelect").value=c.atmosphere.type==="none"?"none":(c.atmosphere.preset&&c.atmosphere.preset!=="custom"&&c.atmosphere.preset!=="none"?"preset":"custom"); populateSubsystemPresets("entranceAtmospherePresetSelect",ENTRANCE_ATMOSPHERE_PRESETS,c.atmosphere.preset||"low_fog");
     el("entranceAtmosphereSelect").value=c.atmosphere.type; el("entranceAtmosphereColorInput").value=c.atmosphere.color||"#FFFFFF"; el("entranceAtmosphereDensityInput").value=c.atmosphere.density; el("entranceAtmosphereSpreadInput").value=c.atmosphere.spread??.75; el("entranceAtmospherePlacementSelect").value=c.atmosphere.placement||"floor"; el("entranceAtmosphereFadeInput").value=c.atmosphere.fade||4;
-  el("entranceLightingModeSelect").value=c.lighting.preset&&c.lighting.preset!=="custom"?"preset":"custom";
+  el("entranceLightingModeSelect").value=c.lighting.enabled===false?"none":(c.lighting.preset&&c.lighting.preset!=="custom"&&c.lighting.preset!=="none"?"preset":"custom");
     el("entranceLightingEnabledInput").checked=c.lighting.enabled!==false; el("entranceDimmingSelect").value=c.lighting.dimming||"moderate"; el("entranceSpotlightInput").checked=!!c.lighting.spotlight; el("entranceLightningInput").checked=!!c.lighting.lightning; el("entranceBranchingLightningInput").checked=!!c.lighting.branchingLightning; el("entranceLightPrimaryInput").value=c.lighting.primaryColor||"#FFFFFF"; el("entranceLightSecondaryInput").value=c.lighting.secondaryColor||"#3B82F6"; el("entranceLightMotionSelect").value=c.lighting.motion||"none"; el("entranceLightAimSelect").value=c.lighting.aim||"down"; el("entranceLightBehaviorSelect").value=c.lighting.behavior||"steady"; el("entranceLightSpeedInput").value=c.lighting.speed; el("entranceLightBrightnessInput").value=c.lighting.brightness??.6; el("entranceLightBeamWidthInput").value=c.lighting.beamWidth??.9; el("entranceLightFixtureCountInput").value=c.lighting.fixtureCount??4; entranceFixtureOverrides=Array.isArray(c.lighting.fixtures)?c.lighting.fixtures.map(x=>({...x})):[]; populateEntranceLightingPresets(c.lighting.preset||"custom"); renderEntranceFixtureEditor();
-  el("entranceScreenModeSelect").value=c.screenFx.preset&&c.screenFx.preset!=="custom"?"preset":"custom"; populateSubsystemPresets("entranceScreenPresetSelect",ENTRANCE_SCREEN_PRESETS,c.screenFx.preset||"none");
+  el("entranceScreenModeSelect").value=(c.screenFx.effect||"none")==="none"&&(c.filter.mode||"none")==="none"?"none":(c.screenFx.preset&&c.screenFx.preset!=="custom"&&c.screenFx.preset!=="none"?"preset":"custom"); populateSubsystemPresets("entranceScreenPresetSelect",ENTRANCE_SCREEN_PRESETS,c.screenFx.preset||"cold_blue");
     el("entranceFilterSelect").value=c.filter.mode||"none"; el("entranceFilterIntensityInput").value=c.filter.intensity??.45; el("entranceScreenFxSelect").value=c.screenFx.effect||"none"; el("entranceScreenShakeInput").value=c.screenFx.shake??1; el("entranceScreenFlashInput").value=c.screenFx.flash??.6; el("entranceGlassLingerInput").checked=!!c.screenFx.lingerCracks;
   el("entranceNameplateEnabledInput").checked=c.nameplate.enabled!==false; el("entranceNameplateStyleSelect").value=c.nameplate.style; el("entranceNameplateGlowInput").checked=!!c.nameplate.glow; el("entranceNameplateAnimationSelect").value=c.nameplate.animation||"slide";
   el("entranceTotalDurationInput").value=c.timing.totalDuration||5; el("entranceDelayInput").value=c.timing.entranceDelay||0; el("entranceNameplateStartInput").value=c.timing.nameplateStart??.6; el("entrancePyroStartInput").value=c.timing.pyroStart??1; el("entranceAtmosphereStartInput").value=c.timing.atmosphereStart??.3; el("entranceScreenFxStartInput").value=c.timing.screenFxStart??.8;
@@ -895,9 +909,9 @@ function populateEntranceLightingPresets(selected="custom") {
 }
 function applyEntranceLightingPreset(){
   const key=el("entranceLightingPresetSelect").value,preset=ENTRANCE_LIGHTING_PRESETS[key]; if(!preset||(ENTRANCE_TIER_RANK[preset.tier]||1)>currentEntranceRank())return;
-  const c=currentEntranceForm(); const merged={...c.lighting,...preset.config}; merged.fixtures=buildLightingPresetFixtures(key,merged); entranceFixtureOverrides=merged.fixtures.map(x=>({...x}));
+  const c=currentEntranceForm(); const merged={...c.lighting,...preset.config,enabled:true}; merged.fixtures=buildLightingPresetFixtures(key,merged); entranceFixtureOverrides=merged.fixtures.map(x=>({...x}));
   el("entranceDimmingSelect").value=merged.dimming||c.lighting.dimming; el("entranceLightMotionSelect").value=merged.motion||"none"; el("entranceLightAimSelect").value=merged.aim||"center"; el("entranceLightBehaviorSelect").value=merged.behavior||"steady"; el("entranceLightPrimaryInput").value=merged.primaryColor||c.lighting.primaryColor; el("entranceLightSecondaryInput").value=merged.secondaryColor||c.lighting.secondaryColor; el("entranceLightSpeedInput").value=merged.speed??1; el("entranceLightBrightnessInput").value=merged.brightness??.65; el("entranceLightBeamWidthInput").value=merged.beamWidth??1; el("entranceLightFixtureCountInput").value=merged.fixtureCount||4; if("lightning" in merged)el("entranceLightningInput").checked=!!merged.lightning;
-  el("entranceLightingModeSelect").value="preset"; syncEntranceCategoryModes(false); renderEntranceFixtureEditor(); fillEntranceRanges(); el("entranceMessage").className="message success"; el("entranceMessage").textContent=`${preset.name} lighting applied. You can now adjust individual fixtures.`;
+  el("entranceLightingModeSelect").value="preset"; el("entranceLightingEnabledInput").checked=true; syncEntranceCategoryModes(false); renderEntranceFixtureEditor(); fillEntranceRanges(); el("entranceMessage").className="message success"; el("entranceMessage").textContent=`${preset.name} lighting applied. You can now adjust individual fixtures.`;
 }
 function ensureFixtureOverride(index){
   const count=Math.min(8,+el("entranceLightFixtureCountInput").value||4); while(entranceFixtureOverrides.length<count){const i=entranceFixtureOverrides.length;entranceFixtureOverrides.push({enabled:true,color:undefined,brightness:undefined,aim:"inherit",motion:"inherit",speed:undefined,behavior:"inherit",direction:"normal",phase:count>1?i/(count-1):0,range:1});} return entranceFixtureOverrides[index];
@@ -974,13 +988,13 @@ function setRangeTier(id, {basic,rare,epic,champion}, min=null) {
 }
 
 function setEntranceControlAvailability() {
-  const pyroEnabled=el("entrancePyroEnabledInput").checked;
+  const pyroEnabled=el("entrancePyroModeSelect").value!=="none";
   ["entrancePyroStyleSelect","entrancePyroPositionSelect","entrancePyroColorInput","entrancePyroFlashBurstInput","entrancePyroDurationInput","entrancePyroFrequencyInput","entrancePyroHeightInput","entrancePyroWidthInput","entrancePyroIntensitySelect","entrancePyroBurstCountInput","entrancePyroBehaviorSelect"].forEach(id=>{const c=el(id); if(c && c.dataset.tierLocked!=="true")c.disabled=!pyroEnabled;});
-  const rigEnabled=el("entranceLightingEnabledInput").checked;
+  const rigEnabled=el("entranceLightingModeSelect").value!=="none";
   ["entranceDimmingSelect","entranceLightingPresetSelect","entranceApplyLightingPresetButton","entranceLightPrimaryInput","entranceLightSecondaryInput","entranceLightMotionSelect","entranceLightAimSelect","entranceLightBehaviorSelect","entranceLightSpeedInput","entranceLightBrightnessInput","entranceLightBeamWidthInput","entranceLightFixtureCountInput","entranceSpotlightInput","entranceLightningInput","entranceBranchingLightningInput"].forEach(id=>{const c=el(id); if(c && c.dataset.tierLocked!=="true")c.disabled=!rigEnabled;});
   const nameplateEnabled=el("entranceNameplateEnabledInput").checked;
   ["entranceNameplateStyleSelect","entranceNameplateGlowInput","entranceNameplateAnimationSelect"].forEach(id=>{const c=el(id); if(c && c.dataset.tierLocked!=="true")c.disabled=!nameplateEnabled;});
-  const atmosphereEnabled=el("entranceAtmosphereSelect").value!=="none" && tierAtLeast("epic");
+  const atmosphereEnabled=el("entranceAtmosphereModeSelect").value!=="none" && el("entranceAtmosphereSelect").value!=="none" && tierAtLeast("epic");
   ["entranceAtmosphereColorInput","entranceAtmosphereDensityInput","entranceAtmosphereSpreadInput","entranceAtmospherePlacementSelect","entranceAtmosphereFadeInput"].forEach(id=>{const c=el(id); if(c && c.dataset.tierLocked!=="true")c.disabled=!atmosphereEnabled;});
   updateEntranceSummary();
 }
@@ -999,7 +1013,7 @@ function snapEntranceColor(id,kind){
 }
 
 function applyEntranceTierUI() {
-  const tier=currentEntranceTier(); const rank=currentEntranceRank(); el("entranceTierLabel").textContent=entranceTierText(tier);
+  const tier=currentEntranceTier(); const rank=currentEntranceRank(); const whiteHeatPreset=entranceTemplateSelection==="basic_white_heat"; el("entranceTierLabel").textContent=entranceTierText(tier);
   const basis=activeProfile?.entrance?.rank_basis||"achievement"; const highest=activeProfile?.entrance?.highest_achievement_rarity;
   const next=tier==="basic"?"Rare achievement":tier==="rare"?"Epic achievement":tier==="epic"?"Legendary or Secret achievement":null;
   el("entranceLockedMessage").classList.remove("hidden");
@@ -1011,15 +1025,15 @@ function applyEntranceTierUI() {
   setSelectLocks("entrancePyroPositionSelect",{both:"basic",inner:"basic",left:"rare",right:"rare",center:"rare",full:"epic",overhead:"epic"});
   setSelectLocks("entrancePyroIntensitySelect",{"1":"basic","2":"basic","3":"rare","4":"champion"});
   setSelectLocks("entrancePyroBehaviorSelect",{simultaneous:"basic",alternating:"rare",outside_in:"rare",inside_out:"rare",wave:"rare",random:"epic",rapid:"epic"});
-  setSelectLocks("entranceDimmingSelect",{none:"basic",light:"basic",moderate:"basic",strong:"rare",blackout:"epic"});
+  setSelectLocks("entranceDimmingSelect",{none:"basic",light:"basic",moderate:"basic",strong:"rare",blackout:whiteHeatPreset?"basic":"epic"});
   setSelectLocks("entranceLightMotionSelect",{none:"basic",sweep:"basic",cross:"rare",fan:"rare",vertical:"rare",diagonal:"rare",pendulum:"rare",search:"epic",circle:"epic",figure8:"epic",converge:"epic",diverge:"epic",pulse:"epic",stadium:"epic",champion:"champion"});
   setSelectLocks("entranceLightAimSelect",{center:"basic",down:"basic",ramp:"rare",screen:"rare",crowd_left:"rare",crowd_right:"rare",outward:"rare"});
   setSelectLocks("entranceLightBehaviorSelect",{steady:"basic",pulse:"rare",blink:"rare",alternating:"rare",chase:"rare",shimmer:"champion"});
   setSelectLocks("entranceAtmosphereSelect",{none:"basic",fog:"epic",smoke:"epic",heavy_fog:"epic",mist:"epic"});
   setSelectLocks("entranceScreenFxSelect",{none:"basic",glass_shatter:"epic",flash:"epic",glitch:"epic",shake:"epic"});
-  setSelectLocks("entranceFilterSelect",{none:"basic",cinematic:"epic",cool:"rare",warm:"rare",red:"rare",blue:"rare",purple:"rare",green:"epic",gold:"epic",mono:"epic",high_contrast:"epic",desaturated:"epic",gold_contrast:"champion",crimson_mono:"champion",electric_blue:"champion"});
+  setSelectLocks("entranceFilterSelect",{none:"basic",cinematic:whiteHeatPreset?"basic":"epic",cool:"rare",warm:"rare",red:"rare",blue:"rare",purple:"rare",green:"epic",gold:"epic",mono:"epic",high_contrast:"epic",desaturated:"epic",gold_contrast:"champion",crimson_mono:"champion",electric_blue:"champion"});
 
-  setControlTierLock("entrancePyroColorInput","rare","#FFFFFF"); setControlTierLock("entranceSpotlightInput","epic",false); setControlTierLock("entranceLightningInput","champion",false); setControlTierLock("entranceBranchingLightningInput","champion",false); setControlTierLock("entranceLayeredEffectsInput","champion",false); setControlTierLock("entranceGlassLingerInput","epic",false);
+  setControlTierLock("entrancePyroColorInput","rare","#FFFFFF"); setControlTierLock("entranceSpotlightInput",whiteHeatPreset?"basic":"epic",false); setControlTierLock("entranceLightningInput","champion",false); setControlTierLock("entranceBranchingLightningInput","champion",false); setControlTierLock("entranceLayeredEffectsInput","champion",false); setControlTierLock("entranceGlassLingerInput","epic",false);
   ["entranceAtmosphereColorInput","entranceAtmosphereDensityInput","entranceAtmosphereSpreadInput","entranceAtmospherePlacementSelect","entranceAtmosphereFadeInput"].forEach(id=>setControlTierLock(id,"epic"));
   setControlTierLock("entranceFilterIntensityInput","rare"); ["entranceScreenShakeInput","entranceScreenFlashInput"].forEach(id=>setControlTierLock(id,"epic"));
   ["entranceDelayInput","entranceNameplateStartInput","entranceAtmosphereStartInput","entranceScreenFxStartInput"].forEach(id=>setControlTierLock(id,"epic"));
@@ -1101,7 +1115,7 @@ export function initProfiles() {
     el("entranceApplyLightingPresetButton").addEventListener("click", applyEntranceLightingPreset);
   el("entranceApplyScreenPresetButton").addEventListener("click", applyEntranceScreenPreset);
   el("entranceResetFixturesButton").addEventListener("click", resetEntranceFixtures);
-  ["entrancePyroModeSelect","entranceAtmosphereModeSelect","entranceLightingModeSelect","entranceScreenModeSelect"].forEach(id=>el(id).addEventListener("change",()=>syncEntranceCategoryModes(true)));
+  ["entrancePyroModeSelect","entranceAtmosphereModeSelect","entranceLightingModeSelect","entranceScreenModeSelect"].forEach(id=>el(id).addEventListener("change",()=>{syncEntranceCategoryModes(true);applyEntranceTierUI();}));
   el("entrancePyroEnabledInput").addEventListener("change", applyEntranceTierUI);
   el("entranceLightingEnabledInput").addEventListener("change", applyEntranceTierUI);
   el("entranceNameplateEnabledInput").addEventListener("change", applyEntranceTierUI);

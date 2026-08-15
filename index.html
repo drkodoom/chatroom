@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0b0f17">
   <title>DRK.CHAT</title>
-  <link rel="stylesheet" href="./css/base.css?v=0.18.10">
-  <link rel="stylesheet" href="./css/themes.css?v=0.18.10">
+  <link rel="stylesheet" href="./css/base.css?v=0.18.12">
+  <link rel="stylesheet" href="./css/themes.css?v=0.18.12">
 </head>
 <body class="theme-modern">
   <main class="app-window" id="appWindow">
     <header class="titlebar">
       <div class="titlebar-copy">
         <span id="clientTitle">DRK CHAT</span>
-        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.18.10</button>
+        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.18.12</button>
       </div>
       <span class="classic-window-controls aol-only" aria-hidden="true">[_][□][X]</span>
     </header>
@@ -581,11 +581,11 @@
           <details class="entrance-accordion">
             <summary>Pyro & Flames</summary>
             <div class="entrance-accordion-body">
-              <label class="identity-check"><input id="entrancePyroEnabledInput" type="checkbox" checked> Enable pyro / flames</label>
-              <div class="entrance-category-mode-row"><div><label for="entrancePyroModeSelect">Pyro Setup</label><select id="entrancePyroModeSelect"><option value="preset">Preset</option><option value="custom">Custom</option></select></div><div id="entrancePyroPresetWrap"><label for="entrancePyroPresetSelect">Pyro Preset</label><select id="entrancePyroPresetSelect"></select></div><button id="entranceApplyPyroPresetButton" type="button">APPLY PYRO</button></div>
+              <input id="entrancePyroEnabledInput" type="checkbox" checked hidden>
+              <div class="entrance-category-mode-row"><div><label for="entrancePyroModeSelect">Pyro Setup</label><select id="entrancePyroModeSelect"><option value="none">None</option><option value="preset">Preset</option><option value="custom">Custom</option></select></div><div id="entrancePyroPresetWrap"><label for="entrancePyroPresetSelect">Pyro Preset</label><select id="entrancePyroPresetSelect"></select></div><button id="entranceApplyPyroPresetButton" type="button">APPLY PYRO</button></div>
               <div id="entrancePyroCustomControls">
               <div class="entrance-grid">
-                <div><label for="entrancePyroStyleSelect">Effect Type</label><select id="entrancePyroStyleSelect"><option value="jets">Side Jets</option><option value="fountain">Side Fountains</option><option value="cross_jets">Crossing X Jets</option><option value="sparkler_lane">Sparkler / Crackle Lane</option><option value="wide_fountain">Wide Fountains</option><option value="fan">Fan Pyro</option><option value="center_blast">Center Blast</option><option value="dual_center">Dual Center Blast</option><option value="multi_burst">Multi-Burst</option><option value="full_stage">Full-Stage Pyro</option><option value="flame_jets">Flame Jets</option><option value="alternating_flames">Alternating Flames</option><option value="flame_wall">Flame Wall</option><option value="rain">Pyro Rain</option><option value="curtain">Spark Curtain</option><option value="finale">Finale Burst</option></select></div>
+                <div><label for="entrancePyroStyleSelect">Effect Type</label><select id="entrancePyroStyleSelect"><option value="jets">Side Jets</option><option value="fountain">Side Fountains</option><option value="cross_jets">Crossing X Fireworks</option><option value="sparkler_lane">Sparkler / Crackle Lane</option><option value="wide_fountain">Wide Fountains</option><option value="fan">Fan Pyro</option><option value="center_blast">Center Blast</option><option value="dual_center">Dual Center Blast</option><option value="multi_burst">Multi-Burst</option><option value="full_stage">Full-Stage Pyro</option><option value="flame_jets">Flame Jets</option><option value="alternating_flames">Alternating Flames</option><option value="flame_wall">Flame Wall</option><option value="rain">Pyro Rain</option><option value="curtain">Spark Curtain</option><option value="finale">Finale Burst</option></select></div>
                 <div><label for="entrancePyroPositionSelect">Position</label><select id="entrancePyroPositionSelect"><option value="both">Far Sides — 2</option><option value="inner">Near Middle — 2</option><option value="left">Left Side</option><option value="right">Right Side</option><option value="center">Center</option><option value="full">Full Stage</option><option value="overhead">Overhead</option></select></div>
                 <div><label for="entrancePyroColorInput">Color</label><input id="entrancePyroColorInput" type="color" value="#ffffff"></div>
                 <div><label for="entrancePyroIntensitySelect">Intensity</label><select id="entrancePyroIntensitySelect"><option value="1">Low</option><option value="2">Medium</option><option value="3">High</option><option value="4">Maximum</option></select></div>
@@ -604,7 +604,7 @@
           <details class="entrance-accordion">
             <summary>Atmosphere</summary>
             <div class="entrance-accordion-body">
-              <div class="entrance-category-mode-row"><div><label for="entranceAtmosphereModeSelect">Atmosphere Setup</label><select id="entranceAtmosphereModeSelect"><option value="preset">Preset</option><option value="custom">Custom</option></select></div><div id="entranceAtmospherePresetWrap"><label for="entranceAtmospherePresetSelect">Atmosphere Preset</label><select id="entranceAtmospherePresetSelect"></select></div><button id="entranceApplyAtmospherePresetButton" type="button">APPLY ATMOSPHERE</button></div>
+              <div class="entrance-category-mode-row"><div><label for="entranceAtmosphereModeSelect">Atmosphere Setup</label><select id="entranceAtmosphereModeSelect"><option value="none">None</option><option value="preset">Preset</option><option value="custom">Custom</option></select></div><div id="entranceAtmospherePresetWrap"><label for="entranceAtmospherePresetSelect">Atmosphere Preset</label><select id="entranceAtmospherePresetSelect"></select></div><button id="entranceApplyAtmospherePresetButton" type="button">APPLY ATMOSPHERE</button></div>
               <div id="entranceAtmosphereCustomControls" class="entrance-grid">
               <div><label for="entranceAtmosphereSelect">Atmosphere</label><select id="entranceAtmosphereSelect"><option value="none">None</option><option value="fog">Fog</option><option value="smoke">Smoke</option><option value="heavy_fog">Heavy Fog</option><option value="mist">Mist</option></select></div>
               <div><label for="entranceAtmosphereColorInput">Color</label><input id="entranceAtmosphereColorInput" type="color" value="#ffffff"></div>
@@ -619,8 +619,8 @@
           <details class="entrance-accordion">
             <summary>Lighting</summary>
             <div class="entrance-accordion-body">
-              <label class="identity-check"><input id="entranceLightingEnabledInput" type="checkbox" checked> Enable arena lighting rig</label>
-              <div class="entrance-category-mode-row"><div><label for="entranceLightingModeSelect">Lighting Setup</label><select id="entranceLightingModeSelect"><option value="preset">Preset</option><option value="custom">Custom</option></select></div><div id="entranceLightingPresetWrap"><label for="entranceLightingPresetSelect">Lighting Preset</label><select id="entranceLightingPresetSelect"></select></div><button id="entranceApplyLightingPresetButton" type="button">APPLY LIGHTING</button></div>
+              <input id="entranceLightingEnabledInput" type="checkbox" checked hidden>
+              <div class="entrance-category-mode-row"><div><label for="entranceLightingModeSelect">Lighting Setup</label><select id="entranceLightingModeSelect"><option value="none">None</option><option value="preset">Preset</option><option value="custom">Custom</option></select></div><div id="entranceLightingPresetWrap"><label for="entranceLightingPresetSelect">Lighting Preset</label><select id="entranceLightingPresetSelect"></select></div><button id="entranceApplyLightingPresetButton" type="button">APPLY LIGHTING</button></div>
               <div id="entranceLightingCustomControls">
               <div class="entrance-grid">
                 <div><label for="entranceDimmingSelect">Arena Dimming</label><select id="entranceDimmingSelect"><option value="none">None — keep arena normal</option><option value="light">Light</option><option value="moderate">Moderate</option><option value="strong">Strong</option><option value="blackout">Blackout</option></select></div>
@@ -647,7 +647,7 @@
           <details class="entrance-accordion">
             <summary>Screen Treatment</summary>
             <div class="entrance-accordion-body">
-              <div class="entrance-category-mode-row"><div><label for="entranceScreenModeSelect">Screen Setup</label><select id="entranceScreenModeSelect"><option value="preset">Preset</option><option value="custom">Custom</option></select></div><div id="entranceScreenPresetWrap"><label for="entranceScreenPresetSelect">Screen Preset</label><select id="entranceScreenPresetSelect"></select></div><button id="entranceApplyScreenPresetButton" type="button">APPLY SCREEN</button></div>
+              <div class="entrance-category-mode-row"><div><label for="entranceScreenModeSelect">Screen Setup</label><select id="entranceScreenModeSelect"><option value="none">None</option><option value="preset">Preset</option><option value="custom">Custom</option></select></div><div id="entranceScreenPresetWrap"><label for="entranceScreenPresetSelect">Screen Preset</label><select id="entranceScreenPresetSelect"></select></div><button id="entranceApplyScreenPresetButton" type="button">APPLY SCREEN</button></div>
               <div id="entranceScreenCustomControls" class="entrance-grid">
               <div><label for="entranceScreenFxSelect">Screen FX</label><select id="entranceScreenFxSelect"><option value="none">None</option><option value="glass_shatter">Glass Shatter</option><option value="flash">Flash Burst</option><option value="glitch">Static Glitch</option><option value="shake">Camera Shake</option></select></div>
               <div><label for="entranceFilterSelect">Color Filter</label><select id="entranceFilterSelect"><option value="none">None</option><option value="cinematic">Cinematic</option><option value="cool">Cold Blue</option><option value="warm">Warm</option><option value="red">Red Alert</option><option value="blue">Blue</option><option value="purple">Purple</option><option value="green">Green Toxic</option><option value="gold">Gold</option><option value="mono">Black & White</option><option value="high_contrast">High Contrast</option><option value="desaturated">Desaturated</option><option value="gold_contrast">Gold + Contrast</option><option value="crimson_mono">Crimson Mono</option><option value="electric_blue">Electric Blue</option></select></div>
@@ -800,6 +800,6 @@
   <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
   <div id="roomEffectLayer" class="room-effect-layer" aria-hidden="true"></div>
 
-  <script type="module" src="./js/app.js?v=0.18.10"></script>
+  <script type="module" src="./js/app.js?v=0.18.12"></script>
 </body>
 </html>

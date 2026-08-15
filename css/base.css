@@ -3130,7 +3130,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
   transform:translateX(-50%);
   transform-origin:50% 0;
   clip-path:polygon(47% 0,53% 0,100% 100%,0 100%);
-  /* v0.18.10: compatible beam fallback first; color-mix enhances it where supported. */
+  /* v0.18.11: compatible beam fallback first; color-mix enhances it where supported. */
   background:linear-gradient(180deg,var(--beam-color) 0%,transparent 100%);
   background:linear-gradient(180deg,
     color-mix(in srgb,var(--beam-color) 38%,transparent) 0%,
@@ -3461,7 +3461,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 
 
 /* =====================================================
-   v0.18.10 — distinct pyro families
+   v0.18.11 — distinct pyro families
    ===================================================== */
 /* Explosive jets: short ignition column + broad firework spray, not a fountain. */
 .entrance-pyro-jets .entrance-pyro-core {
@@ -3530,7 +3530,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 }
 
 
-/* v0.18.10 — Crossing X Fireworks: two green fireworks launch from opposite corners,
+/* v0.18.11 — Crossing X Fireworks: two green fireworks launch from opposite corners,
    pass each other, and leave a smoky X trail behind them. */
 .entrance-cross-firework {
   position:absolute;

@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.18.10";
-import { apiFetch } from "./api.js?v=0.18.10";
-import { getToken, state } from "./state.js?v=0.18.10";
-import { openMemberByUsername } from "./admin.js?v=0.18.10";
-import { openProfileByUsername } from "./profile.js?v=0.18.10";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.18.10";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.18.12";
+import { apiFetch } from "./api.js?v=0.18.12";
+import { getToken, state } from "./state.js?v=0.18.12";
+import { openMemberByUsername } from "./admin.js?v=0.18.12";
+import { openProfileByUsername } from "./profile.js?v=0.18.12";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.18.12";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -853,7 +853,7 @@ function entranceParticle(layer, side, color, height, style, intensity, width = 
     burst.appendChild(flash);
   }
 
-  // v0.18.10: explosive pyro no longer shares the same tall fountain column.
+  // v0.18.11: explosive pyro no longer shares the same tall fountain column.
   // Fountains keep a sustained core; jets get a short ignition core; crackle pops have no core at all.
   if (!isSparkler && style !== "bursts") {
     const core = document.createElement("i");
@@ -1248,7 +1248,16 @@ function renderEntrance(username, entrance, { preview = false } = {}) {
   const fireBurst=(burstIndex=0)=>{ if(pyro.enabled===false)return; const style=pyro.style||"jets",color=pyro.color||"#FFFFFF",pos=pyro.position||"both"; const defaultFlash=["jets","cross_jets","sparkler_lane","center_blast","dual_center","multi_burst","full_stage","finale"].includes(style), flashBurst=pyro.flashBurst==null?defaultFlash:Boolean(pyro.flashBurst);
     if(pyro.layeredEffects && !["flame_jets","alternating_flames","flame_wall"].includes(style)){ entranceFlameBurst(layer,"#F97316",Math.min(1,height*.9),Math.min(1.4,width),intensity,[12,28,72,88]); setTimeout(()=>entranceParticle(layer,"center",color,Math.min(1,height*.92),"center_blast",Math.max(2,intensity),Math.min(2,width),0,true),90); }
     if(style==="rain"||style==="curtain"){entrancePyroRain(layer,color,intensity,width,style==="curtain");return;}
-    if(style==="cross_jets"){entranceCrossJets(layer,color,height,intensity,width,flashBurst);return;}
+    if(style==="cross_jets"){
+      entranceCrossJets(layer,color,height,intensity,width,flashBurst);
+      if(config.templatePreset==="rare_green_rebellion"){
+        setTimeout(()=>{
+          entranceParticle(layer,"left",color,Math.min(.64,height*.82),"wide_fountain",Math.max(1,Math.min(2,intensity)),Math.min(1.35,width*1.08),0,false);
+          entranceParticle(layer,"right",color,Math.min(.64,height*.82),"wide_fountain",Math.max(1,Math.min(2,intensity)),Math.min(1.35,width*1.08),0,false);
+        },55);
+      }
+      return;
+    }
     if(style==="sparkler_lane"){const lane=[-16,-11,-6,-2,2,6,11,16]; lane.forEach((off,i)=>setTimeout(()=>entranceParticle(layer,"center",color,Math.min(.42,height*.62),"sparkler",Math.min(2,intensity),Math.min(.85,width),off,flashBurst),i*55));return;}
     if(style==="flame_jets"||style==="alternating_flames"||style==="flame_wall"){ let positions=style==="flame_wall"?[8,20,32,44,56,68,80,92]:(pos==="center"?["center-left","center-right"]:(pos==="left"?["left"]:(pos==="right"?["right"]:["left","right"]))); if(style==="alternating_flames"&&positions.length>1)positions=[positions[burstIndex%positions.length]]; entranceFlameBurst(layer,color,height,width,intensity,positions); return; }
     if(style==="center_blast"||style==="dual_center"){ if(style==="dual_center"){ entranceParticle(layer,"center",color,height,"center_blast",intensity,width,-4,flashBurst); entranceParticle(layer,"center",color,height,"center_blast",intensity,width,4,flashBurst); } else entranceParticle(layer,"center",color,height,"center_blast",intensity,width,0,flashBurst); return; }
