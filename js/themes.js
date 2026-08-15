@@ -1,4 +1,4 @@
-import { APP_VERSION } from "./config.js?v=0.18.7";
+import { APP_VERSION } from "./config.js?v=0.18.8";
 
 const CLIENTS = {
   modern: { name: "Default - Light", bodyClass: "theme-modern", title: "DRK CHAT", online: "ONLINE", send: "SEND", clear: "CLEAR SCREEN", clearRoom: "CLEAR ROOM", leave: "LEAVE" },

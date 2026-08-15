@@ -1,5 +1,5 @@
-import { API } from "./config.js?v=0.18.7";
-import { getToken } from "./state.js?v=0.18.7";
+import { API } from "./config.js?v=0.18.8";
+import { getToken } from "./state.js?v=0.18.8";
 
 export async function apiFetch(path, options = {}, auth = false) {
   const headers = new Headers(options.headers || {});

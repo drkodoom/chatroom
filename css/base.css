@@ -3130,7 +3130,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
   transform:translateX(-50%);
   transform-origin:50% 0;
   clip-path:polygon(47% 0,53% 0,100% 100%,0 100%);
-  /* v0.18.7: compatible beam fallback first; color-mix enhances it where supported. */
+  /* v0.18.8: compatible beam fallback first; color-mix enhances it where supported. */
   background:linear-gradient(180deg,var(--beam-color) 0%,transparent 100%);
   background:linear-gradient(180deg,
     color-mix(in srgb,var(--beam-color) 38%,transparent) 0%,
@@ -3458,3 +3458,88 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 .entrance-category-mode-row > div { display:grid; gap:4px; }
 .entrance-category-mode-row button { white-space:nowrap; }
 @media (max-width:700px){ .entrance-category-mode-row { grid-template-columns:1fr; } }
+
+
+/* =====================================================
+   v0.18.8 — distinct pyro families
+   ===================================================== */
+/* Explosive jets: short ignition column + broad firework spray, not a fountain. */
+.entrance-pyro-jets .entrance-pyro-core {
+  width:10px;
+  height:calc(min(var(--pyro-height,48vh),62vh) * .42);
+  opacity:.98;
+  filter:blur(.35px) drop-shadow(0 0 8px #fff) drop-shadow(0 0 18px var(--pyro-color));
+  animation-duration:.42s;
+}
+.entrance-pyro-jets .entrance-pyro-comet { height:26vh; }
+.entrance-pyro-jets .entrance-pyro-spark { box-shadow:0 0 5px #fff,0 0 13px var(--pyro-color); }
+
+/* Fountains intentionally stay tall, narrow and sustained. */
+.entrance-pyro-fountain .entrance-pyro-core,
+.entrance-pyro-wide_fountain .entrance-pyro-core,
+.entrance-pyro-fan .entrance-pyro-core {
+  animation-duration:.95s;
+}
+.entrance-pyro-fountain .entrance-pyro-spark,
+.entrance-pyro-wide_fountain .entrance-pyro-spark {
+  --spark-duration:1.05s;
+}
+
+/* Ground/center blasts are a flash + radial flower with only a short lift column. */
+.entrance-pyro-center_blast .entrance-pyro-core {
+  width:12px;
+  height:calc(min(var(--pyro-height,72vh),84vh) * .34);
+  animation-duration:.4s;
+}
+.entrance-pyro-bursts .entrance-pyro-core { display:none; }
+.entrance-pyro-pop {
+  position:absolute;
+  left:50%;
+  bottom:8px;
+  width:132px;
+  height:132px;
+  transform:translate(-50%,50%) scale(.08);
+  border-radius:50%;
+  opacity:0;
+  background:
+    repeating-conic-gradient(from 4deg, transparent 0 8deg, color-mix(in srgb,var(--pyro-color) 75%,#fff) 9deg 10deg, transparent 11deg 18deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 19%,#000 20% 55%,transparent 57%);
+  mask:radial-gradient(circle,transparent 0 19%,#000 20% 55%,transparent 57%);
+  filter:drop-shadow(0 0 5px #fff) drop-shadow(0 0 14px var(--pyro-color));
+  animation:entrancePyroPop .48s ease-out forwards;
+}
+.entrance-pyro-center_blast .entrance-pyro-pop { width:190px;height:190px;bottom:12vh; }
+.entrance-pyro-bursts .entrance-pyro-pop { width:150px;height:150px;bottom:9vh; }
+@keyframes entrancePyroPop {
+  0% { opacity:0; transform:translate(-50%,50%) scale(.08) rotate(0deg); }
+  18% { opacity:1; }
+  62% { opacity:.95; transform:translate(-50%,50%) scale(1) rotate(8deg); }
+  100% { opacity:0; transform:translate(-50%,50%) scale(1.18) rotate(11deg); }
+}
+
+/* Crackle Walk: tiny, low, rapid pops. No vertical fountain column. */
+.entrance-pyro-sparkler .entrance-pyro-core,
+.entrance-pyro-sparkler .entrance-pyro-comet { display:none; }
+.entrance-pyro-sparkler .entrance-pyro-flash {
+  width:46px;
+  height:46px;
+  opacity:.72;
+  filter:blur(.8px) drop-shadow(0 0 9px var(--pyro-color));
+  animation-duration:.22s;
+}
+.entrance-pyro-sparkler .entrance-pyro-spark {
+  box-shadow:0 0 3px #fff,0 0 7px var(--pyro-color);
+}
+.entrance-pyro-sparkler .entrance-pyro-pop {
+  width:58px;
+  height:58px;
+  bottom:4px;
+  animation-duration:.28s;
+}
+
+/* Ignition flash is deliberately strong on firework-style effects, but not on fountains/rain. */
+.entrance-pyro-jets .entrance-pyro-flash,
+.entrance-pyro-center_blast .entrance-pyro-flash,
+.entrance-pyro-bursts .entrance-pyro-flash {
+  transform:translate(-50%,50%) scale(1.08);
+}

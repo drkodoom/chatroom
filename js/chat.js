@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.18.7";
-import { apiFetch } from "./api.js?v=0.18.7";
-import { getToken, state } from "./state.js?v=0.18.7";
-import { openMemberByUsername } from "./admin.js?v=0.18.7";
-import { openProfileByUsername } from "./profile.js?v=0.18.7";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.18.7";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.18.8";
+import { apiFetch } from "./api.js?v=0.18.8";
+import { getToken, state } from "./state.js?v=0.18.8";
+import { openMemberByUsername } from "./admin.js?v=0.18.8";
+import { openProfileByUsername } from "./profile.js?v=0.18.8";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.18.8";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -843,34 +843,52 @@ function entranceParticle(layer, side, color, height, style, intensity, width = 
   if (side === "right") burst.style.right = `${5.5 + sourceOffset}%`;
   if (side === "center") burst.style.left = `${50 + Number(sourceOffset || 0)}%`;
 
-  if (flashBurst) { const flash = document.createElement("i"); flash.className = "entrance-pyro-flash"; burst.appendChild(flash); }
-  const core = document.createElement("i");
-  core.className = "entrance-pyro-core";
-  burst.appendChild(core);
+  const isSparkler = style === "sparkler";
+  const isFountain = ["fountain","wide_fountain","fan"].includes(style);
+  const isFireworkBurst = ["jets","bursts","center_blast"].includes(style);
 
-  const baseCount = style === "sparkler" ? 12 : style === "bursts" || style === "center_blast" ? 38 : style === "wide_fountain" || style === "fan" ? 34 : style === "fountain" ? 28 : 22;
-  const particleCount = reduced ? 8 : baseCount + intensity * 7;
+  if (flashBurst) {
+    const flash = document.createElement("i");
+    flash.className = "entrance-pyro-flash";
+    burst.appendChild(flash);
+  }
+
+  // v0.18.8: explosive pyro no longer shares the same tall fountain column.
+  // Fountains keep a sustained core; jets get a short ignition core; crackle pops have no core at all.
+  if (!isSparkler && style !== "bursts") {
+    const core = document.createElement("i");
+    core.className = "entrance-pyro-core";
+    burst.appendChild(core);
+  }
+  if (isFireworkBurst) {
+    const pop = document.createElement("i");
+    pop.className = "entrance-pyro-pop";
+    burst.appendChild(pop);
+  }
+
+  const baseCount = isSparkler ? 7 : style === "bursts" || style === "center_blast" ? 30 : style === "wide_fountain" || style === "fan" ? 34 : style === "fountain" ? 30 : 20;
+  const particleCount = reduced ? (isSparkler ? 4 : 8) : baseCount + intensity * (isSparkler ? 3 : 7);
   for (let i = 0; i < particleCount; i += 1) {
     const spark = document.createElement("i");
     spark.className = "entrance-pyro-spark";
     let baseSpread = 42;
-    if (style === "bursts") baseSpread = 115;
-    if (style === "fountain") baseSpread = 58;
-    if (style === "wide_fountain") baseSpread = 86;
-    if (style === "fan") baseSpread = 135;
-    if (style === "jets") baseSpread = 92;
-    if (style === "center_blast") baseSpread = 150;
-    if (style === "sparkler") baseSpread = 165;
-    const spread = Math.min(175, baseSpread * Math.max(.5, width));
+    if (style === "bursts") baseSpread = 155;
+    if (style === "fountain") baseSpread = 42;
+    if (style === "wide_fountain") baseSpread = 72;
+    if (style === "fan") baseSpread = 120;
+    if (style === "jets") baseSpread = 112;
+    if (style === "center_blast") baseSpread = 172;
+    if (isSparkler) baseSpread = 178;
+    const spread = Math.min(178, baseSpread * Math.max(.5, width));
     const angle = (-90 + (Math.random() - .5) * spread) * Math.PI / 180;
-    const distanceFactor = style === "sparkler" ? (.18 + Math.random() * .28) : ["bursts","center_blast"].includes(style) ? (.45 + Math.random() * .55) : (.55 + Math.random() * .45);
-    const distance = Math.max(90, window.innerHeight * height * distanceFactor);
+    const distanceFactor = isSparkler ? (.12 + Math.random() * .2) : ["bursts","center_blast","jets"].includes(style) ? (.32 + Math.random() * .48) : (.55 + Math.random() * .45);
+    const distance = Math.max(isSparkler ? 38 : 82, window.innerHeight * height * distanceFactor);
     const dx = Math.cos(angle) * distance;
     const dy = Math.sin(angle) * distance;
-    const drift = (Math.random() - .5) * ((style === "bursts" || style === "center_blast") ? 120 : 50) * Math.max(.7, width);
-    const size = 2 + Math.random() * (intensity + 2.5);
-    const duration = .58 + Math.random() * .58;
-    const delay = Math.random() * .08;
+    const drift = (Math.random() - .5) * (["bursts","center_blast","jets"].includes(style) ? 130 : 50) * Math.max(.7, width);
+    const size = isSparkler ? (1.2 + Math.random() * 2.5) : (2 + Math.random() * (intensity + 2.5));
+    const duration = isSparkler ? (.28 + Math.random() * .34) : (.5 + Math.random() * .58);
+    const delay = Math.random() * (isSparkler ? .03 : .08);
     spark.style.setProperty("--spark-x", `${(dx + drift).toFixed(1)}px`);
     spark.style.setProperty("--spark-y", `${dy.toFixed(1)}px`);
     spark.style.setProperty("--spark-size", `${size.toFixed(1)}px`);
@@ -879,18 +897,18 @@ function entranceParticle(layer, side, color, height, style, intensity, width = 
     burst.appendChild(spark);
   }
 
-  const cometCount = style === "sparkler" ? 0 : (reduced ? 1 : Math.max(2, intensity + (["fountain","wide_fountain","fan"].includes(style) ? 3 : 0)));
+  const cometCount = isSparkler ? 0 : (isFountain ? (reduced ? 1 : Math.max(3, intensity + 3)) : style === "bursts" ? 0 : (reduced ? 1 : Math.max(1, intensity)));
   for (let i = 0; i < cometCount; i += 1) {
     const comet = document.createElement("i");
     comet.className = "entrance-pyro-comet";
     comet.style.setProperty("--comet-offset", `${(i - (cometCount - 1) / 2) * 11 * Math.max(.7,width)}px`);
-    comet.style.setProperty("--comet-tilt", `${(Math.random() - .5) * (["bursts","fan","center_blast"].includes(style) ? 28 : 12)}deg`);
-    comet.style.setProperty("--comet-duration", `${(.5 + Math.random() * .25).toFixed(2)}s`);
+    comet.style.setProperty("--comet-tilt", `${(Math.random() - .5) * (["fan","center_blast","jets"].includes(style) ? 30 : 12)}deg`);
+    comet.style.setProperty("--comet-duration", `${(.42 + Math.random() * .24).toFixed(2)}s`);
     burst.appendChild(comet);
   }
 
   layer.appendChild(burst);
-  setTimeout(() => burst.remove(), 1500);
+  setTimeout(() => burst.remove(), isSparkler ? 900 : 1500);
 }
 
 function entrancePyroRain(layer, color, intensity, width = 1, curtain = false) {
@@ -1155,7 +1173,7 @@ function renderEntrance(username, entrance, { preview = false } = {}) {
     if(style==="center_blast"||style==="dual_center"){ if(style==="dual_center"){ entranceParticle(layer,"center",color,height,"center_blast",intensity,width,-4,flashBurst); entranceParticle(layer,"center",color,height,"center_blast",intensity,width,4,flashBurst); } else entranceParticle(layer,"center",color,height,"center_blast",intensity,width,0,flashBurst); return; }
     if(style==="full_stage"){[-42,-28,-14,0,14,28,42].forEach((off,i)=>setTimeout(()=>entranceParticle(layer,"center",color,height,"bursts",intensity,width,off,flashBurst),i*45));return;}
     if(style==="multi_burst"||style==="finale"){ [0,12,24].forEach((off,i)=>{setTimeout(()=>entranceParticle(layer,"left",color,height,"bursts",intensity,width,off,flashBurst),i*70);setTimeout(()=>entranceParticle(layer,"right",color,height,"bursts",intensity,width,off,flashBurst),i*70);}); if(style==="finale")setTimeout(()=>entranceParticle(layer,"center",color,height,"center_blast",intensity,width*1.2,0,flashBurst),120); return; }
-    const sides=pos==="left"?["left"]:(pos==="right"?["right"]:(pos==="center"?["center"]:["left","right"])); const baseInner=pos==="inner"?22:0; const offsets=style==="wide_fountain"?[baseInner,baseInner+10,baseInner+20]:style==="fan"?[baseInner,baseInner+14]:[baseInner]; sides.forEach(side=>offsets.forEach((offset,idx)=>setTimeout(()=>entranceParticle(layer,side,color,height,style,intensity,width,offset,flashBurst),idx*55)));
+    const sides=pos==="left"?["left"]:(pos==="right"?["right"]:(pos==="center"?["center"]:["left","right"])); const baseInner=pos==="inner"?34.5:0; const offsets=style==="wide_fountain"?[baseInner,baseInner+10,baseInner+20]:style==="fan"?[baseInner,baseInner+14]:[baseInner]; sides.forEach(side=>offsets.forEach((offset,idx)=>setTimeout(()=>entranceParticle(layer,side,color,height,style,intensity,width,offset,flashBurst),idx*55)));
   };
   if(pyro.enabled!==false){ at(timing.pyroStart??1,()=>{ for(let i=0;i<burstCount;i+=1)setTimeout(()=>fireBurst(i),i*(pyro.behavior==="rapid"?180:frequency*1000)); }); }
   registerEntranceSpotlight(username,config,{preview}); entranceTimer=setTimeout(()=>stopEntranceLocal({keepPending:!preview&&Boolean(config.lighting?.spotlight)}),delay+total);
