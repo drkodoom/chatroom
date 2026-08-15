@@ -3130,7 +3130,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
   transform:translateX(-50%);
   transform-origin:50% 0;
   clip-path:polygon(47% 0,53% 0,100% 100%,0 100%);
-  /* v0.18.8: compatible beam fallback first; color-mix enhances it where supported. */
+  /* v0.18.9: compatible beam fallback first; color-mix enhances it where supported. */
   background:linear-gradient(180deg,var(--beam-color) 0%,transparent 100%);
   background:linear-gradient(180deg,
     color-mix(in srgb,var(--beam-color) 38%,transparent) 0%,
@@ -3461,7 +3461,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 
 
 /* =====================================================
-   v0.18.8 — distinct pyro families
+   v0.18.9 — distinct pyro families
    ===================================================== */
 /* Explosive jets: short ignition column + broad firework spray, not a fountain. */
 .entrance-pyro-jets .entrance-pyro-core {
@@ -3485,36 +3485,27 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
   --spark-duration:1.05s;
 }
 
-/* Ground/center blasts are a flash + radial flower with only a short lift column. */
+/* Ground/center blasts use loose, irregular sparks instead of a geometric radial burst. */
 .entrance-pyro-center_blast .entrance-pyro-core {
   width:12px;
   height:calc(min(var(--pyro-height,72vh),84vh) * .34);
   animation-duration:.4s;
 }
 .entrance-pyro-bursts .entrance-pyro-core { display:none; }
-.entrance-pyro-pop {
-  position:absolute;
-  left:50%;
-  bottom:8px;
-  width:132px;
-  height:132px;
-  transform:translate(-50%,50%) scale(.08);
-  border-radius:50%;
-  opacity:0;
-  background:
-    repeating-conic-gradient(from 4deg, transparent 0 8deg, color-mix(in srgb,var(--pyro-color) 75%,#fff) 9deg 10deg, transparent 11deg 18deg);
-  -webkit-mask:radial-gradient(circle,transparent 0 19%,#000 20% 55%,transparent 57%);
-  mask:radial-gradient(circle,transparent 0 19%,#000 20% 55%,transparent 57%);
-  filter:drop-shadow(0 0 5px #fff) drop-shadow(0 0 14px var(--pyro-color));
-  animation:entrancePyroPop .48s ease-out forwards;
+.entrance-pyro-jets .entrance-pyro-spark,
+.entrance-pyro-center_blast .entrance-pyro-spark,
+.entrance-pyro-bursts .entrance-pyro-spark {
+  width:var(--spark-size,3px);
+  height:calc(var(--spark-size,3px) * var(--spark-stretch,3.6));
+  transform-origin:50% 50%;
+  animation-name:entrancePyroBurstSpark;
+  animation-timing-function:cubic-bezier(.12,.72,.2,1);
 }
-.entrance-pyro-center_blast .entrance-pyro-pop { width:190px;height:190px;bottom:12vh; }
-.entrance-pyro-bursts .entrance-pyro-pop { width:150px;height:150px;bottom:9vh; }
-@keyframes entrancePyroPop {
-  0% { opacity:0; transform:translate(-50%,50%) scale(.08) rotate(0deg); }
-  18% { opacity:1; }
-  62% { opacity:.95; transform:translate(-50%,50%) scale(1) rotate(8deg); }
-  100% { opacity:0; transform:translate(-50%,50%) scale(1.18) rotate(11deg); }
+@keyframes entrancePyroBurstSpark {
+  0% { transform:translate(-50%,0) rotate(var(--spark-angle,0deg)) scale(.18); opacity:0; }
+  8% { opacity:1; }
+  52% { opacity:.96; }
+  100% { transform:translate(calc(-50% + var(--spark-x)), var(--spark-y)) rotate(var(--spark-angle,0deg)) scale(.12); opacity:0; }
 }
 
 /* Crackle Walk: tiny, low, rapid pops. No vertical fountain column. */
@@ -3530,16 +3521,111 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 .entrance-pyro-sparkler .entrance-pyro-spark {
   box-shadow:0 0 3px #fff,0 0 7px var(--pyro-color);
 }
-.entrance-pyro-sparkler .entrance-pyro-pop {
-  width:58px;
-  height:58px;
-  bottom:4px;
-  animation-duration:.28s;
-}
 
 /* Ignition flash is deliberately strong on firework-style effects, but not on fountains/rain. */
 .entrance-pyro-jets .entrance-pyro-flash,
 .entrance-pyro-center_blast .entrance-pyro-flash,
 .entrance-pyro-bursts .entrance-pyro-flash {
   transform:translate(-50%,50%) scale(1.08);
+}
+
+
+/* Green Rebellion / Rare Crossing X Jets: two diagonal pyro streams cross through center stage. */
+.entrance-cross-pyro {
+  position:absolute;
+  height:1px;
+  transform-origin:0 50%;
+  pointer-events:none;
+  z-index:9;
+  --pyro-color:#fff;
+  --cross-width:1.2;
+}
+.entrance-cross-pyro-stream {
+  position:absolute;
+  left:0;
+  top:50%;
+  width:100%;
+  height:calc(8px * var(--cross-width));
+  transform:translateY(-50%) scaleX(.04);
+  transform-origin:0 50%;
+  border-radius:999px;
+  background:linear-gradient(90deg,
+    rgba(255,255,255,.98) 0 3%,
+    color-mix(in srgb,var(--pyro-color) 88%,#fff) 10%,
+    #fff 24%,
+    var(--pyro-color) 48%,
+    color-mix(in srgb,var(--pyro-color) 72%,#fff) 70%,
+    rgba(255,255,255,.85) 84%,
+    transparent 100%);
+  box-shadow:0 0 6px #fff,0 0 16px var(--pyro-color),0 0 30px color-mix(in srgb,var(--pyro-color) 55%,transparent);
+  opacity:0;
+  animation:entranceCrossPyroStream .82s cubic-bezier(.12,.74,.18,1) forwards;
+}
+.entrance-cross-pyro-stream-2 { top:calc(50% - 7px); height:calc(4px * var(--cross-width)); opacity:.72; animation-delay:.025s; }
+.entrance-cross-pyro-stream-3 { top:calc(50% + 7px); height:calc(3px * var(--cross-width)); opacity:.58; animation-delay:.055s; }
+.entrance-cross-pyro-flash {
+  position:absolute;
+  left:0;
+  top:50%;
+  width:82px;
+  height:60px;
+  transform:translate(-50%,-50%) scale(.2);
+  border-radius:50%;
+  background:radial-gradient(ellipse,rgba(255,255,255,.98) 0 7%,color-mix(in srgb,var(--pyro-color) 78%,#fff) 18%,color-mix(in srgb,var(--pyro-color) 40%,transparent) 42%,transparent 72%);
+  filter:blur(4px) drop-shadow(0 0 16px var(--pyro-color));
+  opacity:0;
+  animation:entranceCrossPyroFlash .32s ease-out forwards;
+}
+.entrance-cross-pyro-spark {
+  position:absolute;
+  left:var(--cross-pos);
+  top:50%;
+  width:var(--cross-size,3px);
+  height:calc(var(--cross-size,3px) * 4.4);
+  border-radius:999px;
+  background:linear-gradient(180deg,#fff,var(--pyro-color) 58%,transparent);
+  box-shadow:0 0 4px #fff,0 0 9px var(--pyro-color);
+  transform:translate(-50%,var(--cross-offset)) rotate(90deg) scale(.3);
+  opacity:0;
+  animation:entranceCrossPyroSpark var(--cross-duration,.65s) ease-out var(--cross-delay,0s) forwards;
+}
+.entrance-cross-pyro-hit {
+  position:absolute;
+  width:110px;
+  height:80px;
+  transform:translate(-50%,50%) scale(.25);
+  border-radius:50%;
+  background:radial-gradient(ellipse,#fff 0 5%,color-mix(in srgb,var(--pyro-color) 82%,#fff) 14%,color-mix(in srgb,var(--pyro-color) 34%,transparent) 35%,transparent 68%);
+  filter:blur(5px) drop-shadow(0 0 18px var(--pyro-color));
+  opacity:0;
+  z-index:10;
+  pointer-events:none;
+  animation:entranceCrossPyroHit .38s ease-out .2s forwards;
+}
+@keyframes entranceCrossPyroStream {
+  0% { transform:translateY(-50%) scaleX(.025) scaleY(.35); opacity:0; }
+  8% { opacity:1; }
+  42% { transform:translateY(-50%) scaleX(1) scaleY(1.15); opacity:1; }
+  72% { transform:translateY(-50%) scaleX(1) scaleY(.72); opacity:.9; }
+  100% { transform:translateY(-50%) scaleX(1) scaleY(.18); opacity:0; }
+}
+@keyframes entranceCrossPyroSpark {
+  0% { transform:translate(-50%,var(--cross-offset)) rotate(90deg) scale(.2); opacity:0; }
+  12% { opacity:1; }
+  62% { opacity:.95; }
+  100% { transform:translate(-50%,calc(var(--cross-offset) + var(--cross-drift))) rotate(90deg) scale(.08); opacity:0; }
+}
+@keyframes entranceCrossPyroFlash {
+  0% { transform:translate(-50%,-50%) scale(.15); opacity:0; }
+  28% { opacity:1; }
+  100% { transform:translate(-50%,-50%) scale(1.45); opacity:0; }
+}
+@keyframes entranceCrossPyroHit {
+  0% { transform:translate(-50%,50%) scale(.15); opacity:0; }
+  28% { opacity:.9; }
+  100% { transform:translate(-50%,50%) scale(1.5); opacity:0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .entrance-cross-pyro-stream { animation-duration:.35s; }
+  .entrance-cross-pyro-spark { display:none; }
 }
