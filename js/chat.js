@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.18.9";
-import { apiFetch } from "./api.js?v=0.18.9";
-import { getToken, state } from "./state.js?v=0.18.9";
-import { openMemberByUsername } from "./admin.js?v=0.18.9";
-import { openProfileByUsername } from "./profile.js?v=0.18.9";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.18.9";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.18.10";
+import { apiFetch } from "./api.js?v=0.18.10";
+import { getToken, state } from "./state.js?v=0.18.10";
+import { openMemberByUsername } from "./admin.js?v=0.18.10";
+import { openProfileByUsername } from "./profile.js?v=0.18.10";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.18.10";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -853,7 +853,7 @@ function entranceParticle(layer, side, color, height, style, intensity, width = 
     burst.appendChild(flash);
   }
 
-  // v0.18.9: explosive pyro no longer shares the same tall fountain column.
+  // v0.18.10: explosive pyro no longer shares the same tall fountain column.
   // Fountains keep a sustained core; jets get a short ignition core; crackle pops have no core at all.
   if (!isSparkler && style !== "bursts") {
     const core = document.createElement("i");
@@ -915,10 +915,11 @@ function entranceCrossJets(layer, color, height = .78, intensity = 2, width = 1.
   const rect = layer.getBoundingClientRect();
   const w = Math.max(640, rect.width || window.innerWidth || 1280);
   const h = Math.max(480, rect.height || window.innerHeight || 720);
-  const rise = Math.min(h * .72, Math.max(h * .5, h * Number(height || .78) * .88));
+  const rise = Math.min(h * .72, Math.max(h * .52, h * Number(height || .78) * .88));
+  const trailLift = Math.max(14, Math.round(16 * Math.max(.8, width)));
   const specs = [
-    { startX: .075, endX: .86 },
-    { startX: .925, endX: .14 }
+    { startX: .1, endX: .84 },
+    { startX: .9, endX: .16 }
   ];
 
   specs.forEach((spec, sideIndex) => {
@@ -928,51 +929,66 @@ function entranceCrossJets(layer, color, height = .78, intensity = 2, width = 1.
     const dy = -rise;
     const length = Math.hypot(dx, dy);
     const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-    const jet = document.createElement("div");
-    jet.className = `entrance-cross-pyro entrance-cross-pyro-${sideIndex === 0 ? "left" : "right"}`;
-    jet.style.left = `${spec.startX * 100}%`;
-    jet.style.bottom = "1%";
-    jet.style.width = `${length.toFixed(1)}px`;
-    jet.style.transform = `rotate(${angle.toFixed(2)}deg)`;
-    jet.style.setProperty("--pyro-color", color || "#FFFFFF");
-    jet.style.setProperty("--cross-width", String(Math.max(.7, Math.min(1.7, Number(width || 1.2)))));
+    const firework = document.createElement("div");
+    firework.className = `entrance-cross-firework entrance-cross-firework-${sideIndex === 0 ? "left" : "right"}`;
+    firework.style.left = `${spec.startX * 100}%`;
+    firework.style.bottom = "1%";
+    firework.style.width = `${length.toFixed(1)}px`;
+    firework.style.transform = `rotate(${angle.toFixed(2)}deg)`;
+    firework.style.setProperty("--pyro-color", color || "#FFFFFF");
+    firework.style.setProperty("--cross-width", String(Math.max(.75, Math.min(1.7, Number(width || 1.2)))));
+    firework.style.setProperty("--cross-height", `${trailLift}px`);
 
-    for (let i = 0; i < 3; i += 1) {
-      const stream = document.createElement("i");
-      stream.className = `entrance-cross-pyro-stream entrance-cross-pyro-stream-${i + 1}`;
-      jet.appendChild(stream);
+    const trail = document.createElement("i");
+    trail.className = "entrance-cross-firework-trail";
+    firework.appendChild(trail);
+
+    const smokeCount = reduced ? 7 : 16 + Math.max(0, Number(intensity || 2) - 1) * 6;
+    for (let i = 0; i < smokeCount; i += 1) {
+      const puff = document.createElement("i");
+      puff.className = "entrance-cross-firework-smoke";
+      puff.style.setProperty("--smoke-pos", `${(8 + Math.random() * 84).toFixed(1)}%`);
+      puff.style.setProperty("--smoke-size", `${(10 + Math.random() * 18 * Math.max(.8, width)).toFixed(1)}px`);
+      puff.style.setProperty("--smoke-offset", `${((Math.random() - .5) * 16).toFixed(1)}px`);
+      puff.style.setProperty("--smoke-delay", `${(0.08 + Math.random() * .35).toFixed(2)}s`);
+      puff.style.setProperty("--smoke-duration", `${(0.85 + Math.random() * .65).toFixed(2)}s`);
+      firework.appendChild(puff);
     }
+
+    const sparkCount = reduced ? 10 : 20 + Math.max(0, Number(intensity || 2) - 1) * 6;
+    for (let i = 0; i < sparkCount; i += 1) {
+      const spark = document.createElement("i");
+      spark.className = "entrance-cross-firework-spark";
+      spark.style.setProperty("--trail-pos", `${(8 + Math.random() * 86).toFixed(1)}%`);
+      spark.style.setProperty("--trail-drift", `${((Math.random() - .5) * 48 * Math.max(.8, width)).toFixed(1)}px`);
+      spark.style.setProperty("--trail-rise", `${(8 + Math.random() * 28).toFixed(1)}px`);
+      spark.style.setProperty("--trail-size", `${(1.6 + Math.random() * 2.8).toFixed(1)}px`);
+      spark.style.setProperty("--trail-delay", `${(0.05 + Math.random() * .26).toFixed(2)}s`);
+      spark.style.setProperty("--trail-duration", `${(0.34 + Math.random() * .38).toFixed(2)}s`);
+      firework.appendChild(spark);
+    }
+
+    const head = document.createElement("i");
+    head.className = "entrance-cross-firework-head";
+    firework.appendChild(head);
 
     if (flashBurst) {
       const flash = document.createElement("i");
-      flash.className = "entrance-cross-pyro-flash";
-      jet.appendChild(flash);
+      flash.className = "entrance-cross-firework-launch";
+      firework.appendChild(flash);
     }
 
-    const sparkCount = reduced ? 12 : 28 + Math.max(0, Number(intensity || 2) - 1) * 8;
-    for (let i = 0; i < sparkCount; i += 1) {
-      const spark = document.createElement("i");
-      spark.className = "entrance-cross-pyro-spark";
-      spark.style.setProperty("--cross-pos", `${(4 + Math.random() * 90).toFixed(1)}%`);
-      spark.style.setProperty("--cross-offset", `${((Math.random() - .5) * 20 * Math.max(.8, width)).toFixed(1)}px`);
-      spark.style.setProperty("--cross-drift", `${((Math.random() - .5) * 54).toFixed(1)}px`);
-      spark.style.setProperty("--cross-size", `${(1.4 + Math.random() * 3.1).toFixed(1)}px`);
-      spark.style.setProperty("--cross-delay", `${(Math.random() * .15).toFixed(2)}s`);
-      spark.style.setProperty("--cross-duration", `${(.42 + Math.random() * .42).toFixed(2)}s`);
-      jet.appendChild(spark);
-    }
-
-    layer.appendChild(jet);
-    setTimeout(() => jet.remove(), 1500);
+    layer.appendChild(firework);
+    setTimeout(() => firework.remove(), 1900);
   });
 
   const hit = document.createElement("div");
-  hit.className = "entrance-cross-pyro-hit";
+  hit.className = "entrance-cross-firework-hit";
   hit.style.setProperty("--pyro-color", color || "#FFFFFF");
   hit.style.left = "50%";
   hit.style.bottom = `${Math.round(rise * .5)}px`;
   layer.appendChild(hit);
-  setTimeout(() => hit.remove(), 900);
+  setTimeout(() => hit.remove(), 1000);
 }
 
 function entrancePyroRain(layer, color, intensity, width = 1, curtain = false) {
