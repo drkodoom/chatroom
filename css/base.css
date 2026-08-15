@@ -3154,10 +3154,10 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 @keyframes entranceHeadSearchA { 0% { transform:rotate(-31deg); } 45% { transform:rotate(8deg); } 100% { transform:rotate(27deg); } }
 @keyframes entranceHeadSearchB { 0% { transform:rotate(24deg); } 58% { transform:rotate(-11deg); } 100% { transform:rotate(-30deg); } }
 
-/* Nameplate is a TV graphic, not the spotlight target. */
+/* Nameplate is a top-layer TV graphic and must not be color graded. */
 .entrance-nameplate {
   top:10%;
-  z-index:12;
+  z-index:60;
   opacity:0;
   transform:translateX(-50%) translateY(-16px) scale(.96);
   transition:opacity .35s ease, transform .45s cubic-bezier(.2,.85,.2,1);
@@ -3375,7 +3375,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 
 
 /* =====================================================
-   v0.18.3 — per-fixture lighting + final color grading
+   v0.18.4 — nameplate above final color grading
    ===================================================== */
 .entrance-lighting-preset-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:end; margin:8px 0 12px; }
 .entrance-lighting-preset-row button { white-space:nowrap; }
@@ -3432,3 +3432,25 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 .entrance-rig.lightning-hit .entrance-light-beam,.entrance-rig.lightning-hit .entrance-light-lens { animation:none !important; opacity:1 !important; filter:brightness(2.5) saturate(0) drop-shadow(0 0 15px #fff) !important; }
 @media (prefers-reduced-motion: reduce) { .entrance-light-head,.entrance-light-beam,.entrance-light-lens { animation:none !important; } }
 @media (max-width:700px){.entrance-lighting-preset-row{grid-template-columns:1fr}.entrance-fixture-fields{grid-template-columns:1fr 1fr}}
+
+/* v0.18.5 — fixed eight-head truss, distinct crackle pyro, clearer atmosphere */
+.entrance-light-fixture.is-locked .entrance-light-head { filter:brightness(.28) saturate(.2); }
+.entrance-light-fixture.is-locked .entrance-light-yoke { opacity:.48; }
+.entrance-light-fixture.is-locked .entrance-light-lens { opacity:.08 !important; box-shadow:none !important; }
+.entrance-fixture-unlock-note { min-height:38px; display:flex; align-items:center; padding:7px 9px; border:1px solid var(--border); border-radius:8px; color:var(--muted); background:var(--surface-2); }
+.entrance-pyro-sparkler .entrance-pyro-core,.entrance-pyro-sparkler .entrance-pyro-comet { display:none; }
+.entrance-pyro-sparkler .entrance-pyro-flash { width:42px; height:42px; filter:blur(1px) drop-shadow(0 0 12px var(--pyro-color)); }
+.entrance-pyro-sparkler .entrance-pyro-spark { height:calc(var(--spark-size,3px) * 1.8); box-shadow:0 0 7px #fff,0 0 12px var(--pyro-color); }
+.entrance-fog,.entrance-heavy_fog { bottom:-6px; height:calc(var(--fog-size) * .34); filter:blur(34px); animation:entranceGroundFog var(--fog-fade,5s) ease-out var(--fog-delay) both; }
+.entrance-smoke { bottom:-30px; width:calc(var(--fog-size) * .55); height:calc(var(--fog-size) * 1.25); border-radius:45% 55% 38% 62%; filter:blur(18px); opacity:.62; animation:entranceSmokePlume var(--fog-fade,4s) cubic-bezier(.18,.65,.25,1) var(--fog-delay) both; }
+.entrance-mist { bottom:8%; height:calc(var(--fog-size) * .75); filter:blur(46px); opacity:.2; animation:entranceMistDrift var(--fog-fade,6s) ease-in-out var(--fog-delay) both; }
+@keyframes entranceGroundFog { 0%{transform:translate(-50%,22px) scale(.55,.45);opacity:0} 25%{opacity:.48} 100%{transform:translate(calc(-50% + 80px),-10px) scale(2.2,.9);opacity:0} }
+@keyframes entranceSmokePlume { 0%{transform:translate(-50%,70px) scale(.35,.25);opacity:0} 18%{opacity:.75} 100%{transform:translate(calc(-50% + 18px),-320px) scale(1.45,2.2);opacity:0} }
+@keyframes entranceMistDrift { 0%{transform:translate(-50%,25px) scale(.8);opacity:0} 35%{opacity:.22} 100%{transform:translate(calc(-50% - 90px),-70px) scale(1.9);opacity:0} }
+
+.entrance-pyro-jets .entrance-pyro-core { height:calc(min(var(--pyro-height,72vh),84vh) * .58); width:10px; }
+.entrance-pyro-jets .entrance-pyro-spark { box-shadow:0 0 7px #fff,0 0 15px var(--pyro-color); }
+.entrance-category-mode-row { display:grid; grid-template-columns:minmax(150px,.7fr) minmax(190px,1fr) auto; gap:10px; align-items:end; margin:8px 0 12px; padding:10px; border:1px solid var(--border); border-radius:10px; background:var(--surface-2); }
+.entrance-category-mode-row > div { display:grid; gap:4px; }
+.entrance-category-mode-row button { white-space:nowrap; }
+@media (max-width:700px){ .entrance-category-mode-row { grid-template-columns:1fr; } }

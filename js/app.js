@@ -1,5 +1,5 @@
-import { APP_VERSION } from "./config.js?v=0.18.3";
-import { state } from "./state.js?v=0.18.3";
+import { APP_VERSION } from "./config.js?v=0.18.5";
+import { state } from "./state.js?v=0.18.5";
 import {
   loginUser,
   restoreSession,
@@ -9,21 +9,21 @@ import {
   getMyNameChangeStatus,
   getActivationInfo,
   activateAccount
-} from "./auth.js?v=0.18.3";
+} from "./auth.js?v=0.18.5";
 import {
   initAdminUI,
   loadMembers,
   loadPendingRequests,
   loadNameChangeRequests,
   closeMemberDialog
-} from "./admin.js?v=0.18.3";
+} from "./admin.js?v=0.18.5";
 import {
   initChatUI,
   enterChatroom,
   closeChatSocket
-} from "./chat.js?v=0.18.3";
-import { initThemeSystem } from "./themes.js?v=0.18.3";
-import { initProfiles } from "./profile.js?v=0.18.3";
+} from "./chat.js?v=0.18.5";
+import { initThemeSystem } from "./themes.js?v=0.18.5";
+import { initProfiles } from "./profile.js?v=0.18.5";
 
 const el = (id) => document.getElementById(id);
 

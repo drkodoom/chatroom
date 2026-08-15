@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.18.3";
-import { apiFetch } from "./api.js?v=0.18.3";
-import { getToken, state } from "./state.js?v=0.18.3";
-import { openMemberByUsername } from "./admin.js?v=0.18.3";
-import { openProfileByUsername } from "./profile.js?v=0.18.3";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.18.3";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.18.5";
+import { apiFetch } from "./api.js?v=0.18.5";
+import { getToken, state } from "./state.js?v=0.18.5";
+import { openMemberByUsername } from "./admin.js?v=0.18.5";
+import { openProfileByUsername } from "./profile.js?v=0.18.5";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.18.5";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -831,7 +831,7 @@ function stopEntranceLocal({ keepPending = false } = {}) {
   }
 }
 
-function entranceParticle(layer, side, color, height, style, intensity, width = 1, sourceOffset = 0) {
+function entranceParticle(layer, side, color, height, style, intensity, width = 1, sourceOffset = 0, flashBurst = true) {
   const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   const burst = document.createElement("div");
   burst.className = `entrance-pyro-burst entrance-pyro-${style} entrance-pyro-${side}`;
@@ -843,14 +843,12 @@ function entranceParticle(layer, side, color, height, style, intensity, width = 
   if (side === "right") burst.style.right = `${5.5 + sourceOffset}%`;
   if (side === "center") burst.style.left = `${50 + Number(sourceOffset || 0)}%`;
 
-  const flash = document.createElement("i");
-  flash.className = "entrance-pyro-flash";
-  burst.appendChild(flash);
+  if (flashBurst) { const flash = document.createElement("i"); flash.className = "entrance-pyro-flash"; burst.appendChild(flash); }
   const core = document.createElement("i");
   core.className = "entrance-pyro-core";
   burst.appendChild(core);
 
-  const baseCount = style === "bursts" || style === "center_blast" ? 38 : style === "wide_fountain" || style === "fan" ? 34 : style === "fountain" ? 28 : 22;
+  const baseCount = style === "sparkler" ? 12 : style === "bursts" || style === "center_blast" ? 38 : style === "wide_fountain" || style === "fan" ? 34 : style === "fountain" ? 28 : 22;
   const particleCount = reduced ? 8 : baseCount + intensity * 7;
   for (let i = 0; i < particleCount; i += 1) {
     const spark = document.createElement("i");
@@ -860,10 +858,12 @@ function entranceParticle(layer, side, color, height, style, intensity, width = 
     if (style === "fountain") baseSpread = 58;
     if (style === "wide_fountain") baseSpread = 86;
     if (style === "fan") baseSpread = 135;
+    if (style === "jets") baseSpread = 92;
     if (style === "center_blast") baseSpread = 150;
+    if (style === "sparkler") baseSpread = 165;
     const spread = Math.min(175, baseSpread * Math.max(.5, width));
     const angle = (-90 + (Math.random() - .5) * spread) * Math.PI / 180;
-    const distanceFactor = ["bursts","center_blast"].includes(style) ? (.45 + Math.random() * .55) : (.55 + Math.random() * .45);
+    const distanceFactor = style === "sparkler" ? (.18 + Math.random() * .28) : ["bursts","center_blast"].includes(style) ? (.45 + Math.random() * .55) : (.55 + Math.random() * .45);
     const distance = Math.max(90, window.innerHeight * height * distanceFactor);
     const dx = Math.cos(angle) * distance;
     const dy = Math.sin(angle) * distance;
@@ -879,7 +879,7 @@ function entranceParticle(layer, side, color, height, style, intensity, width = 
     burst.appendChild(spark);
   }
 
-  const cometCount = reduced ? 1 : Math.max(2, intensity + (["fountain","wide_fountain","fan"].includes(style) ? 3 : 0));
+  const cometCount = style === "sparkler" ? 0 : (reduced ? 1 : Math.max(2, intensity + (["fountain","wide_fountain","fan"].includes(style) ? 3 : 0)));
   for (let i = 0; i < cometCount; i += 1) {
     const comet = document.createElement("i");
     comet.className = "entrance-pyro-comet";
@@ -916,7 +916,7 @@ function entrancePyroRain(layer, color, intensity, width = 1, curtain = false) {
 }
 
 function applyEntranceScreenFilter() {
-  // v0.18.3: filters are now a true top-layer post-process inside entranceLayer.
+  // v0.18.4: filters are now a true top-layer post-process inside entranceLayer.
   // Keeping this function as a compatibility no-op avoids filtering only appWindow beneath the entrance.
 }
 
@@ -963,11 +963,12 @@ function addEntranceRig(layer, lighting) {
   const rig=document.createElement("div"); rig.className=`entrance-rig entrance-rig-behavior-${lighting.behavior||"steady"}`;
   rig.style.setProperty("--rig-brightness",String(Number(lighting.brightness||.65))); rig.style.setProperty("--beam-width",String(Number(lighting.beamWidth||1)));
   const truss=document.createElement("div"); truss.className="entrance-truss"; rig.appendChild(truss);
-  const count=Math.max(2,Math.min(12,Math.round(Number(lighting.fixtureCount||4))));
-  for(let i=0;i<count;i+=1){
-    const x=count===1?50:8+(84*i/(count-1)),settings=resolvedFixtureSettings(lighting,i,count,x),fixture=document.createElement("div");
-    fixture.className=`entrance-light-fixture entrance-fixture-motion-${settings.motion} entrance-fixture-behavior-${settings.behavior}${settings.enabled?"":" is-off"}${settings.direction==="reverse"?" reverse":""}`;
-    fixture.style.setProperty("--fixture-i",String(i)); fixture.style.setProperty("--fixture-count",String(count)); fixture.style.left=`${x}%`; fixture.style.setProperty("--beam-color",settings.color); fixture.style.setProperty("--aim-angle",`${settings.angle}deg`); fixture.style.setProperty("--fixture-speed",`${settings.speed}s`); fixture.style.setProperty("--fixture-brightness",String(settings.brightness)); fixture.style.setProperty("--fixture-phase",String(settings.phase)); fixture.style.setProperty("--fixture-delay",`${(-settings.phase*settings.speed).toFixed(2)}s`); fixture.style.setProperty("--fixture-range",String(settings.range)); fixture.style.setProperty("--fixture-sweep-angle",`${(24*settings.range).toFixed(1)}deg`); fixture.style.setProperty("--fixture-offset-angle",`${((i-(count-1)/2)*4).toFixed(1)}deg`);
+  const physicalCount=8, activeCount=Math.max(2,Math.min(8,Math.round(Number(lighting.fixtureCount||4))));
+  const activeIndices=activeCount>=8?[0,1,2,3,4,5,6,7]:activeCount>=6?[0,1,2,5,6,7]:[0,2,5,7];
+  for(let i=0;i<physicalCount;i+=1){
+    const x=8+(84*i/(physicalCount-1)),activeOrdinal=activeIndices.indexOf(i),isUnlocked=activeOrdinal>=0,settings=isUnlocked?resolvedFixtureSettings(lighting,activeOrdinal,activeCount,x):{enabled:false,color:"#4B5563",brightness:0,aim:"down",motion:"none",behavior:"steady",speed:1,direction:"normal",phase:0,range:1,angle:0},fixture=document.createElement("div");
+    fixture.className=`entrance-light-fixture entrance-fixture-motion-${settings.motion} entrance-fixture-behavior-${settings.behavior}${settings.enabled&&isUnlocked?"":" is-off"}${isUnlocked?"":" is-locked"}${settings.direction==="reverse"?" reverse":""}`;
+    fixture.style.setProperty("--fixture-i",String(i)); fixture.style.setProperty("--fixture-count",String(physicalCount)); fixture.style.left=`${x}%`; fixture.style.setProperty("--beam-color",settings.color); fixture.style.setProperty("--aim-angle",`${settings.angle}deg`); fixture.style.setProperty("--fixture-speed",`${settings.speed}s`); fixture.style.setProperty("--fixture-brightness",String(settings.brightness)); fixture.style.setProperty("--fixture-phase",String(settings.phase)); fixture.style.setProperty("--fixture-delay",`${(-settings.phase*settings.speed).toFixed(2)}s`); fixture.style.setProperty("--fixture-range",String(settings.range)); fixture.style.setProperty("--fixture-sweep-angle",`${(24*settings.range).toFixed(1)}deg`); fixture.style.setProperty("--fixture-offset-angle",`${((i-(count-1)/2)*4).toFixed(1)}deg`);
     const yoke=document.createElement("i"); yoke.className="entrance-light-yoke"; const head=document.createElement("i"); head.className="entrance-light-head"; const lens=document.createElement("i"); lens.className="entrance-light-lens"; const beam=document.createElement("i"); beam.className="entrance-light-beam"; head.append(lens,beam); fixture.append(yoke,head); rig.appendChild(fixture);
   }
   layer.appendChild(rig);
@@ -1102,19 +1103,20 @@ function renderEntrance(username, entrance, { preview = false } = {}) {
   const pyro=config.pyro||{}, lighting=config.lighting||{}, filter=config.filter||{}, timing=config.timing||{}, fx=config.screenFx||{};
   const duration=Math.max(1,Math.min(15,Number(pyro.duration||4))), frequency=Math.max(.25,Math.min(3,Number(pyro.frequency||.8))), height=Math.max(.2,Math.min(1,Number(pyro.height||.72))), intensity=Math.max(1,Math.min(4,Number(pyro.intensity||2))), width=Math.max(.4,Math.min(3,Number(pyro.width||1))), burstCount=Math.max(1,Math.min(8,Math.round(Number(pyro.burstCount||3))));
   const primary=lighting.primaryColor||"#FFFFFF", secondary=lighting.secondaryColor||primary, delay=Math.max(0,Number(timing.entranceDelay||0))*1000, total=Math.max(3,Math.min(15,Number(timing.totalDuration||Math.max(6,duration))))*1000;
-  const dimming=String(lighting.dimming||(lighting.blackout?"blackout":"moderate"));
+  const dimming=String(lighting.dimming||(lighting.blackout?"blackout":"none"));
   layer.className=`entrance-layer active entrance-tier-${tier} entrance-motion-${lighting.motion||"none"}`; layer.style.setProperty("--entrance-primary",primary); layer.style.setProperty("--entrance-secondary",secondary); layer.style.setProperty("--entrance-speed",`${Math.max(.3,Math.min(3,Number(lighting.speed||1)))}s`);
-  const dimOpacity={light:.24,moderate:.42,strong:.62,blackout:.88}[dimming]||.42; const blackout=document.createElement("div"); blackout.className="entrance-blackout-screen"; blackout.style.setProperty("--entrance-dim-opacity",String(dimOpacity)); layer.appendChild(blackout); addEntranceFilter(layer,filter);
+  const dimOpacity={none:0,light:.24,moderate:.42,strong:.62,blackout:.88}[dimming]??0; const blackout=document.createElement("div"); blackout.className="entrance-blackout-screen"; blackout.style.setProperty("--entrance-dim-opacity",String(dimOpacity)); layer.appendChild(blackout); addEntranceFilter(layer,filter);
   const at=(seconds,fn)=>setTimeout(fn,delay+Math.max(0,Number(seconds||0))*1000);
   at(.15,()=>addEntranceRig(layer,lighting)); at(timing.atmosphereStart??.3,()=>addEntranceAtmosphere(layer,config.atmosphere||{})); at(timing.nameplateStart??.6,()=>addEntranceNameplate(layer,username,tier,config,timing)); if(lighting.lightning||config.signatureEffect==="dark_arrival_lightning")at(timing.screenFxStart??1.2,()=>addLightningStrike(layer,Boolean(lighting.branchingLightning))); at(timing.screenFxStart??.8,()=>addEntranceScreenFx(layer,fx));
-  const fireBurst=(burstIndex=0)=>{ if(pyro.enabled===false)return; const style=pyro.style||"jets",color=pyro.color||"#FFFFFF",pos=pyro.position||"both";
-    if(pyro.layeredEffects && !["flame_jets","alternating_flames","flame_wall"].includes(style)){ entranceFlameBurst(layer,"#F97316",Math.min(1,height*.9),Math.min(1.4,width),intensity,[12,28,72,88]); setTimeout(()=>entranceParticle(layer,"center",color,Math.min(1,height*.92),"center_blast",Math.max(2,intensity),Math.min(2,width)),90); }
+  const fireBurst=(burstIndex=0)=>{ if(pyro.enabled===false)return; const style=pyro.style||"jets",color=pyro.color||"#FFFFFF",pos=pyro.position||"both"; const defaultFlash=["jets","sparkler_lane","center_blast","dual_center","multi_burst","full_stage","finale"].includes(style), flashBurst=pyro.flashBurst==null?defaultFlash:Boolean(pyro.flashBurst);
+    if(pyro.layeredEffects && !["flame_jets","alternating_flames","flame_wall"].includes(style)){ entranceFlameBurst(layer,"#F97316",Math.min(1,height*.9),Math.min(1.4,width),intensity,[12,28,72,88]); setTimeout(()=>entranceParticle(layer,"center",color,Math.min(1,height*.92),"center_blast",Math.max(2,intensity),Math.min(2,width),0,true),90); }
     if(style==="rain"||style==="curtain"){entrancePyroRain(layer,color,intensity,width,style==="curtain");return;}
+    if(style==="sparkler_lane"){const lane=[-16,-11,-6,-2,2,6,11,16]; lane.forEach((off,i)=>setTimeout(()=>entranceParticle(layer,"center",color,Math.min(.42,height*.62),"sparkler",Math.min(2,intensity),Math.min(.85,width),off,flashBurst),i*55));return;}
     if(style==="flame_jets"||style==="alternating_flames"||style==="flame_wall"){ let positions=style==="flame_wall"?[8,20,32,44,56,68,80,92]:(pos==="center"?["center-left","center-right"]:(pos==="left"?["left"]:(pos==="right"?["right"]:["left","right"]))); if(style==="alternating_flames"&&positions.length>1)positions=[positions[burstIndex%positions.length]]; entranceFlameBurst(layer,color,height,width,intensity,positions); return; }
-    if(style==="center_blast"||style==="dual_center"){ if(style==="dual_center"){ entranceParticle(layer,"center",color,height,"center_blast",intensity,width,-4); entranceParticle(layer,"center",color,height,"center_blast",intensity,width,4); } else entranceParticle(layer,"center",color,height,"center_blast",intensity,width); return; }
-    if(style==="full_stage"){[-42,-28,-14,0,14,28,42].forEach((off,i)=>setTimeout(()=>entranceParticle(layer,"center",color,height,"bursts",intensity,width,off),i*45));return;}
-    if(style==="multi_burst"||style==="finale"){ [0,12,24].forEach((off,i)=>{setTimeout(()=>entranceParticle(layer,"left",color,height,"bursts",intensity,width,off),i*70);setTimeout(()=>entranceParticle(layer,"right",color,height,"bursts",intensity,width,off),i*70);}); if(style==="finale")setTimeout(()=>entranceParticle(layer,"center",color,height,"center_blast",intensity,width*1.2),120); return; }
-    const sides=pos==="left"?["left"]:(pos==="right"?["right"]:(pos==="center"?["center"]:["left","right"])); const offsets=style==="wide_fountain"?[0,10,20]:style==="fan"?[0,14]:[0]; sides.forEach(side=>offsets.forEach((offset,idx)=>setTimeout(()=>entranceParticle(layer,side,color,height,style,intensity,width,offset),idx*55)));
+    if(style==="center_blast"||style==="dual_center"){ if(style==="dual_center"){ entranceParticle(layer,"center",color,height,"center_blast",intensity,width,-4,flashBurst); entranceParticle(layer,"center",color,height,"center_blast",intensity,width,4,flashBurst); } else entranceParticle(layer,"center",color,height,"center_blast",intensity,width,0,flashBurst); return; }
+    if(style==="full_stage"){[-42,-28,-14,0,14,28,42].forEach((off,i)=>setTimeout(()=>entranceParticle(layer,"center",color,height,"bursts",intensity,width,off,flashBurst),i*45));return;}
+    if(style==="multi_burst"||style==="finale"){ [0,12,24].forEach((off,i)=>{setTimeout(()=>entranceParticle(layer,"left",color,height,"bursts",intensity,width,off,flashBurst),i*70);setTimeout(()=>entranceParticle(layer,"right",color,height,"bursts",intensity,width,off,flashBurst),i*70);}); if(style==="finale")setTimeout(()=>entranceParticle(layer,"center",color,height,"center_blast",intensity,width*1.2,0,flashBurst),120); return; }
+    const sides=pos==="left"?["left"]:(pos==="right"?["right"]:(pos==="center"?["center"]:["left","right"])); const baseInner=pos==="inner"?22:0; const offsets=style==="wide_fountain"?[baseInner,baseInner+10,baseInner+20]:style==="fan"?[baseInner,baseInner+14]:[baseInner]; sides.forEach(side=>offsets.forEach((offset,idx)=>setTimeout(()=>entranceParticle(layer,side,color,height,style,intensity,width,offset,flashBurst),idx*55)));
   };
   if(pyro.enabled!==false){ at(timing.pyroStart??1,()=>{ for(let i=0;i<burstCount;i+=1)setTimeout(()=>fireBurst(i),i*(pyro.behavior==="rapid"?180:frequency*1000)); }); }
   registerEntranceSpotlight(username,config,{preview}); entranceTimer=setTimeout(()=>stopEntranceLocal({keepPending:!preview&&Boolean(config.lighting?.spotlight)}),delay+total);
