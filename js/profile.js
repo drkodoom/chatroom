@@ -1,6 +1,6 @@
-import { apiFetch } from "./api.js?v=0.18.2";
-import { state } from "./state.js?v=0.18.2";
-import { openMemberByUsername } from "./admin.js?v=0.18.2";
+import { apiFetch } from "./api.js?v=0.18.3";
+import { state } from "./state.js?v=0.18.3";
+import { openMemberByUsername } from "./admin.js?v=0.18.3";
 
 const el = (id) => document.getElementById(id);
 let activeProfile = null;
@@ -690,12 +690,51 @@ function entranceDefaults() {
     signatureEffect: "none",
     pyro: { enabled: true, style: "jets", position: "both", color: "#FFFFFF", duration: 3.5, frequency: 1.1, height: 0.58, width: 0.9, intensity: 1, burstCount: 2, behavior: "simultaneous", layeredEffects:false },
     atmosphere: { type: "none", color: "#FFFFFF", density: 0.45, spread: 0.75, placement: "floor", fade: 4 },
-    lighting: { enabled: true, dimming: "moderate", blackout: false, spotlight: false, phoneLights: false, lightning: false, branchingLightning:false, primaryColor: "#FFFFFF", secondaryColor: "#3B82F6", motion: "sweep", speed: 1, brightness: 0.6, beamWidth: 0.9, fixtureCount: 4 },
+    lighting: { enabled: true, preset:"custom", dimming: "moderate", blackout: false, spotlight: false, phoneLights: false, lightning: false, branchingLightning:false, primaryColor: "#FFFFFF", secondaryColor: "#3B82F6", motion: "sweep", aim:"center", behavior:"steady", speed: 1, brightness: 0.6, beamWidth: 0.9, fixtureCount: 4, fixtures:[] },
     filter: { mode: "none", intensity: 0.45 },
     screenFx: { effect: "none", shake: 1, flash: 0.6, lingerCracks: false },
     nameplate: { enabled: true, style: "arena", glow: true, animation: "slide" },
     timing: { totalDuration: 5, entranceDelay: 0, nameplateStart: 0.6, pyroStart: 1, atmosphereStart: 0.3, screenFxStart: 0.8 }
   };
+}
+
+const ENTRANCE_LIGHTING_PRESETS = {
+  center_focus:{tier:"basic",name:"Center Focus",description:"Still center-stage focus.",config:{preset:"center_focus",fixtureCount:4,motion:"none",aim:"center",behavior:"steady",brightness:.6,beamWidth:.9,speed:1}},
+  wide_sweep:{tier:"basic",name:"Wide Sweep",description:"Simple opposing sweeps across center.",config:{preset:"wide_sweep",fixtureCount:4,motion:"sweep",aim:"center",behavior:"steady",brightness:.62,beamWidth:1,speed:1.2}},
+  downlights:{tier:"basic",name:"Downlights",description:"Straight-down stage wash.",config:{preset:"downlights",fixtureCount:4,motion:"none",aim:"down",behavior:"steady",brightness:.58,beamWidth:1.05,speed:1}},
+  crossfire:{tier:"rare",name:"Crossfire",description:"Left/right beams cross the stage.",config:{preset:"crossfire",fixtureCount:6,motion:"cross",aim:"center",behavior:"steady",brightness:.72,beamWidth:1.15,speed:.95}},
+  fan_out:{tier:"rare",name:"Fan Out",description:"A wide mirrored fan across the arena.",config:{preset:"fan_out",fixtureCount:6,motion:"fan",aim:"outward",behavior:"steady",brightness:.72,beamWidth:1.2,speed:1}},
+  alternating_pulse:{tier:"rare",name:"Alternating Pulse",description:"Odd/even lights trade brightness.",config:{preset:"alternating_pulse",fixtureCount:6,motion:"none",aim:"center",behavior:"alternating",brightness:.78,beamWidth:1.05,speed:.85}},
+  arena_chase:{tier:"rare",name:"Arena Chase",description:"A brightness chase travels across the rig.",config:{preset:"arena_chase",fixtureCount:6,motion:"sweep",aim:"center",behavior:"chase",brightness:.78,beamWidth:1.05,speed:.75}},
+  mirror_sweep:{tier:"rare",name:"Mirror Sweep",description:"Mirrored fixtures sweep toward and away from center.",config:{preset:"mirror_sweep",fixtureCount:6,motion:"sweep",aim:"center",behavior:"steady",brightness:.76,beamWidth:1.05,speed:1.05}},
+  search_party:{tier:"epic",name:"Search Party",description:"Independent roaming searchlights.",config:{preset:"search_party",fixtureCount:8,motion:"search",aim:"center",behavior:"steady",brightness:.78,beamWidth:.85,speed:1.35}},
+  converge:{tier:"epic",name:"Converge",description:"Beams sweep inward toward center stage.",config:{preset:"converge",fixtureCount:8,motion:"converge",aim:"center",behavior:"pulse",brightness:.82,beamWidth:1,speed:1.25}},
+  spotlight_hit:{tier:"epic",name:"Spotlight Hit",description:"A tight, dramatic center-stage light cluster.",config:{preset:"spotlight_hit",fixtureCount:8,motion:"none",aim:"center",behavior:"pulse",brightness:.95,beamWidth:.65,speed:.55}},
+  rolling_wave:{tier:"epic",name:"Rolling Wave",description:"Movement and brightness ripple across the rig.",config:{preset:"rolling_wave",fixtureCount:8,motion:"pendulum",aim:"center",behavior:"chase",brightness:.82,beamWidth:1.1,speed:.9}},
+  figure_eight:{tier:"epic",name:"Figure Eight",description:"Offset figure-eight moving heads.",config:{preset:"figure_eight",fixtureCount:8,motion:"figure8",aim:"center",behavior:"steady",brightness:.8,beamWidth:.9,speed:1.3}},
+  dark_search:{tier:"epic",name:"Dark Search",description:"Dim narrow searchlights cutting through darkness.",config:{preset:"dark_search",fixtureCount:8,motion:"search",aim:"outward",behavior:"steady",brightness:.48,beamWidth:.62,speed:1.7,dimming:"blackout"}},
+  gold_shimmer:{tier:"champion",name:"Gold Shimmer",description:"Alternating gold pulses with opposing motion groups.",config:{preset:"gold_shimmer",fixtureCount:12,motion:"converge",aim:"center",behavior:"shimmer",primaryColor:"#F5C94A",secondaryColor:"#FFF0A6",brightness:1,beamWidth:1.35,speed:.85}},
+  royal_convergence:{tier:"champion",name:"Royal Convergence",description:"Gold beams slowly converge and breathe together.",config:{preset:"royal_convergence",fixtureCount:12,motion:"converge",aim:"center",behavior:"pulse",primaryColor:"#F5C94A",secondaryColor:"#FFF0A6",brightness:.95,beamWidth:1.2,speed:1.35}},
+  crown_chase:{tier:"champion",name:"Crown Chase",description:"A gold chase travels through a sweeping rig.",config:{preset:"crown_chase",fixtureCount:12,motion:"sweep",aim:"center",behavior:"chase",primaryColor:"#F5C94A",secondaryColor:"#FFF0A6",brightness:1,beamWidth:1.15,speed:.62}},
+  controlled_chaos:{tier:"champion",name:"Controlled Chaos",description:"Mixed movement groups with synchronized pulse points.",config:{preset:"controlled_chaos",fixtureCount:12,motion:"search",aim:"center",behavior:"alternating",brightness:.95,beamWidth:1,speed:.72}},
+  lightning_hit:{tier:"champion",name:"Lightning Hit",description:"Center snap and white flash on the lightning cue.",config:{preset:"lightning_hit",fixtureCount:12,motion:"converge",aim:"center",behavior:"pulse",brightness:1,beamWidth:1.25,speed:.8,lightning:true}}
+};
+
+function buildLightingPresetFixtures(preset, lighting={}) {
+  const count=Math.max(2,Math.min(12,Math.round(Number(lighting.fixtureCount||4))));
+  const items=[];
+  for(let i=0;i<count;i+=1){
+    const odd=i%2===0;
+    const fixture={enabled:true,color:undefined,brightness:undefined,aim:"inherit",motion:"inherit",speed:undefined,behavior:"inherit",direction:"normal",phase:count>1?i/(count-1):0,range:1};
+    if(preset==="mirror_sweep") fixture.direction=odd?"normal":"reverse";
+    if(preset==="search_party"){fixture.motion="search";fixture.aim=["crowd_left","center","crowd_right","outward"][i%4];fixture.speed=.9+(i%4)*.22;}
+    if(preset==="rolling_wave"){fixture.motion="pendulum";fixture.behavior="pulse";fixture.phase=i/count;}
+    if(preset==="figure_eight"){fixture.motion="figure8";fixture.direction=odd?"normal":"reverse";fixture.phase=i/count;}
+    if(preset==="gold_shimmer"){fixture.motion=odd?"converge":"diverge";fixture.behavior="shimmer";fixture.direction=odd?"normal":"reverse";fixture.phase=odd?0:.5;}
+    if(preset==="controlled_chaos"){fixture.motion=["search","circle","figure8","pendulum"][i%4];fixture.aim=["center","crowd_left","crowd_right","outward"][i%4];fixture.behavior=i%3===0?"pulse":"steady";fixture.direction=odd?"normal":"reverse";fixture.phase=i/count;}
+    items.push(fixture);
+  }
+  return items;
 }
 
 const ENTRANCE_TEMPLATES = {
@@ -708,7 +747,7 @@ const ENTRANCE_TEMPLATES = {
   epic_dark_arrival: { tier:"epic", name:"Epic — Dark Arrival", config:{ enabled:true, signatureEffect:"dark_arrival_lightning", pyro:{enabled:true,style:"rain",position:"overhead",color:"#FFFFFF",duration:7,frequency:1.2,height:.8,width:2.4,intensity:2,burstCount:5,behavior:"simultaneous"}, atmosphere:{type:"heavy_fog",color:"#A855F7",density:.86,spread:1,placement:"full",fade:7}, lighting:{enabled:true,dimming:"blackout",blackout:true,spotlight:true,phoneLights:false,lightning:false,branchingLightning:false,primaryColor:"#A855F7",secondaryColor:"#FFFFFF",motion:"search",speed:1.4,brightness:.5,beamWidth:.85,fixtureCount:8}, filter:{mode:"purple",intensity:.6}, screenFx:{effect:"none",shake:1,flash:.8}, nameplate:{enabled:true,style:"minimal",glow:false,animation:"fade"}, timing:{totalDuration:10,screenFxStart:.65,pyroStart:1.45,nameplateStart:.9,atmosphereStart:.15} } },
   epic_electrifying: { tier:"epic", name:"Epic — Electrifying", config:{ enabled:true, pyro:{enabled:true,style:"multi_burst",position:"full",color:"#FFFFFF",duration:5,frequency:.7,height:.82,width:1.8,intensity:3,burstCount:5,behavior:"wave"}, atmosphere:{type:"none"}, lighting:{enabled:true,dimming:"strong",blackout:false,spotlight:true,phoneLights:false,lightning:false,primaryColor:"#3B82F6",secondaryColor:"#FFFFFF",motion:"search",speed:.75,brightness:.9,beamWidth:1.3,fixtureCount:8}, filter:{mode:"blue",intensity:.42}, screenFx:{effect:"glitch",shake:2,flash:.55}, nameplate:{enabled:true,style:"arena",glow:true,animation:"glitch"}, timing:{totalDuration:8} } },
   epic_rainmaker: { tier:"epic", name:"Epic — Rainmaker", config:{ enabled:true, pyro:{enabled:true,style:"curtain",position:"overhead",color:"#F59E0B",duration:8,frequency:1.2,height:.9,width:2.8,intensity:3,burstCount:6,behavior:"simultaneous"}, atmosphere:{type:"mist",color:"#FFFFFF",density:.25,spread:1,placement:"full",fade:6}, lighting:{enabled:true,dimming:"strong",blackout:false,spotlight:true,phoneLights:false,lightning:false,primaryColor:"#F59E0B",secondaryColor:"#FFFFFF",motion:"fan",speed:.8,brightness:.9,beamWidth:1.45,fixtureCount:8}, filter:{mode:"gold",intensity:.4}, screenFx:{effect:"none"}, nameplate:{enabled:true,style:"arena",glow:true,animation:"fade"}, timing:{totalDuration:10} } },
-  champion_thunder_crown: { tier:"champion", name:"Champion — Thunder Crown", config:{ enabled:true, pyro:{enabled:true,style:"finale",position:"full",color:"#F59E0B",duration:7,frequency:.55,height:1,width:3,intensity:4,burstCount:7,behavior:"rapid",layeredEffects:true}, atmosphere:{type:"smoke",color:"#FFFFFF",density:.6,spread:.9,placement:"full",fade:5}, lighting:{enabled:true,dimming:"blackout",blackout:true,spotlight:true,phoneLights:false,lightning:true,branchingLightning:true,primaryColor:"#F59E0B",secondaryColor:"#FFFFFF",motion:"champion",speed:.7,brightness:1,beamWidth:1.6,fixtureCount:12}, filter:{mode:"gold_contrast",intensity:.55}, screenFx:{effect:"flash",shake:2,flash:1}, nameplate:{enabled:true,style:"championship",glow:true,animation:"shimmer"}, timing:{totalDuration:12,screenFxStart:.7,pyroStart:1.2,nameplateStart:.9,atmosphereStart:.2} } }
+  champion_thunder_crown: { tier:"champion", name:"Champion — Thunder Crown", config:{ enabled:true, pyro:{enabled:true,style:"finale",position:"full",color:"#F59E0B",duration:7,frequency:.55,height:1,width:3,intensity:4,burstCount:7,behavior:"rapid",layeredEffects:true}, atmosphere:{type:"smoke",color:"#FFFFFF",density:.6,spread:.9,placement:"full",fade:5}, lighting:{enabled:true,preset:"gold_shimmer",dimming:"blackout",blackout:true,spotlight:true,phoneLights:false,lightning:true,branchingLightning:true,primaryColor:"#F5C94A",secondaryColor:"#FFF0A6",motion:"converge",aim:"center",behavior:"shimmer",speed:.85,brightness:1,beamWidth:1.35,fixtureCount:12,fixtures:buildLightingPresetFixtures("gold_shimmer",{fixtureCount:12,primaryColor:"#F5C94A",secondaryColor:"#FFF0A6",brightness:1,speed:.85})}, filter:{mode:"gold_contrast",intensity:.55}, screenFx:{effect:"flash",shake:2,flash:1}, nameplate:{enabled:true,style:"championship",glow:true,animation:"shimmer"}, timing:{totalDuration:12,screenFxStart:.7,pyroStart:1.2,nameplateStart:.9,atmosphereStart:.2} } }
 };
 
 function mergeEntranceConfig(value) {
@@ -742,6 +781,7 @@ function fillEntranceRanges() {
 }
 
 let entranceSignatureEffect = "none";
+let entranceFixtureOverrides = [];
 
 function currentEntranceForm() {
   const dimming = el("entranceDimmingSelect").value;
@@ -751,7 +791,7 @@ function currentEntranceForm() {
     wrestlingName: el("entranceWrestlingNameInput").value.trim(), subtitle: el("entranceSubtitleInput").value.trim(),
     pyro: { enabled: el("entrancePyroEnabledInput").checked, style: el("entrancePyroStyleSelect").value, position: el("entrancePyroPositionSelect").value, color: el("entrancePyroColorInput").value, duration:+el("entrancePyroDurationInput").value, frequency:+el("entrancePyroFrequencyInput").value, height:+el("entrancePyroHeightInput").value, width:+el("entrancePyroWidthInput").value, intensity:+el("entrancePyroIntensitySelect").value, burstCount:+el("entrancePyroBurstCountInput").value, behavior:el("entrancePyroBehaviorSelect").value, layeredEffects:el("entranceLayeredEffectsInput").checked },
     atmosphere: { type:el("entranceAtmosphereSelect").value, color:el("entranceAtmosphereColorInput").value, density:+el("entranceAtmosphereDensityInput").value, spread:+el("entranceAtmosphereSpreadInput").value, placement:el("entranceAtmospherePlacementSelect").value, fade:+el("entranceAtmosphereFadeInput").value },
-    lighting: { enabled:el("entranceLightingEnabledInput").checked, dimming, blackout:dimming==="blackout", spotlight:el("entranceSpotlightInput").checked, phoneLights:false, lightning:el("entranceLightningInput").checked, branchingLightning:el("entranceBranchingLightningInput").checked, primaryColor:el("entranceLightPrimaryInput").value, secondaryColor:el("entranceLightSecondaryInput").value, motion:el("entranceLightMotionSelect").value, speed:+el("entranceLightSpeedInput").value, brightness:+el("entranceLightBrightnessInput").value, beamWidth:+el("entranceLightBeamWidthInput").value, fixtureCount:+el("entranceLightFixtureCountInput").value },
+    lighting: { enabled:el("entranceLightingEnabledInput").checked, preset:el("entranceLightingPresetSelect")?.value||"custom", dimming, blackout:dimming==="blackout", spotlight:el("entranceSpotlightInput").checked, phoneLights:false, lightning:el("entranceLightningInput").checked, branchingLightning:el("entranceBranchingLightningInput").checked, primaryColor:el("entranceLightPrimaryInput").value, secondaryColor:el("entranceLightSecondaryInput").value, motion:el("entranceLightMotionSelect").value, aim:el("entranceLightAimSelect").value, behavior:el("entranceLightBehaviorSelect").value, speed:+el("entranceLightSpeedInput").value, brightness:+el("entranceLightBrightnessInput").value, beamWidth:+el("entranceLightBeamWidthInput").value, fixtureCount:+el("entranceLightFixtureCountInput").value, fixtures:entranceFixtureOverrides.slice(0,+el("entranceLightFixtureCountInput").value).map(x=>({...x})) },
     filter: { mode:el("entranceFilterSelect").value, intensity:+el("entranceFilterIntensityInput").value },
     screenFx: { effect:el("entranceScreenFxSelect").value, shake:+el("entranceScreenShakeInput").value, flash:+el("entranceScreenFlashInput").value, lingerCracks:el("entranceGlassLingerInput").checked },
     nameplate: { enabled:el("entranceNameplateEnabledInput").checked, style:el("entranceNameplateStyleSelect").value, glow:el("entranceNameplateGlowInput").checked, animation:el("entranceNameplateAnimationSelect").value },
@@ -765,7 +805,7 @@ function setEntranceForm(config) {
   el("entranceEnabledInput").checked=!!c.enabled; el("entranceWrestlingNameInput").value=c.wrestlingName||activeProfile?.user?.username||""; el("entranceSubtitleInput").value=c.subtitle||"";
   el("entrancePyroEnabledInput").checked=c.pyro.enabled!==false; el("entrancePyroStyleSelect").value=c.pyro.style; el("entrancePyroPositionSelect").value=c.pyro.position||"both"; el("entrancePyroColorInput").value=c.pyro.color||"#FFFFFF"; el("entrancePyroDurationInput").value=c.pyro.duration; el("entrancePyroFrequencyInput").value=c.pyro.frequency; el("entrancePyroHeightInput").value=c.pyro.height; el("entrancePyroWidthInput").value=c.pyro.width; el("entrancePyroIntensitySelect").value=String(c.pyro.intensity); el("entrancePyroBurstCountInput").value=c.pyro.burstCount||3; el("entrancePyroBehaviorSelect").value=c.pyro.behavior||"simultaneous"; el("entranceLayeredEffectsInput").checked=!!c.pyro.layeredEffects;
   el("entranceAtmosphereSelect").value=c.atmosphere.type; el("entranceAtmosphereColorInput").value=c.atmosphere.color||"#FFFFFF"; el("entranceAtmosphereDensityInput").value=c.atmosphere.density; el("entranceAtmosphereSpreadInput").value=c.atmosphere.spread??.75; el("entranceAtmospherePlacementSelect").value=c.atmosphere.placement||"floor"; el("entranceAtmosphereFadeInput").value=c.atmosphere.fade||4;
-  el("entranceLightingEnabledInput").checked=c.lighting.enabled!==false; el("entranceDimmingSelect").value=c.lighting.dimming||"moderate"; el("entranceSpotlightInput").checked=!!c.lighting.spotlight; el("entranceLightningInput").checked=!!c.lighting.lightning; el("entranceBranchingLightningInput").checked=!!c.lighting.branchingLightning; el("entranceLightPrimaryInput").value=c.lighting.primaryColor||"#FFFFFF"; el("entranceLightSecondaryInput").value=c.lighting.secondaryColor||"#3B82F6"; el("entranceLightMotionSelect").value=c.lighting.motion; el("entranceLightSpeedInput").value=c.lighting.speed; el("entranceLightBrightnessInput").value=c.lighting.brightness??.6; el("entranceLightBeamWidthInput").value=c.lighting.beamWidth??.9; el("entranceLightFixtureCountInput").value=c.lighting.fixtureCount??4;
+  el("entranceLightingEnabledInput").checked=c.lighting.enabled!==false; el("entranceDimmingSelect").value=c.lighting.dimming||"moderate"; el("entranceSpotlightInput").checked=!!c.lighting.spotlight; el("entranceLightningInput").checked=!!c.lighting.lightning; el("entranceBranchingLightningInput").checked=!!c.lighting.branchingLightning; el("entranceLightPrimaryInput").value=c.lighting.primaryColor||"#FFFFFF"; el("entranceLightSecondaryInput").value=c.lighting.secondaryColor||"#3B82F6"; el("entranceLightMotionSelect").value=c.lighting.motion||"none"; el("entranceLightAimSelect").value=c.lighting.aim||"center"; el("entranceLightBehaviorSelect").value=c.lighting.behavior||"steady"; el("entranceLightSpeedInput").value=c.lighting.speed; el("entranceLightBrightnessInput").value=c.lighting.brightness??.6; el("entranceLightBeamWidthInput").value=c.lighting.beamWidth??.9; el("entranceLightFixtureCountInput").value=c.lighting.fixtureCount??4; entranceFixtureOverrides=Array.isArray(c.lighting.fixtures)?c.lighting.fixtures.map(x=>({...x})):[]; populateEntranceLightingPresets(c.lighting.preset||"custom"); renderEntranceFixtureEditor();
   el("entranceFilterSelect").value=c.filter.mode||"none"; el("entranceFilterIntensityInput").value=c.filter.intensity??.45; el("entranceScreenFxSelect").value=c.screenFx.effect||"none"; el("entranceScreenShakeInput").value=c.screenFx.shake??1; el("entranceScreenFlashInput").value=c.screenFx.flash??.6; el("entranceGlassLingerInput").checked=!!c.screenFx.lingerCracks;
   el("entranceNameplateEnabledInput").checked=c.nameplate.enabled!==false; el("entranceNameplateStyleSelect").value=c.nameplate.style; el("entranceNameplateGlowInput").checked=!!c.nameplate.glow; el("entranceNameplateAnimationSelect").value=c.nameplate.animation||"slide";
   el("entranceTotalDurationInput").value=c.timing.totalDuration||5; el("entranceDelayInput").value=c.timing.entranceDelay||0; el("entranceNameplateStartInput").value=c.timing.nameplateStart??.6; el("entrancePyroStartInput").value=c.timing.pyroStart??1; el("entranceAtmosphereStartInput").value=c.timing.atmosphereStart??.3; el("entranceScreenFxStartInput").value=c.timing.screenFxStart??.8;
@@ -776,6 +816,32 @@ function updateEntranceSummary(){
   const target=el("entranceSummary"); if(!target)return; const c=currentEntranceForm();
   const parts=[entranceTierText(currentEntranceTier()), c.pyro.enabled?c.pyro.style.replaceAll("_"," ").toUpperCase():"NO PYRO", c.atmosphere.type!=="none"?c.atmosphere.type.replaceAll("_"," ").toUpperCase():null, c.signatureEffect==="dark_arrival_lightning"?"SIGNATURE LIGHTNING":null, c.lighting.enabled?`${c.lighting.motion.toUpperCase()} LIGHTS`:"NO RIG", c.screenFx.effect!=="none"?c.screenFx.effect.replaceAll("_"," ").toUpperCase():null].filter(Boolean); target.textContent=parts.join(" · ");
 }
+
+function populateEntranceLightingPresets(selected="custom") {
+  const select=el("entranceLightingPresetSelect"); if(!select)return;
+  select.innerHTML='<option value="custom">Custom / current rig</option>';
+  Object.entries(ENTRANCE_LIGHTING_PRESETS).forEach(([key,preset])=>{const option=document.createElement("option");const locked=(ENTRANCE_TIER_RANK[preset.tier]||1)>currentEntranceRank();option.value=key;option.disabled=locked;option.textContent=`${locked?"🔒 ":""}${preset.name}${locked?` — ${entranceTierText(preset.tier)}`:""}`;select.appendChild(option);});
+  select.value=[...select.options].some(o=>o.value===selected&&!o.disabled)?selected:"custom";
+}
+function applyEntranceLightingPreset(){
+  const key=el("entranceLightingPresetSelect").value,preset=ENTRANCE_LIGHTING_PRESETS[key]; if(!preset||(ENTRANCE_TIER_RANK[preset.tier]||1)>currentEntranceRank())return;
+  const c=currentEntranceForm(); const merged={...c.lighting,...preset.config}; merged.fixtures=buildLightingPresetFixtures(key,merged); entranceFixtureOverrides=merged.fixtures.map(x=>({...x}));
+  el("entranceDimmingSelect").value=merged.dimming||c.lighting.dimming; el("entranceLightMotionSelect").value=merged.motion||"none"; el("entranceLightAimSelect").value=merged.aim||"center"; el("entranceLightBehaviorSelect").value=merged.behavior||"steady"; el("entranceLightPrimaryInput").value=merged.primaryColor||c.lighting.primaryColor; el("entranceLightSecondaryInput").value=merged.secondaryColor||c.lighting.secondaryColor; el("entranceLightSpeedInput").value=merged.speed??1; el("entranceLightBrightnessInput").value=merged.brightness??.65; el("entranceLightBeamWidthInput").value=merged.beamWidth??1; el("entranceLightFixtureCountInput").value=merged.fixtureCount||4; if("lightning" in merged)el("entranceLightningInput").checked=!!merged.lightning;
+  renderEntranceFixtureEditor(); fillEntranceRanges(); el("entranceMessage").className="message success"; el("entranceMessage").textContent=`${preset.name} lighting applied. You can now adjust individual fixtures.`;
+}
+function ensureFixtureOverride(index){
+  const count=+el("entranceLightFixtureCountInput").value||4; while(entranceFixtureOverrides.length<count){const i=entranceFixtureOverrides.length;entranceFixtureOverrides.push({enabled:true,color:undefined,brightness:undefined,aim:"inherit",motion:"inherit",speed:undefined,behavior:"inherit",direction:"normal",phase:count>1?i/(count-1):0,range:1});} return entranceFixtureOverrides[index];
+}
+function fixtureSelect(options,value,onchange){const select=document.createElement("select");options.forEach(([v,label,tier])=>{const o=document.createElement("option");o.value=v;o.textContent=(!tier||tierAtLeast(tier))?label:`🔒 ${label}`;o.disabled=Boolean(tier&&!tierAtLeast(tier));select.appendChild(o);});select.value=[...select.options].some(o=>o.value===value&&!o.disabled)?value:"inherit";select.addEventListener("change",onchange);return select;}
+function renderEntranceFixtureEditor(){
+  const host=el("entranceFixtureEditor"); if(!host)return; const count=+el("entranceLightFixtureCountInput").value||4; host.innerHTML=""; entranceFixtureOverrides=entranceFixtureOverrides.slice(0,count); for(let i=0;i<count;i+=1){const f=ensureFixtureOverride(i),card=document.createElement("div");card.className="entrance-fixture-card";const effectiveColor=f.color||(i%2?(el("entranceLightSecondaryInput").value||"#FFFFFF"):(el("entranceLightPrimaryInput").value||"#FFFFFF")),effectiveBrightness=f.brightness??(+el("entranceLightBrightnessInput").value||.65),effectiveSpeed=f.speed??(+el("entranceLightSpeedInput").value||1);card.innerHTML=`<div class="entrance-fixture-card-head"><strong>LIGHT ${i+1}</strong><label class="identity-check"><input type="checkbox" data-fixture-power ${f.enabled!==false?"checked":""}> ON</label></div><div class="entrance-fixture-fields"><label>Color<input type="color" data-fixture-color value="${effectiveColor}"></label><label>Brightness<input type="range" data-fixture-brightness min="0" max="1" step="0.05" value="${Number(effectiveBrightness)}"></label><label>Speed<input type="range" data-fixture-speed min="0.3" max="3" step="0.1" value="${Number(effectiveSpeed)}"></label><label>Direction<select data-fixture-direction><option value="normal">Normal</option><option value="reverse">Reverse</option></select></label></div>`;
+    const fields=card.querySelector('.entrance-fixture-fields'); const aimWrap=document.createElement('label');aimWrap.textContent='Aim';aimWrap.appendChild(fixtureSelect([["inherit","Use Rig Aim"],["center","Center Stage","basic"],["down","Straight Down","basic"],["ramp","Entrance / Ramp","rare"],["screen","Back Wall / Screen","rare"],["crowd_left","Crowd Left","rare"],["crowd_right","Crowd Right","rare"],["outward","Wide Outward","rare"]],f.aim||"inherit",e=>{f.aim=e.target.value;}));fields.appendChild(aimWrap);
+    const motionWrap=document.createElement('label');motionWrap.textContent='Movement';motionWrap.appendChild(fixtureSelect([["inherit","Use Rig Movement"],["none","Still","basic"],["sweep","Horizontal Sweep","basic"],["vertical","Vertical Sweep","rare"],["diagonal","Diagonal Sweep","rare"],["pendulum","Pendulum","rare"],["search","Search","epic"],["circle","Circle","epic"],["figure8","Figure 8","epic"],["converge","Converge","epic"],["diverge","Diverge","epic"]],f.motion||"inherit",e=>{f.motion=e.target.value;}));fields.appendChild(motionWrap);
+    const behaviorWrap=document.createElement('label');behaviorWrap.textContent='Behavior';behaviorWrap.appendChild(fixtureSelect([["inherit","Use Rig Behavior"],["steady","Steady","basic"],["pulse","Pulse","rare"],["blink","Blink","rare"],["alternating","Alternating Pulse","rare"],["chase","Chase","rare"],["shimmer","Gold Shimmer","champion"]],f.behavior||"inherit",e=>{f.behavior=e.target.value;}));fields.appendChild(behaviorWrap);
+    card.querySelector('[data-fixture-power]').addEventListener('change',e=>{f.enabled=e.target.checked;});card.querySelector('[data-fixture-color]').addEventListener('change',e=>{const palette=ENTRANCE_COLOR_PALETTES.lighting[currentEntranceTier()];f.color=palette===null?e.target.value:nearestPaletteColor(e.target.value,palette||['#FFFFFF']);e.target.value=f.color;});card.querySelector('[data-fixture-brightness]').addEventListener('input',e=>{f.brightness=+e.target.value;});card.querySelector('[data-fixture-speed]').addEventListener('input',e=>{f.speed=+e.target.value;});const dir=card.querySelector('[data-fixture-direction]');dir.value=f.direction||'normal';dir.addEventListener('change',e=>{f.direction=e.target.value;});host.appendChild(card);
+  }
+}
+function resetEntranceFixtures(){entranceFixtureOverrides=[];el("entranceLightingPresetSelect").value="custom";renderEntranceFixtureEditor();}
 
 function populateEntranceTemplates() {
   const select = el("entranceTemplateSelect");
@@ -798,7 +864,7 @@ function applyEntranceTemplate() {
   const current = currentEntranceForm();
   setEntranceForm({
     ...current, ...template.config, signatureEffect: template.config.signatureEffect || "none", wrestlingName: current.wrestlingName, subtitle: current.subtitle,
-    pyro: { ...current.pyro, ...(template.config.pyro || {}) }, atmosphere: { ...current.atmosphere, ...(template.config.atmosphere || {}) }, lighting: { ...current.lighting, ...(template.config.lighting || {}) }, filter: { ...current.filter, ...(template.config.filter || {}) }, screenFx: { ...current.screenFx, ...(template.config.screenFx || {}) }, nameplate: { ...current.nameplate, ...(template.config.nameplate || {}) }, timing: { ...current.timing, ...(template.config.timing || {}) }
+    pyro: { ...current.pyro, ...(template.config.pyro || {}) }, atmosphere: { ...current.atmosphere, ...(template.config.atmosphere || {}) }, lighting: { ...current.lighting, ...(template.config.lighting || {}), preset:template.config.lighting?.preset||"custom", fixtures:Array.isArray(template.config.lighting?.fixtures)?template.config.lighting.fixtures:[] }, filter: { ...current.filter, ...(template.config.filter || {}) }, screenFx: { ...current.screenFx, ...(template.config.screenFx || {}) }, nameplate: { ...current.nameplate, ...(template.config.nameplate || {}) }, timing: { ...current.timing, ...(template.config.timing || {}) }
   });
   el("entranceMessage").className = "message success";
   el("entranceMessage").textContent = `${template.name} applied. Customize any unlocked controls before saving.`;
@@ -832,7 +898,7 @@ function setEntranceControlAvailability() {
   const pyroEnabled=el("entrancePyroEnabledInput").checked;
   ["entrancePyroStyleSelect","entrancePyroPositionSelect","entrancePyroColorInput","entrancePyroDurationInput","entrancePyroFrequencyInput","entrancePyroHeightInput","entrancePyroWidthInput","entrancePyroIntensitySelect","entrancePyroBurstCountInput","entrancePyroBehaviorSelect"].forEach(id=>{const c=el(id); if(c && c.dataset.tierLocked!=="true")c.disabled=!pyroEnabled;});
   const rigEnabled=el("entranceLightingEnabledInput").checked;
-  ["entranceDimmingSelect","entranceLightPrimaryInput","entranceLightSecondaryInput","entranceLightMotionSelect","entranceLightSpeedInput","entranceLightBrightnessInput","entranceLightBeamWidthInput","entranceLightFixtureCountInput","entranceSpotlightInput","entranceLightningInput","entranceBranchingLightningInput"].forEach(id=>{const c=el(id); if(c && c.dataset.tierLocked!=="true")c.disabled=!rigEnabled;});
+  ["entranceDimmingSelect","entranceLightingPresetSelect","entranceApplyLightingPresetButton","entranceLightPrimaryInput","entranceLightSecondaryInput","entranceLightMotionSelect","entranceLightAimSelect","entranceLightBehaviorSelect","entranceLightSpeedInput","entranceLightBrightnessInput","entranceLightBeamWidthInput","entranceLightFixtureCountInput","entranceSpotlightInput","entranceLightningInput","entranceBranchingLightningInput"].forEach(id=>{const c=el(id); if(c && c.dataset.tierLocked!=="true")c.disabled=!rigEnabled;});
   const nameplateEnabled=el("entranceNameplateEnabledInput").checked;
   ["entranceNameplateStyleSelect","entranceNameplateGlowInput","entranceNameplateAnimationSelect"].forEach(id=>{const c=el(id); if(c && c.dataset.tierLocked!=="true")c.disabled=!nameplateEnabled;});
   const atmosphereEnabled=el("entranceAtmosphereSelect").value!=="none" && tierAtLeast("epic");
@@ -867,7 +933,9 @@ function applyEntranceTierUI() {
   setSelectLocks("entrancePyroIntensitySelect",{"1":"basic","2":"basic","3":"rare","4":"champion"});
   setSelectLocks("entrancePyroBehaviorSelect",{simultaneous:"basic",alternating:"rare",outside_in:"rare",inside_out:"rare",wave:"rare",random:"epic",rapid:"epic"});
   setSelectLocks("entranceDimmingSelect",{light:"basic",moderate:"basic",strong:"rare",blackout:"epic"});
-  setSelectLocks("entranceLightMotionSelect",{none:"basic",sweep:"basic",cross:"rare",fan:"rare",search:"epic",pulse:"epic",stadium:"epic",champion:"champion"});
+  setSelectLocks("entranceLightMotionSelect",{none:"basic",sweep:"basic",cross:"rare",fan:"rare",vertical:"rare",diagonal:"rare",pendulum:"rare",search:"epic",circle:"epic",figure8:"epic",converge:"epic",diverge:"epic",pulse:"epic",stadium:"epic",champion:"champion"});
+  setSelectLocks("entranceLightAimSelect",{center:"basic",down:"basic",ramp:"rare",screen:"rare",crowd_left:"rare",crowd_right:"rare",outward:"rare"});
+  setSelectLocks("entranceLightBehaviorSelect",{steady:"basic",pulse:"rare",blink:"rare",alternating:"rare",chase:"rare",shimmer:"champion"});
   setSelectLocks("entranceAtmosphereSelect",{none:"basic",fog:"epic",smoke:"epic",heavy_fog:"epic",mist:"epic"});
   setSelectLocks("entranceScreenFxSelect",{none:"basic",glass_shatter:"epic",flash:"epic",glitch:"epic",shake:"epic"});
   setSelectLocks("entranceFilterSelect",{none:"basic",cinematic:"epic",cool:"rare",warm:"rare",red:"rare",blue:"rare",purple:"rare",green:"epic",gold:"epic",mono:"epic",high_contrast:"epic",desaturated:"epic",gold_contrast:"champion",crimson_mono:"champion",electric_blue:"champion"});
@@ -887,7 +955,7 @@ function applyEntranceTierUI() {
   setRangeTier("entranceTotalDurationInput",{basic:6,rare:8,epic:12,champion:15},3);
 
   el("entrancePyroFrequencyInput").min=tier==="basic"?"0.8":tier==="rare"?"0.5":"0.25"; if(Number(el("entrancePyroFrequencyInput").value)<Number(el("entrancePyroFrequencyInput").min))el("entrancePyroFrequencyInput").value=el("entrancePyroFrequencyInput").min;
-  populateEntranceTemplates();
+  populateEntranceTemplates(); populateEntranceLightingPresets(el("entranceLightingPresetSelect")?.value||"custom");
   setEntranceEditorMode(localStorage.getItem("chatroom_entrance_editor_mode")||"basic");
   const palette=tier==="champion"?"unrestricted custom colors":tier==="epic"?"expanded lighting, pyro, and atmosphere colors":tier==="rare"?"expanded lighting and pyro colors":"white pyro plus white/blue lighting";
   el("entrancePaletteNote").textContent=`${entranceTierText(tier)}: ${palette}. Basic = modest lights/pyro · Rare = upgraded lights/pyro/filters · Epic = atmosphere/flames/raining pyro/screen FX · Champion = lightning and maximum production.`;
@@ -949,12 +1017,15 @@ export function initProfiles() {
   el("entrancePreviewButton").addEventListener("click", previewEntrance);
   el("entranceTriggerButton").addEventListener("click", triggerEntranceNow);
   el("entranceApplyTemplateButton").addEventListener("click", applyEntranceTemplate);
+  el("entranceApplyLightingPresetButton").addEventListener("click", applyEntranceLightingPreset);
+  el("entranceResetFixturesButton").addEventListener("click", resetEntranceFixtures);
   el("entrancePyroEnabledInput").addEventListener("change", applyEntranceTierUI);
   el("entranceLightingEnabledInput").addEventListener("change", applyEntranceTierUI);
   el("entranceNameplateEnabledInput").addEventListener("change", applyEntranceTierUI);
   el("entranceBasicModeButton").addEventListener("click",()=>setEntranceEditorMode("basic"));
   el("entranceAdvancedModeButton").addEventListener("click",()=>setEntranceEditorMode("advanced"));
   el("entranceResetButton").addEventListener("click",resetEntranceForm);
-  ["entrancePyroDurationInput","entrancePyroFrequencyInput","entrancePyroHeightInput","entrancePyroWidthInput","entrancePyroBurstCountInput","entrancePyroStyleSelect","entranceAtmosphereSelect","entranceLightMotionSelect","entranceDimmingSelect","entranceScreenFxSelect"].forEach((id)=>el(id).addEventListener("input",()=>{applyEntranceTierUI();fillEntranceRanges();}));
+  ["entrancePyroDurationInput","entrancePyroFrequencyInput","entrancePyroHeightInput","entrancePyroWidthInput","entrancePyroBurstCountInput","entrancePyroStyleSelect","entranceAtmosphereSelect","entranceLightMotionSelect","entranceLightAimSelect","entranceLightBehaviorSelect","entranceDimmingSelect","entranceScreenFxSelect"].forEach((id)=>el(id).addEventListener("input",()=>{applyEntranceTierUI();fillEntranceRanges();}));
   [["entrancePyroColorInput","pyro"],["entranceAtmosphereColorInput","atmosphere"],["entranceLightPrimaryInput","lighting"],["entranceLightSecondaryInput","lighting"]].forEach(([id,kind])=>el(id).addEventListener("change",()=>snapEntranceColor(id,kind)));
+  el("entranceLightFixtureCountInput").addEventListener("input",renderEntranceFixtureEditor);
 }

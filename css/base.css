@@ -3169,8 +3169,8 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 /* Lightning strike and screen flash. */
 .entrance-lightning-wrap { position:absolute; inset:0; z-index:20; opacity:0; }
 .entrance-lightning-wrap.strike { animation:entranceLightningScene .82s steps(1,end) both; }
-.entrance-lightning-flash { position:absolute; inset:0; background:#f7fbff; opacity:0; }
-.entrance-lightning-wrap.strike .entrance-lightning-flash { animation:entranceLightningFlash .72s steps(1,end) both; }
+.entrance-lightning-flash { position:absolute; inset:0; z-index:55; background:#f7fbff; opacity:0; pointer-events:none; }
+.entrance-lightning-flash.strike { animation:entranceLightningFlash .72s steps(1,end) both; }
 .entrance-lightning-bolt {
   position:absolute; left:50%; top:0;
   width:110px; height:72vh;
@@ -3183,16 +3183,16 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 @keyframes entranceLightningFlash { 0% { opacity:.9; } 10% { opacity:0; } 28% { opacity:.65; } 40%,100% { opacity:0; } }
 
 /* Entrance color filters. */
-.entrance-color-filter { position:absolute; inset:0; z-index:2; pointer-events:none; opacity:var(--filter-intensity,.55); mix-blend-mode:color; }
-.entrance-filter-cinematic .entrance-color-filter { background:linear-gradient(180deg,#17446a33,#f1a65022); mix-blend-mode:soft-light; }
-.entrance-filter-cool .entrance-color-filter { background:#2563eb; }
-.entrance-filter-warm .entrance-color-filter { background:#f97316; }
-.entrance-filter-red .entrance-color-filter { background:#dc2626; }
-.entrance-filter-blue .entrance-color-filter { background:#2563eb; }
-.entrance-filter-purple .entrance-color-filter { background:#7c3aed; }
-.entrance-filter-green .entrance-color-filter { background:#16a34a; }
-.entrance-filter-gold .entrance-color-filter { background:#d99b16; }
-.entrance-filter-mono .entrance-color-filter { background:#7b8492; mix-blend-mode:saturation; }
+.entrance-color-filter { position:absolute; inset:0; z-index:40; pointer-events:none; opacity:1; }
+.entrance-filter-cinematic { background:linear-gradient(180deg,rgba(23,68,106,.10),rgba(241,166,80,.08)); }
+.entrance-filter-cool { background:rgba(37,99,235,.08); }
+.entrance-filter-warm { background:rgba(249,115,22,.08); }
+.entrance-filter-red { background:rgba(220,38,38,.09); }
+.entrance-filter-blue { background:rgba(37,99,235,.09); }
+.entrance-filter-purple { background:rgba(124,58,237,.09); }
+.entrance-filter-green { background:rgba(22,163,74,.085); }
+.entrance-filter-gold { background:rgba(217,155,22,.09); }
+.entrance-filter-mono { background:rgba(123,132,146,.02); }
 
 /* First-message spotlight: the chat message is the star of the entrance. */
 .entrance-message-focus { z-index:1550; }
@@ -3337,7 +3337,7 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 .entrance-glass-svg path { fill:none; stroke:rgba(245,250,255,.88); stroke-width:.32; vector-effect:non-scaling-stroke; }
 .entrance-glass-shatter::before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.42),transparent 12%); }
 @keyframes entranceGlassIn { from{opacity:0;transform:scale(1.03)} to{opacity:1;transform:scale(1)} }
-.entrance-screen-flash { position:absolute; inset:0; z-index:30; background:#fff; animation:entranceScreenFlash .45s ease-out both; }
+.entrance-screen-flash { position:absolute; inset:0; z-index:55; background:#fff; animation:entranceScreenFlash .45s ease-out both; }
 @keyframes entranceScreenFlash { from{opacity:1} to{opacity:0} }
 .entrance-screen-glitch { position:absolute; inset:0; z-index:27; background:repeating-linear-gradient(0deg,rgba(255,255,255,.06) 0 2px,transparent 2px 6px); mix-blend-mode:screen; animation:entranceGlitch .12s steps(2,end) 8; }
 @keyframes entranceGlitch { 0%{transform:translate(0)} 25%{transform:translate(7px,-3px)} 50%{transform:translate(-8px,2px)} 75%{transform:translate(4px,3px)} 100%{transform:translate(0)} }
@@ -3348,8 +3348,8 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 @keyframes entranceShake2 { 20%{transform:translate(5px,-2px)}40%{transform:translate(-5px,2px)}60%{transform:translate(4px,1px)}80%{transform:translate(-3px,-1px)} }
 @keyframes entranceShake3 { 15%{transform:translate(9px,-4px)}30%{transform:translate(-9px,4px)}45%{transform:translate(8px,3px)}60%{transform:translate(-7px,-3px)}75%{transform:translate(5px,2px)}90%{transform:translate(-4px,-2px)} }
 
-.entrance-filter-high_contrast .entrance-color-filter { background:#fff; mix-blend-mode:overlay; }
-.entrance-filter-desaturated .entrance-color-filter { background:#9aa0aa; mix-blend-mode:saturation; }
+.entrance-filter-high_contrast { background:rgba(255,255,255,.015); }
+.entrance-filter-desaturated { background:rgba(154,160,170,.02); }
 .entrance-heavy_fog { opacity:.68; filter:blur(32px); }
 .entrance-mist { opacity:.28; filter:blur(36px); }
 .entrance-atmosphere { animation-duration:var(--fog-fade,4.5s); }
@@ -3372,3 +3372,63 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
 .entrance-nameplate-anim-shimmer::after { content:""; position:absolute; inset:-40% -80%; background:linear-gradient(110deg,transparent 42%,rgba(255,238,166,.8) 49%,rgba(255,255,255,.95) 50%,rgba(255,220,112,.55) 52%,transparent 58%); transform:translateX(-60%); }
 .entrance-nameplate-anim-shimmer.show::after { animation:entranceGoldShimmer 1.4s ease-out .25s 2; }
 @keyframes entranceGoldShimmer { from{transform:translateX(-55%)} to{transform:translateX(55%)} }
+
+
+/* =====================================================
+   v0.18.3 — per-fixture lighting + final color grading
+   ===================================================== */
+.entrance-lighting-preset-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:end; margin:8px 0 12px; }
+.entrance-lighting-preset-row button { white-space:nowrap; }
+.entrance-fixture-editor { margin-top:12px; border:1px solid var(--border); border-radius:10px; background:var(--surface-2); }
+.entrance-fixture-editor summary { cursor:pointer; padding:10px 12px; font-weight:700; display:flex; justify-content:space-between; gap:10px; }
+.entrance-fixture-toolbar { display:flex; justify-content:flex-end; padding:0 10px 8px; }
+.entrance-fixture-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:9px; padding:0 10px 10px; }
+.entrance-fixture-card { border:1px solid var(--border); border-radius:9px; padding:9px; background:var(--surface); }
+.entrance-fixture-card-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+.entrance-fixture-card-head .identity-check { margin:0; }
+.entrance-fixture-fields { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+.entrance-fixture-fields label { display:grid; gap:4px; font-size:10px; color:var(--muted); }
+.entrance-fixture-fields select,.entrance-fixture-fields input { width:100%; }
+
+.entrance-rig { opacity:1; }
+.entrance-layer.entrance-motion-pulse .entrance-light-beam { animation:none; }
+.entrance-light-head { transform:rotate(var(--aim-angle,0deg)); }
+.entrance-light-lens { opacity:var(--fixture-brightness,1); }
+.entrance-light-beam { opacity:calc(.58 * var(--fixture-brightness,1)); }
+.entrance-light-fixture.is-off .entrance-light-lens,.entrance-light-fixture.is-off .entrance-light-beam { opacity:0 !important; animation:none !important; }
+.entrance-light-fixture.is-off .entrance-light-head { filter:brightness(.45); }
+.entrance-fixture-motion-none .entrance-light-head { animation:none; transform:rotate(var(--aim-angle,0deg)); }
+.entrance-fixture-motion-sweep .entrance-light-head { animation:entranceFixtureSweep var(--fixture-speed,1s) ease-in-out var(--fixture-delay,0s) infinite alternate; }
+.entrance-fixture-motion-vertical .entrance-light-head { animation:entranceFixtureVertical var(--fixture-speed,1s) ease-in-out var(--fixture-delay,0s) infinite alternate; }
+.entrance-fixture-motion-diagonal .entrance-light-head { animation:entranceFixtureDiagonal var(--fixture-speed,1s) ease-in-out var(--fixture-delay,0s) infinite alternate; }
+.entrance-fixture-motion-pendulum .entrance-light-head { animation:entranceFixturePendulum var(--fixture-speed,1s) ease-in-out var(--fixture-delay,0s) infinite alternate; }
+.entrance-fixture-motion-search .entrance-light-head { animation:entranceFixtureSearch var(--fixture-speed,1s) ease-in-out var(--fixture-delay,0s) infinite alternate; }
+.entrance-fixture-motion-circle .entrance-light-head { animation:entranceFixtureCircle var(--fixture-speed,1s) linear var(--fixture-delay,0s) infinite; }
+.entrance-fixture-motion-figure8 .entrance-light-head { animation:entranceFixtureFigure8 var(--fixture-speed,1s) ease-in-out var(--fixture-delay,0s) infinite; }
+.entrance-fixture-motion-converge .entrance-light-head { animation:entranceFixtureConverge var(--fixture-speed,1s) ease-in-out var(--fixture-delay,0s) infinite alternate; }
+.entrance-fixture-motion-diverge .entrance-light-head { animation:entranceFixtureDiverge var(--fixture-speed,1s) ease-in-out var(--fixture-delay,0s) infinite alternate; }
+.entrance-light-fixture.reverse .entrance-light-head { animation-direction:alternate-reverse; }
+@keyframes entranceFixtureSweep { from{transform:rotate(calc(var(--aim-angle,0deg) - var(--fixture-sweep-angle,24deg)))} to{transform:rotate(calc(var(--aim-angle,0deg) + var(--fixture-sweep-angle,24deg)))} }
+@keyframes entranceFixtureDiagonal { from{transform:rotate(calc(var(--aim-angle,0deg) - 18deg)) scaleY(.9)} to{transform:rotate(calc(var(--aim-angle,0deg) + 18deg)) scaleY(1.08)} }
+@keyframes entranceFixturePendulum { from{transform:rotate(calc(var(--aim-angle,0deg) - 30deg))} 50%{transform:rotate(var(--aim-angle,0deg))} to{transform:rotate(calc(var(--aim-angle,0deg) + 30deg))} }
+@keyframes entranceFixtureSearch { 0%{transform:rotate(calc(var(--aim-angle,0deg) - 31deg))} 37%{transform:rotate(calc(var(--aim-angle,0deg) + 9deg))} 68%{transform:rotate(calc(var(--aim-angle,0deg) - 8deg))} 100%{transform:rotate(calc(var(--aim-angle,0deg) + 29deg))} }
+@keyframes entranceFixtureCircle { 0%{transform:rotate(calc(var(--aim-angle,0deg) - 28deg))} 25%{transform:rotate(var(--aim-angle,0deg)) scaleY(.88)} 50%{transform:rotate(calc(var(--aim-angle,0deg) + 28deg))} 75%{transform:rotate(var(--aim-angle,0deg)) scaleY(1.08)} 100%{transform:rotate(calc(var(--aim-angle,0deg) - 28deg))} }
+@keyframes entranceFixtureFigure8 { 0%,100%{transform:rotate(calc(var(--aim-angle,0deg) - 28deg)) scaleY(.92)} 25%{transform:rotate(calc(var(--aim-angle,0deg) + 20deg)) scaleY(1.08)} 50%{transform:rotate(calc(var(--aim-angle,0deg) - 10deg)) scaleY(1.08)} 75%{transform:rotate(calc(var(--aim-angle,0deg) + 28deg)) scaleY(.92)} }
+@keyframes entranceFixtureConverge { from{transform:rotate(calc(var(--aim-angle,0deg) + var(--fixture-offset-angle,0deg)))} to{transform:rotate(var(--aim-angle,0deg))} }
+@keyframes entranceFixtureDiverge { from{transform:rotate(var(--aim-angle,0deg))} to{transform:rotate(calc(var(--aim-angle,0deg) + var(--fixture-offset-angle,0deg)))} }
+@keyframes entranceFixtureVertical { from{transform:rotate(var(--aim-angle,0deg)) scaleY(.82)} to{transform:rotate(var(--aim-angle,0deg)) scaleY(1.12)} }
+
+.entrance-fixture-behavior-pulse .entrance-light-beam,.entrance-fixture-behavior-pulse .entrance-light-lens { animation:entranceFixturePulse var(--fixture-speed,1s) ease-in-out var(--fixture-delay,0s) infinite alternate; }
+.entrance-fixture-behavior-blink .entrance-light-beam,.entrance-fixture-behavior-blink .entrance-light-lens { animation:entranceFixtureBlink var(--fixture-speed,1s) steps(1,end) var(--fixture-delay,0s) infinite; }
+.entrance-fixture-behavior-alternating .entrance-light-beam,.entrance-fixture-behavior-alternating .entrance-light-lens { animation:entranceFixtureAlt var(--fixture-speed,1s) ease-in-out var(--fixture-delay,0s) infinite alternate; }
+.entrance-fixture-behavior-chase .entrance-light-beam,.entrance-fixture-behavior-chase .entrance-light-lens { animation:entranceFixtureChase var(--fixture-speed,1s) ease-in-out var(--fixture-delay,0s) infinite; }
+.entrance-fixture-behavior-shimmer .entrance-light-beam,.entrance-fixture-behavior-shimmer .entrance-light-lens { animation:entranceGoldFixtureShimmer var(--fixture-speed,1s) ease-in-out var(--fixture-delay,0s) infinite alternate; }
+@keyframes entranceFixturePulse { from{opacity:calc(.22 * var(--fixture-brightness,1))} to{opacity:var(--fixture-brightness,1)} }
+@keyframes entranceFixtureBlink { 0%,48%{opacity:var(--fixture-brightness,1)} 49%,100%{opacity:0} }
+@keyframes entranceFixtureAlt { from{opacity:calc(.18 * var(--fixture-brightness,1))} to{opacity:var(--fixture-brightness,1)} }
+@keyframes entranceFixtureChase { 0%,18%,100%{opacity:calc(.16 * var(--fixture-brightness,1))} 38%,60%{opacity:var(--fixture-brightness,1)} }
+@keyframes entranceGoldFixtureShimmer { 0%{opacity:calc(.24 * var(--fixture-brightness,1));filter:brightness(.8)} 55%{opacity:var(--fixture-brightness,1);filter:brightness(1.35) drop-shadow(0 0 10px #f5c94a)} 100%{opacity:calc(.35 * var(--fixture-brightness,1));filter:brightness(.95)} }
+.entrance-rig.lightning-hit .entrance-light-head { animation:none !important; transform:rotate(var(--aim-angle,0deg)) !important; }
+.entrance-rig.lightning-hit .entrance-light-beam,.entrance-rig.lightning-hit .entrance-light-lens { animation:none !important; opacity:1 !important; filter:brightness(2.5) saturate(0) drop-shadow(0 0 15px #fff) !important; }
+@media (prefers-reduced-motion: reduce) { .entrance-light-head,.entrance-light-beam,.entrance-light-lens { animation:none !important; } }
+@media (max-width:700px){.entrance-lighting-preset-row{grid-template-columns:1fr}.entrance-fixture-fields{grid-template-columns:1fr 1fr}}

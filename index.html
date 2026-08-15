@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0b0f17">
   <title>DRK.CHAT</title>
-  <link rel="stylesheet" href="./css/base.css?v=0.18.2">
-  <link rel="stylesheet" href="./css/themes.css?v=0.18.2">
+  <link rel="stylesheet" href="./css/base.css?v=0.18.3">
+  <link rel="stylesheet" href="./css/themes.css?v=0.18.3">
 </head>
 <body class="theme-modern">
   <main class="app-window" id="appWindow">
     <header class="titlebar">
       <div class="titlebar-copy">
         <span id="clientTitle">DRK CHAT</span>
-        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.18.2</button>
+        <button class="version-badge" id="versionBadge" type="button" aria-label="Application version">v0.18.3</button>
       </div>
       <span class="classic-window-controls aol-only" aria-hidden="true">[_][□][X]</span>
     </header>
@@ -614,16 +614,27 @@
             <summary>Lighting</summary>
             <div class="entrance-accordion-body">
               <label class="identity-check"><input id="entranceLightingEnabledInput" type="checkbox" checked> Enable arena lighting rig</label>
+              <div class="entrance-lighting-preset-row">
+                <div><label for="entranceLightingPresetSelect">Lighting Preset</label><select id="entranceLightingPresetSelect"></select></div>
+                <button id="entranceApplyLightingPresetButton" type="button">APPLY LIGHTING</button>
+              </div>
               <div class="entrance-grid">
                 <div><label for="entranceDimmingSelect">Arena Dimming</label><select id="entranceDimmingSelect"><option value="light">Light</option><option value="moderate">Moderate</option><option value="strong">Strong</option><option value="blackout">Blackout</option></select></div>
-                <div><label for="entranceLightMotionSelect">Lighting Mode</label><select id="entranceLightMotionSelect"><option value="none">Still</option><option value="sweep">Sweep</option><option value="cross">Crossfire</option><option value="fan">Fan</option><option value="search">Searchlights</option><option value="pulse">Pulse</option><option value="stadium">Stadium</option><option value="champion">Champion Gold</option></select></div>
+                <div><label for="entranceLightMotionSelect">Rig Movement</label><select id="entranceLightMotionSelect"><option value="none">Still</option><option value="sweep">Horizontal Sweep</option><option value="cross">Crossfire</option><option value="fan">Fan</option><option value="vertical">Vertical Sweep</option><option value="diagonal">Diagonal Sweep</option><option value="pendulum">Pendulum</option><option value="search">Searchlights</option><option value="circle">Circle</option><option value="figure8">Figure 8</option><option value="converge">Converge</option><option value="diverge">Diverge</option><option value="pulse">Pulse Movement</option><option value="stadium">Stadium</option><option value="champion">Royal Sweep</option></select></div>
+                <div><label for="entranceLightAimSelect">Default Aim</label><select id="entranceLightAimSelect"><option value="center">Center Stage</option><option value="down">Straight Down</option><option value="ramp">Entrance / Ramp</option><option value="screen">Back Wall / Screen</option><option value="crowd_left">Crowd Left</option><option value="crowd_right">Crowd Right</option><option value="outward">Wide Outward</option></select></div>
+                <div><label for="entranceLightBehaviorSelect">Light Behavior</label><select id="entranceLightBehaviorSelect"><option value="steady">Steady</option><option value="pulse">Pulse</option><option value="blink">Blink</option><option value="alternating">Alternating Pulse</option><option value="chase">Chase</option><option value="shimmer">Gold Shimmer</option></select></div>
                 <div><label for="entranceLightPrimaryInput">Primary Light</label><input id="entranceLightPrimaryInput" type="color" value="#ffffff"></div>
                 <div><label for="entranceLightSecondaryInput">Secondary Light</label><input id="entranceLightSecondaryInput" type="color" value="#ffffff"></div>
-                <div class="advanced-only"><label for="entranceLightSpeedInput">Motion Speed</label><input id="entranceLightSpeedInput" type="range" min="0.3" max="3" step="0.1" value="1"></div>
-                <div class="advanced-only"><label for="entranceLightBrightnessInput">Brightness</label><input id="entranceLightBrightnessInput" type="range" min="0.2" max="1" step="0.05" value="0.65"></div>
+                <div class="advanced-only"><label for="entranceLightSpeedInput">Movement Speed</label><input id="entranceLightSpeedInput" type="range" min="0.3" max="3" step="0.1" value="1"></div>
+                <div class="advanced-only"><label for="entranceLightBrightnessInput">Overall Brightness</label><input id="entranceLightBrightnessInput" type="range" min="0.2" max="1" step="0.05" value="0.65"></div>
                 <div class="advanced-only"><label for="entranceLightBeamWidthInput">Beam Width</label><input id="entranceLightBeamWidthInput" type="range" min="0.5" max="2" step="0.1" value="1"></div>
-                <div class="advanced-only"><label for="entranceLightFixtureCountInput">Fixtures</label><input id="entranceLightFixtureCountInput" type="range" min="2" max="10" step="1" value="6"></div>
+                <div class="advanced-only"><label for="entranceLightFixtureCountInput">Fixtures</label><input id="entranceLightFixtureCountInput" type="range" min="2" max="12" step="1" value="6"></div>
               </div>
+              <details class="entrance-fixture-editor advanced-only">
+                <summary>Individual Fixtures <span class="small">Aim, movement, power, blink & brightness per light</span></summary>
+                <div class="entrance-fixture-toolbar"><button id="entranceResetFixturesButton" type="button">RESET TO RIG</button></div>
+                <div id="entranceFixtureEditor" class="entrance-fixture-grid"></div>
+              </details>
               <div class="entrance-toggle-row"><label><input id="entranceSpotlightInput" type="checkbox"> Spotlight first message</label><label><input id="entranceLightningInput" type="checkbox"> Lightning Strike</label><label><input id="entranceBranchingLightningInput" type="checkbox"> Branching Lightning</label></div>
             </div>
           </details>
@@ -781,6 +792,6 @@
   <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
   <div id="roomEffectLayer" class="room-effect-layer" aria-hidden="true"></div>
 
-  <script type="module" src="./js/app.js?v=0.18.2"></script>
+  <script type="module" src="./js/app.js?v=0.18.3"></script>
 </body>
 </html>

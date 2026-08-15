@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.18.2";
-import { apiFetch } from "./api.js?v=0.18.2";
-import { getToken, state } from "./state.js?v=0.18.2";
-import { openMemberByUsername } from "./admin.js?v=0.18.2";
-import { openProfileByUsername } from "./profile.js?v=0.18.2";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.18.2";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.18.3";
+import { apiFetch } from "./api.js?v=0.18.3";
+import { getToken, state } from "./state.js?v=0.18.3";
+import { openMemberByUsername } from "./admin.js?v=0.18.3";
+import { openProfileByUsername } from "./profile.js?v=0.18.3";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.18.3";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -915,29 +915,9 @@ function entrancePyroRain(layer, color, intensity, width = 1, curtain = false) {
   setTimeout(() => field.remove(), 1800);
 }
 
-function applyEntranceScreenFilter(filter) {
-  const app = el("appWindow");
-  if (!app || !filter || filter.mode === "none" || Number(filter.intensity || 0) <= 0) return;
-  if (entrancePreviousAppFilter === null) entrancePreviousAppFilter = app.style.filter || "";
-  const i = Math.max(0, Math.min(1, Number(filter.intensity || .55)));
-  const mode = String(filter.mode || "none");
-  const map = {
-    cinematic: `contrast(${1 + .22*i}) saturate(${1 + .18*i}) brightness(${1 - .08*i})`,
-    cool: `sepia(${.15*i}) saturate(${1 + .65*i}) hue-rotate(${185*i}deg) brightness(${1 - .05*i})`,
-    warm: `sepia(${.45*i}) saturate(${1 + .6*i}) hue-rotate(${-15*i}deg)`,
-    red: `sepia(${.55*i}) saturate(${1 + 1.7*i}) hue-rotate(${-35*i}deg)`,
-    blue: `sepia(${.35*i}) saturate(${1 + 1.6*i}) hue-rotate(${170*i}deg)`,
-    purple: `sepia(${.38*i}) saturate(${1 + 1.7*i}) hue-rotate(${225*i}deg)`,
-    green: `sepia(${.35*i}) saturate(${1 + 1.7*i}) hue-rotate(${78*i}deg)`,
-    gold: `sepia(${.65*i}) saturate(${1 + 1.25*i}) hue-rotate(${-8*i}deg)`,
-    mono: `grayscale(${i}) contrast(${1 + .25*i}) brightness(${1 - .05*i})`,
-    high_contrast: `contrast(${1 + .75*i}) saturate(${1 + .25*i}) brightness(${1 - .05*i})`,
-    desaturated: `grayscale(${.65*i}) saturate(${1 - .65*i}) contrast(${1 + .12*i})`,
-    gold_contrast: `sepia(${.72*i}) saturate(${1 + 1.45*i}) hue-rotate(${-10*i}deg) contrast(${1 + .48*i})`,
-    crimson_mono: `grayscale(${.55*i}) sepia(${.45*i}) saturate(${1 + 1.35*i}) hue-rotate(${-34*i}deg) contrast(${1 + .3*i})`,
-    electric_blue: `sepia(${.28*i}) saturate(${1 + 2.1*i}) hue-rotate(${174*i}deg) contrast(${1 + .38*i}) brightness(${1 + .06*i})`
-  };
-  app.style.filter = map[mode] || "";
+function applyEntranceScreenFilter() {
+  // v0.18.3: filters are now a true top-layer post-process inside entranceLayer.
+  // Keeping this function as a compatibility no-op avoids filtering only appWindow beneath the entrance.
 }
 
 function addEntranceAtmosphere(layer, atmosphere) {
@@ -956,32 +936,76 @@ function addEntranceAtmosphere(layer, atmosphere) {
   }
 }
 
+function entranceFixtureAimAngle(aim, x) {
+  const mode=String(aim||"center");
+  if(mode==="down")return 0;
+  if(mode==="crowd_left")return -34;
+  if(mode==="crowd_right")return 34;
+  if(mode==="outward")return x<50?-31:31;
+  if(mode==="ramp")return x<50?12:-12;
+  if(mode==="screen")return x<50?7:-7;
+  return Math.max(-28,Math.min(28,(50-x)*.42));
+}
+function resolvedFixtureSettings(lighting,index,count,x){
+  const custom=Array.isArray(lighting.fixtures)?lighting.fixtures[index]||{}:{};
+  let motion=custom.motion&&custom.motion!=="inherit"?custom.motion:(lighting.motion||"none");
+  let behavior=custom.behavior&&custom.behavior!=="inherit"?custom.behavior:(lighting.behavior||"steady");
+  if(motion==="pulse"){motion="none";if(behavior==="steady")behavior="pulse";}
+  let aim=custom.aim&&custom.aim!=="inherit"?custom.aim:(lighting.aim||"center");
+  let direction=custom.direction||"normal";
+  if(lighting.preset==="gold_shimmer"&&!custom.motion){motion=index%2===0?"converge":"diverge";behavior="shimmer";direction=index%2===0?"normal":"reverse";}
+  if(lighting.preset==="mirror_sweep"&&!custom.direction)direction=index%2===0?"normal":"reverse";
+  const phase=Number.isFinite(Number(custom.phase))?Number(custom.phase):(count>1?index/(count-1):0);
+  return {enabled:custom.enabled!==false,color:custom.color||(index%2?(lighting.secondaryColor||lighting.primaryColor||"#FFFFFF"):(lighting.primaryColor||"#FFFFFF")),brightness:Math.max(0,Math.min(1,Number(custom.brightness??lighting.brightness??.65))),aim,motion,behavior,speed:Math.max(.3,Math.min(3,Number(custom.speed||lighting.speed||1))),direction,phase,range:Math.max(.3,Math.min(2,Number(custom.range||1))),angle:entranceFixtureAimAngle(aim,x)};
+}
 function addEntranceRig(layer, lighting) {
   if (lighting?.enabled === false) return;
-  const rig=document.createElement("div"); rig.className="entrance-rig";
+  const rig=document.createElement("div"); rig.className=`entrance-rig entrance-rig-behavior-${lighting.behavior||"steady"}`;
   rig.style.setProperty("--rig-brightness",String(Number(lighting.brightness||.65))); rig.style.setProperty("--beam-width",String(Number(lighting.beamWidth||1)));
   const truss=document.createElement("div"); truss.className="entrance-truss"; rig.appendChild(truss);
   const count=Math.max(2,Math.min(12,Math.round(Number(lighting.fixtureCount||4))));
-  for(let i=0;i<count;i+=1){ const fixture=document.createElement("div"); fixture.className="entrance-light-fixture"; fixture.style.setProperty("--fixture-i",String(i)); fixture.style.setProperty("--fixture-count",String(count)); fixture.style.left=`${count===1?50:8+(84*i/(count-1))}%`; fixture.style.setProperty("--beam-color",i%2?(lighting.secondaryColor||"#FFFFFF"):(lighting.primaryColor||"#FFFFFF")); const yoke=document.createElement("i"); yoke.className="entrance-light-yoke"; const head=document.createElement("i"); head.className="entrance-light-head"; const lens=document.createElement("i"); lens.className="entrance-light-lens"; const beam=document.createElement("i"); beam.className="entrance-light-beam"; head.append(lens,beam); fixture.append(yoke,head); rig.appendChild(fixture); }
+  for(let i=0;i<count;i+=1){
+    const x=count===1?50:8+(84*i/(count-1)),settings=resolvedFixtureSettings(lighting,i,count,x),fixture=document.createElement("div");
+    fixture.className=`entrance-light-fixture entrance-fixture-motion-${settings.motion} entrance-fixture-behavior-${settings.behavior}${settings.enabled?"":" is-off"}${settings.direction==="reverse"?" reverse":""}`;
+    fixture.style.setProperty("--fixture-i",String(i)); fixture.style.setProperty("--fixture-count",String(count)); fixture.style.left=`${x}%`; fixture.style.setProperty("--beam-color",settings.color); fixture.style.setProperty("--aim-angle",`${settings.angle}deg`); fixture.style.setProperty("--fixture-speed",`${settings.speed}s`); fixture.style.setProperty("--fixture-brightness",String(settings.brightness)); fixture.style.setProperty("--fixture-phase",String(settings.phase)); fixture.style.setProperty("--fixture-delay",`${(-settings.phase*settings.speed).toFixed(2)}s`); fixture.style.setProperty("--fixture-range",String(settings.range)); fixture.style.setProperty("--fixture-sweep-angle",`${(24*settings.range).toFixed(1)}deg`); fixture.style.setProperty("--fixture-offset-angle",`${((i-(count-1)/2)*4).toFixed(1)}deg`);
+    const yoke=document.createElement("i"); yoke.className="entrance-light-yoke"; const head=document.createElement("i"); head.className="entrance-light-head"; const lens=document.createElement("i"); lens.className="entrance-light-lens"; const beam=document.createElement("i"); beam.className="entrance-light-beam"; head.append(lens,beam); fixture.append(yoke,head); rig.appendChild(fixture);
+  }
   layer.appendChild(rig);
 }
 
 function addLightningStrike(layer, branching = false) {
-  const wrapper = document.createElement("div");
-  wrapper.className = `entrance-lightning-wrap${branching ? " branching" : ""}`;
+  const wrapper = document.createElement("div"); wrapper.className = `entrance-lightning-wrap${branching ? " branching" : ""}`;
   const branches = branching ? `<polyline class="entrance-lightning-branch" points="58,210 22,270 38,270 12,350"/><polyline class="entrance-lightning-branch" points="54,300 91,346 76,346 104,420"/>` : "";
-  wrapper.innerHTML = `<div class="entrance-lightning-flash"></div><svg class="entrance-lightning-bolt" viewBox="0 0 120 520" aria-hidden="true"><polyline points="72,0 44,125 70,125 35,255 61,255 26,390 57,390 42,520"/>${branches}</svg>`;
-  layer.appendChild(wrapper);
-  requestAnimationFrame(() => wrapper.classList.add("strike"));
-  setTimeout(() => wrapper.remove(), 900);
+  wrapper.innerHTML = `<svg class="entrance-lightning-bolt" viewBox="0 0 120 520" aria-hidden="true"><polyline points="72,0 44,125 70,125 35,255 61,255 26,390 57,390 42,520"/>${branches}</svg>`;
+  const flash=document.createElement("div"); flash.className="entrance-lightning-flash entrance-post-flash"; layer.append(wrapper,flash);
+  const rig=layer.querySelector('.entrance-rig'); if(rig)rig.classList.add('lightning-hit');
+  requestAnimationFrame(() => { wrapper.classList.add("strike"); flash.classList.add("strike"); });
+  setTimeout(() => { wrapper.remove(); flash.remove(); if(rig)rig.classList.remove('lightning-hit'); }, 900);
 }
 
+function entranceFilterCss(filter={}) {
+  const i=Math.max(0,Math.min(1,Number(filter.intensity||.55))),mode=String(filter.mode||"none");
+  const map={
+    cinematic:`contrast(${1+.28*i}) saturate(${1+.24*i}) brightness(${1-.07*i})`,
+    cool:`sepia(${.16*i}) saturate(${1+.8*i}) hue-rotate(${185*i}deg) brightness(${1-.04*i})`,
+    warm:`sepia(${.55*i}) saturate(${1+.75*i}) hue-rotate(${-15*i}deg)`,
+    red:`sepia(${.65*i}) saturate(${1+2*i}) hue-rotate(${-38*i}deg)`,
+    blue:`sepia(${.42*i}) saturate(${1+1.9*i}) hue-rotate(${172*i}deg)`,
+    purple:`sepia(${.48*i}) saturate(${1+2*i}) hue-rotate(${225*i}deg)`,
+    green:`sepia(${.42*i}) saturate(${1+1.95*i}) hue-rotate(${78*i}deg)`,
+    gold:`sepia(${.78*i}) saturate(${1+1.5*i}) hue-rotate(${-10*i}deg)`,
+    mono:`grayscale(${i}) contrast(${1+.22*i})`,
+    high_contrast:`contrast(${1+.9*i}) saturate(${1+.35*i})`,
+    desaturated:`grayscale(${.7*i}) saturate(${1-.72*i}) contrast(${1+.15*i})`,
+    gold_contrast:`sepia(${.82*i}) saturate(${1+1.7*i}) hue-rotate(${-10*i}deg) contrast(${1+.55*i})`,
+    crimson_mono:`grayscale(${.55*i}) sepia(${.55*i}) saturate(${1+1.55*i}) hue-rotate(${-35*i}deg) contrast(${1+.38*i})`,
+    electric_blue:`sepia(${.32*i}) saturate(${1+2.35*i}) hue-rotate(${174*i}deg) contrast(${1+.42*i}) brightness(${1+.08*i})`
+  }; return map[mode]||"none";
+}
 function addEntranceFilter(layer, filter) {
   if (!filter || filter.mode === "none" || Number(filter.intensity || 0) <= 0) return;
-  const overlay = document.createElement("div");
-  overlay.className = `entrance-color-filter entrance-filter-${filter.mode}`;
-  overlay.style.setProperty("--filter-intensity", String(Math.max(0, Math.min(1, Number(filter.intensity || .55)))));
-  layer.appendChild(overlay);
+  const overlay = document.createElement("div"); overlay.className = `entrance-color-filter entrance-filter-${filter.mode}`;
+  const intensity=Math.max(0,Math.min(1,Number(filter.intensity||.55))); overlay.style.setProperty("--filter-intensity",String(intensity)); overlay.style.backdropFilter=entranceFilterCss(filter); overlay.style.webkitBackdropFilter=entranceFilterCss(filter); layer.appendChild(overlay);
 }
 
 function addEntranceNameplate(layer, username, tier, config, timing = {}) {
@@ -1080,7 +1104,7 @@ function renderEntrance(username, entrance, { preview = false } = {}) {
   const primary=lighting.primaryColor||"#FFFFFF", secondary=lighting.secondaryColor||primary, delay=Math.max(0,Number(timing.entranceDelay||0))*1000, total=Math.max(3,Math.min(15,Number(timing.totalDuration||Math.max(6,duration))))*1000;
   const dimming=String(lighting.dimming||(lighting.blackout?"blackout":"moderate"));
   layer.className=`entrance-layer active entrance-tier-${tier} entrance-motion-${lighting.motion||"none"}`; layer.style.setProperty("--entrance-primary",primary); layer.style.setProperty("--entrance-secondary",secondary); layer.style.setProperty("--entrance-speed",`${Math.max(.3,Math.min(3,Number(lighting.speed||1)))}s`);
-  const dimOpacity={light:.24,moderate:.42,strong:.62,blackout:.88}[dimming]||.42; const blackout=document.createElement("div"); blackout.className="entrance-blackout-screen"; blackout.style.setProperty("--entrance-dim-opacity",String(dimOpacity)); layer.appendChild(blackout); addEntranceFilter(layer,filter); applyEntranceScreenFilter(filter);
+  const dimOpacity={light:.24,moderate:.42,strong:.62,blackout:.88}[dimming]||.42; const blackout=document.createElement("div"); blackout.className="entrance-blackout-screen"; blackout.style.setProperty("--entrance-dim-opacity",String(dimOpacity)); layer.appendChild(blackout); addEntranceFilter(layer,filter);
   const at=(seconds,fn)=>setTimeout(fn,delay+Math.max(0,Number(seconds||0))*1000);
   at(.15,()=>addEntranceRig(layer,lighting)); at(timing.atmosphereStart??.3,()=>addEntranceAtmosphere(layer,config.atmosphere||{})); at(timing.nameplateStart??.6,()=>addEntranceNameplate(layer,username,tier,config,timing)); if(lighting.lightning||config.signatureEffect==="dark_arrival_lightning")at(timing.screenFxStart??1.2,()=>addLightningStrike(layer,Boolean(lighting.branchingLightning))); at(timing.screenFxStart??.8,()=>addEntranceScreenFx(layer,fx));
   const fireBurst=(burstIndex=0)=>{ if(pyro.enabled===false)return; const style=pyro.style||"jets",color=pyro.color||"#FFFFFF",pos=pyro.position||"both";
