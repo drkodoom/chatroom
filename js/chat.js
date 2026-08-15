@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.18.5";
-import { apiFetch } from "./api.js?v=0.18.5";
-import { getToken, state } from "./state.js?v=0.18.5";
-import { openMemberByUsername } from "./admin.js?v=0.18.5";
-import { openProfileByUsername } from "./profile.js?v=0.18.5";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.18.5";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.18.7";
+import { apiFetch } from "./api.js?v=0.18.7";
+import { getToken, state } from "./state.js?v=0.18.7";
+import { openMemberByUsername } from "./admin.js?v=0.18.7";
+import { openProfileByUsername } from "./profile.js?v=0.18.7";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.18.7";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -936,6 +936,20 @@ function addEntranceAtmosphere(layer, atmosphere) {
   }
 }
 
+function normalizeEntranceLighting(lighting, tier = "basic") {
+  const source=lighting&&typeof lighting==="object"?lighting:{};
+  const maxFixtures=tier==="basic"?4:tier==="rare"?6:8;
+  const fixtureCount=Math.max(2,Math.min(maxFixtures,Math.round(Number(source.fixtureCount||4))));
+  return {
+    enabled:source.enabled!==false, preset:String(source.preset||"custom"), dimming:String(source.dimming||(source.blackout?"blackout":"none")),
+    blackout:Boolean(source.blackout), spotlight:Boolean(source.spotlight), lightning:Boolean(source.lightning), branchingLightning:Boolean(source.branchingLightning),
+    primaryColor:source.primaryColor||"#FFFFFF", secondaryColor:source.secondaryColor||source.primaryColor||"#3B82F6",
+    motion:source.motion||"none", aim:source.aim||"down", behavior:source.behavior||"steady", speed:Number.isFinite(Number(source.speed))?Number(source.speed):1,
+    brightness:Number.isFinite(Number(source.brightness))?Number(source.brightness):.6, beamWidth:Number.isFinite(Number(source.beamWidth))?Number(source.beamWidth):.9,
+    fixtureCount, fixtures:Array.isArray(source.fixtures)?source.fixtures.slice(0,fixtureCount):[]
+  };
+}
+
 function entranceFixtureAimAngle(aim, x) {
   const mode=String(aim||"center");
   if(mode==="down")return 0;
@@ -959,17 +973,42 @@ function resolvedFixtureSettings(lighting,index,count,x){
   return {enabled:custom.enabled!==false,color:custom.color||(index%2?(lighting.secondaryColor||lighting.primaryColor||"#FFFFFF"):(lighting.primaryColor||"#FFFFFF")),brightness:Math.max(0,Math.min(1,Number(custom.brightness??lighting.brightness??.65))),aim,motion,behavior,speed:Math.max(.3,Math.min(3,Number(custom.speed||lighting.speed||1))),direction,phase,range:Math.max(.3,Math.min(2,Number(custom.range||1))),angle:entranceFixtureAimAngle(aim,x)};
 }
 function addEntranceRig(layer, lighting) {
-  if (lighting?.enabled === false) return;
-  const rig=document.createElement("div"); rig.className=`entrance-rig entrance-rig-behavior-${lighting.behavior||"steady"}`;
-  rig.style.setProperty("--rig-brightness",String(Number(lighting.brightness||.65))); rig.style.setProperty("--beam-width",String(Number(lighting.beamWidth||1)));
+  const safe=lighting&&typeof lighting==="object"?lighting:normalizeEntranceLighting({},"basic");
+  if (safe.enabled === false) return;
+  const rig=document.createElement("div");
+  rig.className=`entrance-rig entrance-rig-behavior-${safe.behavior||"steady"}`;
+  rig.style.setProperty("--rig-brightness",String(Number.isFinite(Number(safe.brightness))?Number(safe.brightness):.6));
+  rig.style.setProperty("--beam-width",String(Number.isFinite(Number(safe.beamWidth))?Number(safe.beamWidth):.9));
   const truss=document.createElement("div"); truss.className="entrance-truss"; rig.appendChild(truss);
-  const physicalCount=8, activeCount=Math.max(2,Math.min(8,Math.round(Number(lighting.fixtureCount||4))));
+
+  const physicalCount=8;
+  const activeCount=Math.max(2,Math.min(8,Math.round(Number(safe.fixtureCount||4))));
   const activeIndices=activeCount>=8?[0,1,2,3,4,5,6,7]:activeCount>=6?[0,1,2,5,6,7]:[0,2,5,7];
+
   for(let i=0;i<physicalCount;i+=1){
-    const x=8+(84*i/(physicalCount-1)),activeOrdinal=activeIndices.indexOf(i),isUnlocked=activeOrdinal>=0,settings=isUnlocked?resolvedFixtureSettings(lighting,activeOrdinal,activeCount,x):{enabled:false,color:"#4B5563",brightness:0,aim:"down",motion:"none",behavior:"steady",speed:1,direction:"normal",phase:0,range:1,angle:0},fixture=document.createElement("div");
+    const x=8+(84*i/(physicalCount-1));
+    const activeOrdinal=activeIndices.indexOf(i);
+    const isUnlocked=activeOrdinal>=0;
+    const settings=isUnlocked?resolvedFixtureSettings(safe,activeOrdinal,activeCount,x):{enabled:false,color:"#4B5563",brightness:0,aim:"down",motion:"none",behavior:"steady",speed:1,direction:"normal",phase:0,range:1,angle:0};
+    const fixture=document.createElement("div");
     fixture.className=`entrance-light-fixture entrance-fixture-motion-${settings.motion} entrance-fixture-behavior-${settings.behavior}${settings.enabled&&isUnlocked?"":" is-off"}${isUnlocked?"":" is-locked"}${settings.direction==="reverse"?" reverse":""}`;
-    fixture.style.setProperty("--fixture-i",String(i)); fixture.style.setProperty("--fixture-count",String(physicalCount)); fixture.style.left=`${x}%`; fixture.style.setProperty("--beam-color",settings.color); fixture.style.setProperty("--aim-angle",`${settings.angle}deg`); fixture.style.setProperty("--fixture-speed",`${settings.speed}s`); fixture.style.setProperty("--fixture-brightness",String(settings.brightness)); fixture.style.setProperty("--fixture-phase",String(settings.phase)); fixture.style.setProperty("--fixture-delay",`${(-settings.phase*settings.speed).toFixed(2)}s`); fixture.style.setProperty("--fixture-range",String(settings.range)); fixture.style.setProperty("--fixture-sweep-angle",`${(24*settings.range).toFixed(1)}deg`); fixture.style.setProperty("--fixture-offset-angle",`${((i-(count-1)/2)*4).toFixed(1)}deg`);
-    const yoke=document.createElement("i"); yoke.className="entrance-light-yoke"; const head=document.createElement("i"); head.className="entrance-light-head"; const lens=document.createElement("i"); lens.className="entrance-light-lens"; const beam=document.createElement("i"); beam.className="entrance-light-beam"; head.append(lens,beam); fixture.append(yoke,head); rig.appendChild(fixture);
+    fixture.style.setProperty("--fixture-i",String(i));
+    fixture.style.setProperty("--fixture-count",String(physicalCount));
+    fixture.style.left=`${x}%`;
+    fixture.style.setProperty("--beam-color",settings.color||"#FFFFFF");
+    fixture.style.setProperty("--aim-angle",`${Number(settings.angle)||0}deg`);
+    fixture.style.setProperty("--fixture-speed",`${Math.max(.3,Number(settings.speed)||1)}s`);
+    fixture.style.setProperty("--fixture-brightness",String(Math.max(0,Math.min(1,Number(settings.brightness)||0))));
+    fixture.style.setProperty("--fixture-phase",String(Number(settings.phase)||0));
+    fixture.style.setProperty("--fixture-delay",`${(-(Number(settings.phase)||0)*Math.max(.3,Number(settings.speed)||1)).toFixed(2)}s`);
+    fixture.style.setProperty("--fixture-range",String(Math.max(.3,Number(settings.range)||1)));
+    fixture.style.setProperty("--fixture-sweep-angle",`${(24*Math.max(.3,Number(settings.range)||1)).toFixed(1)}deg`);
+    fixture.style.setProperty("--fixture-offset-angle",`${((i-(physicalCount-1)/2)*4).toFixed(1)}deg`);
+    const yoke=document.createElement("i"); yoke.className="entrance-light-yoke";
+    const head=document.createElement("i"); head.className="entrance-light-head";
+    const lens=document.createElement("i"); lens.className="entrance-light-lens";
+    const beam=document.createElement("i"); beam.className="entrance-light-beam";
+    head.append(lens,beam); fixture.append(yoke,head); rig.appendChild(fixture);
   }
   layer.appendChild(rig);
 }
@@ -988,13 +1027,13 @@ function entranceFilterCss(filter={}) {
   const i=Math.max(0,Math.min(1,Number(filter.intensity||.55))),mode=String(filter.mode||"none");
   const map={
     cinematic:`contrast(${1+.28*i}) saturate(${1+.24*i}) brightness(${1-.07*i})`,
-    cool:`sepia(${.16*i}) saturate(${1+.8*i}) hue-rotate(${185*i}deg) brightness(${1-.04*i})`,
-    warm:`sepia(${.55*i}) saturate(${1+.75*i}) hue-rotate(${-15*i}deg)`,
-    red:`sepia(${.65*i}) saturate(${1+2*i}) hue-rotate(${-38*i}deg)`,
-    blue:`sepia(${.42*i}) saturate(${1+1.9*i}) hue-rotate(${172*i}deg)`,
-    purple:`sepia(${.48*i}) saturate(${1+2*i}) hue-rotate(${225*i}deg)`,
-    green:`sepia(${.42*i}) saturate(${1+1.95*i}) hue-rotate(${78*i}deg)`,
-    gold:`sepia(${.78*i}) saturate(${1+1.5*i}) hue-rotate(${-10*i}deg)`,
+    cool:`contrast(${1+.10*i}) saturate(${1+.22*i}) brightness(${1-.035*i})`,
+    warm:`sepia(${.34*i}) saturate(${1+.38*i}) brightness(${1+.015*i})`,
+    red:`contrast(${1+.08*i}) saturate(${1+.32*i})`,
+    blue:`contrast(${1+.08*i}) saturate(${1+.32*i})`,
+    purple:`contrast(${1+.08*i}) saturate(${1+.32*i})`,
+    green:`contrast(${1+.08*i}) saturate(${1+.30*i})`,
+    gold:`sepia(${.48*i}) saturate(${1+.62*i}) contrast(${1+.06*i})`,
     mono:`grayscale(${i}) contrast(${1+.22*i})`,
     high_contrast:`contrast(${1+.9*i}) saturate(${1+.35*i})`,
     desaturated:`grayscale(${.7*i}) saturate(${1-.72*i}) contrast(${1+.15*i})`,
@@ -1100,7 +1139,7 @@ function registerEntranceSpotlight(username, config, { preview = false } = {}) {
 function renderEntrance(username, entrance, { preview = false } = {}) {
   const tier=String(entrance?.tier||"none"), config=entrance?.config||{}; if(tier==="none"||!config.enabled){if(preview)addSystemLine("This entrance is disabled or has no Entrance Status.");return;}
   stopRoomEffectsLocal(); stopEntranceLocal(); const layer=el("entranceLayer"); if(!layer)return;
-  const pyro=config.pyro||{}, lighting=config.lighting||{}, filter=config.filter||{}, timing=config.timing||{}, fx=config.screenFx||{};
+  const pyro=config.pyro||{}, lighting=normalizeEntranceLighting(config.lighting,tier), filter=config.filter||{}, timing=config.timing||{}, fx=config.screenFx||{};
   const duration=Math.max(1,Math.min(15,Number(pyro.duration||4))), frequency=Math.max(.25,Math.min(3,Number(pyro.frequency||.8))), height=Math.max(.2,Math.min(1,Number(pyro.height||.72))), intensity=Math.max(1,Math.min(4,Number(pyro.intensity||2))), width=Math.max(.4,Math.min(3,Number(pyro.width||1))), burstCount=Math.max(1,Math.min(8,Math.round(Number(pyro.burstCount||3))));
   const primary=lighting.primaryColor||"#FFFFFF", secondary=lighting.secondaryColor||primary, delay=Math.max(0,Number(timing.entranceDelay||0))*1000, total=Math.max(3,Math.min(15,Number(timing.totalDuration||Math.max(6,duration))))*1000;
   const dimming=String(lighting.dimming||(lighting.blackout?"blackout":"none"));
@@ -2228,6 +2267,11 @@ export function initChatUI() {
     if (!isAdmin()) return;
     const username = event.detail?.username;
     if (username) sendSocket({ type: "admin_trigger_entrance", username });
+  });
+
+  window.addEventListener("drk:entrance-saved", (event) => {
+    const username=String(event.detail?.username||state.currentUser?.username||"").trim();
+    if(username) sendSocket({type:"sync_entrance",username});
   });
 
   window.addEventListener("drk:user-style-updated", (event) => {
