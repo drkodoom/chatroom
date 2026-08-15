@@ -1,9 +1,9 @@
-import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.18.12";
-import { apiFetch } from "./api.js?v=0.18.12";
-import { getToken, state } from "./state.js?v=0.18.12";
-import { openMemberByUsername } from "./admin.js?v=0.18.12";
-import { openProfileByUsername } from "./profile.js?v=0.18.12";
-import { syncRoomTheme, getClientName } from "./themes.js?v=0.18.12";
+import { LIVE_HOST, ROOM_NAME } from "./config.js?v=0.18.13";
+import { apiFetch } from "./api.js?v=0.18.13";
+import { getToken, state } from "./state.js?v=0.18.13";
+import { openMemberByUsername } from "./admin.js?v=0.18.13";
+import { openProfileByUsername } from "./profile.js?v=0.18.13";
+import { syncRoomTheme, getClientName } from "./themes.js?v=0.18.13";
 
 const el = (id) => document.getElementById(id);
 const REACTIONS = ["👍", "❤️", "😂", "😮", "👎"];
@@ -808,7 +808,86 @@ let entranceWaitTimer = null;
 let entrancePendingSpotlight = null;
 let entrancePreviousAppFilter = null;
 
+
+const ENTRANCE_QUALITY_KEY = "chatroom_entrance_quality";
+const ENTRANCE_QUALITY_PROFILES = {
+  performance:{particleCap:72,smokeCap:12,particleScale:.58,dpr:1},
+  standard:{particleCap:132,smokeCap:20,particleScale:.88,dpr:1.5},
+  high:{particleCap:220,smokeCap:32,particleScale:1.18,dpr:2}
+};
+let entranceParticleEngine = null;
+
+function entranceQualityName(){
+  const saved=String(localStorage.getItem(ENTRANCE_QUALITY_KEY)||"");
+  if(ENTRANCE_QUALITY_PROFILES[saved])return saved;
+  const weakCpu=Number(navigator.hardwareConcurrency||8)<=4;
+  const weakMemory=Number(navigator.deviceMemory||8)<=4;
+  return weakCpu||weakMemory?"performance":"standard";
+}
+function entranceQualityProfile(){return ENTRANCE_QUALITY_PROFILES[entranceQualityName()]||ENTRANCE_QUALITY_PROFILES.standard;}
+document.documentElement.dataset.entranceQuality=entranceQualityName();
+function entranceHexRgb(color){
+  const raw=String(color||"#FFFFFF").trim();
+  const m=/^#([0-9a-f]{6})$/i.exec(raw); if(!m)return [255,255,255];
+  const n=parseInt(m[1],16); return [(n>>16)&255,(n>>8)&255,n&255];
+}
+function entranceSmokeSprite(color){
+  const key=String(color||"#FFFFFF");
+  entranceSmokeSprite.cache ||= new Map();
+  if(entranceSmokeSprite.cache.has(key))return entranceSmokeSprite.cache.get(key);
+  const c=document.createElement("canvas"); c.width=96;c.height=96; const cx=c.getContext("2d");
+  const [r,g,b]=entranceHexRgb(key); const grad=cx.createRadialGradient(48,48,4,48,48,46);
+  grad.addColorStop(0,`rgba(${r},${g},${b},.48)`);grad.addColorStop(.46,`rgba(${r},${g},${b},.25)`);grad.addColorStop(1,`rgba(${r},${g},${b},0)`);
+  cx.fillStyle=grad;cx.fillRect(0,0,96,96);entranceSmokeSprite.cache.set(key,c);return c;
+}
+function ensureEntranceParticleEngine(layer){
+  if(entranceParticleEngine?.layer===layer&&!entranceParticleEngine.destroyed)return entranceParticleEngine;
+  entranceParticleEngine?.destroy?.();
+  const canvas=document.createElement("canvas");canvas.className="entrance-particle-canvas";layer.appendChild(canvas);
+  const ctx=canvas.getContext("2d",{alpha:true}); if(!ctx)return null;
+  const q=entranceQualityProfile(); const rect=layer.getBoundingClientRect(); const width=Math.max(320,rect.width||window.innerWidth||1280),height=Math.max(240,rect.height||window.innerHeight||720); const dpr=Math.min(Number(window.devicePixelRatio||1),q.dpr);
+  canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);canvas.style.width=`${width}px`;canvas.style.height=`${height}px`;ctx.setTransform(dpr,0,0,dpr,0,0);
+  const engine={layer,canvas,ctx,width,height,q,particles:[],emitters:[],raf:0,last:performance.now(),destroyed:false};
+  engine.spawn=(p)=>{
+    if(engine.destroyed)return false;
+    const smokeCount=engine.particles.reduce((n,x)=>n+(x.type==="smoke"?1:0),0);
+    if(p.type==="smoke"&&smokeCount>=engine.q.smokeCap)return false;
+    if(engine.particles.length>=engine.q.particleCap){
+      const low=engine.particles.findIndex(x=>x.priority===0||x.type==="smoke");
+      if((p.priority||0)>0&&low>=0)engine.particles.splice(low,1);else return false;
+    }
+    p.age=0;p.life=Math.max(.08,Number(p.life||.8));p.maxLife=p.life;engine.particles.push(p);engine.start();return true;
+  };
+  engine.addEmitter=(e)=>{e.age=0;engine.emitters.push(e);engine.start();};
+  engine.start=()=>{if(!engine.raf&&!engine.destroyed){engine.last=performance.now();engine.raf=requestAnimationFrame(engine.frame);}};
+  engine.frame=(now)=>{
+    if(engine.destroyed)return;engine.raf=0;const dt=Math.min(.034,Math.max(.001,(now-engine.last)/1000));engine.last=now;ctx.clearRect(0,0,width,height);
+    for(let i=engine.emitters.length-1;i>=0;i--){const e=engine.emitters[i];e.age+=dt;e.update?.(engine,dt);e.draw?.(engine,ctx);if(e.age>=e.life)engine.emitters.splice(i,1);}
+    for(let i=engine.particles.length-1;i>=0;i--){const p=engine.particles[i];p.age+=dt;p.life-=dt;if(p.life<=0){engine.particles.splice(i,1);continue;} const t=p.life/p.maxLife;
+      p.vx=(p.vx||0)*Math.pow(p.drag??.992,dt*60);p.vy=(p.vy||0)+(p.gravity||0)*dt;p.x+=(p.vx||0)*dt;p.y+=(p.vy||0)*dt;
+      ctx.save();
+      if(p.type==="smoke"){
+        const grow=1+(1-t)*(p.grow||.45),size=(p.size||60)*grow;ctx.globalAlpha=(p.alpha??.45)*Math.min(1,(1-t)*4)*Math.min(1,t*2.4);ctx.drawImage(entranceSmokeSprite(p.color||"#D0D0D0"),p.x-size/2,p.y-size/2,size,size);
+      }else if(p.type==="flash"){
+        const radius=(p.size||50)*(1+(1-t)*.75),[r,green,b]=entranceHexRgb(p.color);const grad=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,radius);grad.addColorStop(0,`rgba(255,255,255,${.9*t})`);grad.addColorStop(.25,`rgba(${r},${green},${b},${.55*t})`);grad.addColorStop(1,`rgba(${r},${green},${b},0)`);ctx.fillStyle=grad;ctx.beginPath();ctx.arc(p.x,p.y,radius,0,Math.PI*2);ctx.fill();
+      }else{
+        const alpha=Math.min(1,t*2.2)*(p.alpha??1);ctx.globalAlpha=alpha;ctx.strokeStyle=p.color||"#FFFFFF";ctx.fillStyle=p.color||"#FFFFFF";ctx.lineWidth=Math.max(.8,(p.size||2));ctx.lineCap="round";
+        const trail=Math.max(3,Math.min(30,p.trail||Math.hypot(p.vx||0,p.vy||0)*.018));ctx.beginPath();ctx.moveTo(p.x-(p.vx||0)*.018,p.y-(p.vy||0)*.018);ctx.lineTo(p.x,p.y);ctx.stroke();
+        if(p.head){ctx.globalAlpha=Math.min(1,alpha*1.2);ctx.beginPath();ctx.arc(p.x,p.y,Math.max(1.5,(p.size||2)*1.35),0,Math.PI*2);ctx.fill();}
+      }
+      ctx.restore();
+    }
+    if(engine.particles.length||engine.emitters.length)engine.raf=requestAnimationFrame(engine.frame);
+  };
+  engine.destroy=()=>{engine.destroyed=true;if(engine.raf)cancelAnimationFrame(engine.raf);engine.raf=0;engine.particles.length=0;engine.emitters.length=0;canvas.remove();if(entranceParticleEngine===engine)entranceParticleEngine=null;};
+  entranceParticleEngine=engine;return engine;
+}
+function entranceCanvasFlash(engine,x,y,color,size=54,life=.28){engine?.spawn({type:"flash",x,y,color,size,life,priority:3});}
+function entranceCanvasSpark(engine,x,y,vx,vy,color,{life=.75,size=2,gravity=360,drag=.988,priority=2,head=false,alpha=1}={}){engine?.spawn({type:"spark",x,y,vx,vy,color,life,size,gravity,drag,priority,head,alpha});}
+function entranceCanvasSmoke(engine,x,y,color,{life=2.2,size=72,vx=0,vy=-12,alpha=.4,grow=.55,priority=0}={}){engine?.spawn({type:"smoke",x,y,vx,vy,color,life,size,gravity:-2,drag:.995,alpha,grow,priority});}
+
 function stopEntranceLocal({ keepPending = false } = {}) {
+  entranceParticleEngine?.destroy?.();
   clearTimeout(entranceTimer);
   clearInterval(entranceBurstTimer);
   entranceTimer = null;
@@ -832,185 +911,54 @@ function stopEntranceLocal({ keepPending = false } = {}) {
 }
 
 function entranceParticle(layer, side, color, height, style, intensity, width = 1, sourceOffset = 0, flashBurst = true) {
-  const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  const burst = document.createElement("div");
-  burst.className = `entrance-pyro-burst entrance-pyro-${style} entrance-pyro-${side}`;
-  burst.style.setProperty("--pyro-color", color);
-  burst.style.setProperty("--pyro-height", `${Math.round(height * 100)}vh`);
-  burst.style.setProperty("--pyro-intensity", String(intensity));
-  burst.style.setProperty("--pyro-width", String(width));
-  if (side === "left") burst.style.left = `${5.5 + sourceOffset}%`;
-  if (side === "right") burst.style.right = `${5.5 + sourceOffset}%`;
-  if (side === "center") burst.style.left = `${50 + Number(sourceOffset || 0)}%`;
-
-  const isSparkler = style === "sparkler";
-  const isFountain = ["fountain","wide_fountain","fan"].includes(style);
-  const isFireworkBurst = ["jets","bursts","center_blast"].includes(style);
-
-  if (flashBurst) {
-    const flash = document.createElement("i");
-    flash.className = "entrance-pyro-flash";
-    burst.appendChild(flash);
+  const engine=ensureEntranceParticleEngine(layer); if(!engine)return;
+  const q=engine.q, w=engine.width,h=engine.height;
+  const x=side==="left"?w*((5.5+Number(sourceOffset||0))/100):side==="right"?w*((94.5-Number(sourceOffset||0))/100):w*((50+Number(sourceOffset||0))/100);
+  const y=h*.965, strength=Math.max(.2,Math.min(1,Number(height||.72))), spread=Math.max(.5,Math.min(3,Number(width||1))), power=Math.max(1,Math.min(4,Number(intensity||2)));
+  const isSparkler=style==="sparkler",isFountain=["fountain","wide_fountain","fan"].includes(style),isBurst=["bursts","center_blast"].includes(style),isJet=style==="jets";
+  if(flashBurst)entranceCanvasFlash(engine,x,y,color,isSparkler?28:isBurst?68:52,isSparkler?.2:.28);
+  const spawnOne=()=>{
+    let angle=-Math.PI/2, speed=h*(.34+.3*strength);
+    if(isSparkler){angle=(-Math.PI)+(Math.random()*Math.PI);speed=h*(.08+Math.random()*.12);}
+    else if(isBurst){angle=(-Math.PI)+(Math.random()*Math.PI);speed=h*(.28+Math.random()*.28)*strength;}
+    else if(isJet){angle=-Math.PI/2+(Math.random()-.5)*(Math.PI*.95*Math.min(1.35,spread));speed=h*(.32+Math.random()*.28)*strength;}
+    else if(style==="fan"){angle=-Math.PI/2+(Math.random()-.5)*(Math.PI*.72*Math.min(1.5,spread));speed=h*(.3+Math.random()*.33)*strength;}
+    else {const base=style==="wide_fountain"?.5:.28;angle=-Math.PI/2+(Math.random()-.5)*(Math.PI*base*Math.min(1.5,spread));speed=h*(.3+Math.random()*.3)*strength;}
+    const vx=Math.cos(angle)*speed,vy=Math.sin(angle)*speed;
+    entranceCanvasSpark(engine,x+(Math.random()-.5)*8*spread,y-2,vx,vy,color,{life:isSparkler?.42+Math.random()*.28:.65+Math.random()*.5,size:isSparkler?1.4+Math.random()*1.6:1.8+Math.random()*(1.2+power*.6),gravity:isSparkler?260:360,drag:.99,priority:2,head:isBurst&&Math.random()<.14});
+  };
+  if(isFountain){
+    const emitter={life:.82,acc:0,update(e,dt){this.acc+=dt;const rate=(18+power*8)*q.particleScale;const n=Math.min(5,Math.floor(this.acc*rate));if(n>0)this.acc-=n/rate;for(let i=0;i<n;i++)spawnOne();}};engine.addEmitter(emitter);
+  }else{
+    const base=isSparkler?8:isBurst?28:isJet?22:18;const count=Math.max(4,Math.round((base+power*5)*q.particleScale));for(let i=0;i<count;i++)spawnOne();
   }
-
-  // v0.18.11: explosive pyro no longer shares the same tall fountain column.
-  // Fountains keep a sustained core; jets get a short ignition core; crackle pops have no core at all.
-  if (!isSparkler && style !== "bursts") {
-    const core = document.createElement("i");
-    core.className = "entrance-pyro-core";
-    burst.appendChild(core);
-  }
-  const baseCount = isSparkler ? 7 : style === "bursts" || style === "center_blast" ? 30 : style === "wide_fountain" || style === "fan" ? 34 : style === "fountain" ? 30 : 20;
-  const particleCount = reduced ? (isSparkler ? 4 : 8) : baseCount + intensity * (isSparkler ? 3 : 7);
-  for (let i = 0; i < particleCount; i += 1) {
-    const spark = document.createElement("i");
-    spark.className = "entrance-pyro-spark";
-    let baseSpread = 42;
-    if (style === "bursts") baseSpread = 155;
-    if (style === "fountain") baseSpread = 42;
-    if (style === "wide_fountain") baseSpread = 72;
-    if (style === "fan") baseSpread = 120;
-    if (style === "jets") baseSpread = 112;
-    if (style === "center_blast") baseSpread = 172;
-    if (isSparkler) baseSpread = 178;
-    const spread = Math.min(178, baseSpread * Math.max(.5, width));
-    const angle = (-90 + (Math.random() - .5) * spread) * Math.PI / 180;
-    const distanceFactor = isSparkler ? (.12 + Math.random() * .2) : ["bursts","center_blast","jets"].includes(style) ? (.32 + Math.random() * .48) : (.55 + Math.random() * .45);
-    const distance = Math.max(isSparkler ? 38 : 82, window.innerHeight * height * distanceFactor);
-    const dx = Math.cos(angle) * distance;
-    const dy = Math.sin(angle) * distance;
-    const drift = (Math.random() - .5) * (["bursts","center_blast","jets"].includes(style) ? 130 : 50) * Math.max(.7, width);
-    const size = isSparkler ? (1.2 + Math.random() * 2.5) : (2 + Math.random() * (intensity + 2.5));
-    const duration = isSparkler ? (.28 + Math.random() * .34) : (.5 + Math.random() * .58);
-    const delay = Math.random() * (isSparkler ? .03 : .08);
-    const sparkAngle = Math.atan2(dy, dx + drift) * 180 / Math.PI + 90 + (Math.random() - .5) * 12;
-    const sparkStretch = isSparkler ? (1.4 + Math.random() * 1.2) : (2.2 + Math.random() * 3.8);
-    spark.style.setProperty("--spark-x", `${(dx + drift).toFixed(1)}px`);
-    spark.style.setProperty("--spark-y", `${dy.toFixed(1)}px`);
-    spark.style.setProperty("--spark-size", `${size.toFixed(1)}px`);
-    spark.style.setProperty("--spark-duration", `${duration.toFixed(2)}s`);
-    spark.style.setProperty("--spark-delay", `${delay.toFixed(2)}s`);
-    spark.style.setProperty("--spark-angle", `${sparkAngle.toFixed(1)}deg`);
-    spark.style.setProperty("--spark-stretch", sparkStretch.toFixed(2));
-    burst.appendChild(spark);
-  }
-
-  const cometCount = isSparkler ? 0 : (isFountain ? (reduced ? 1 : Math.max(3, intensity + 3)) : style === "bursts" ? 0 : (reduced ? 1 : Math.max(1, intensity)));
-  for (let i = 0; i < cometCount; i += 1) {
-    const comet = document.createElement("i");
-    comet.className = "entrance-pyro-comet";
-    comet.style.setProperty("--comet-offset", `${(i - (cometCount - 1) / 2) * 11 * Math.max(.7,width)}px`);
-    comet.style.setProperty("--comet-tilt", `${(Math.random() - .5) * (["fan","center_blast","jets"].includes(style) ? 30 : 12)}deg`);
-    comet.style.setProperty("--comet-duration", `${(.42 + Math.random() * .24).toFixed(2)}s`);
-    burst.appendChild(comet);
-  }
-
-  layer.appendChild(burst);
-  setTimeout(() => burst.remove(), isSparkler ? 900 : 1500);
 }
 
-
 function entranceCrossJets(layer, color, height = .78, intensity = 2, width = 1.2, flashBurst = true) {
-  const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  const rect = layer.getBoundingClientRect();
-  const w = Math.max(640, rect.width || window.innerWidth || 1280);
-  const h = Math.max(480, rect.height || window.innerHeight || 720);
-  const rise = Math.min(h * .72, Math.max(h * .52, h * Number(height || .78) * .88));
-  const trailLift = Math.max(14, Math.round(16 * Math.max(.8, width)));
-  const specs = [
-    { startX: .1, endX: .84 },
-    { startX: .9, endX: .16 }
-  ];
-
-  specs.forEach((spec, sideIndex) => {
-    const startX = w * spec.startX;
-    const endX = w * spec.endX;
-    const dx = endX - startX;
-    const dy = -rise;
-    const length = Math.hypot(dx, dy);
-    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-    const firework = document.createElement("div");
-    firework.className = `entrance-cross-firework entrance-cross-firework-${sideIndex === 0 ? "left" : "right"}`;
-    firework.style.left = `${spec.startX * 100}%`;
-    firework.style.bottom = "1%";
-    firework.style.width = `${length.toFixed(1)}px`;
-    firework.style.transform = `rotate(${angle.toFixed(2)}deg)`;
-    firework.style.setProperty("--pyro-color", color || "#FFFFFF");
-    firework.style.setProperty("--cross-width", String(Math.max(.75, Math.min(1.7, Number(width || 1.2)))));
-    firework.style.setProperty("--cross-height", `${trailLift}px`);
-
-    const trail = document.createElement("i");
-    trail.className = "entrance-cross-firework-trail";
-    firework.appendChild(trail);
-
-    const smokeCount = reduced ? 7 : 16 + Math.max(0, Number(intensity || 2) - 1) * 6;
-    for (let i = 0; i < smokeCount; i += 1) {
-      const puff = document.createElement("i");
-      puff.className = "entrance-cross-firework-smoke";
-      puff.style.setProperty("--smoke-pos", `${(8 + Math.random() * 84).toFixed(1)}%`);
-      puff.style.setProperty("--smoke-size", `${(10 + Math.random() * 18 * Math.max(.8, width)).toFixed(1)}px`);
-      puff.style.setProperty("--smoke-offset", `${((Math.random() - .5) * 16).toFixed(1)}px`);
-      puff.style.setProperty("--smoke-delay", `${(0.08 + Math.random() * .35).toFixed(2)}s`);
-      puff.style.setProperty("--smoke-duration", `${(0.85 + Math.random() * .65).toFixed(2)}s`);
-      firework.appendChild(puff);
-    }
-
-    const sparkCount = reduced ? 10 : 20 + Math.max(0, Number(intensity || 2) - 1) * 6;
-    for (let i = 0; i < sparkCount; i += 1) {
-      const spark = document.createElement("i");
-      spark.className = "entrance-cross-firework-spark";
-      spark.style.setProperty("--trail-pos", `${(8 + Math.random() * 86).toFixed(1)}%`);
-      spark.style.setProperty("--trail-drift", `${((Math.random() - .5) * 48 * Math.max(.8, width)).toFixed(1)}px`);
-      spark.style.setProperty("--trail-rise", `${(8 + Math.random() * 28).toFixed(1)}px`);
-      spark.style.setProperty("--trail-size", `${(1.6 + Math.random() * 2.8).toFixed(1)}px`);
-      spark.style.setProperty("--trail-delay", `${(0.05 + Math.random() * .26).toFixed(2)}s`);
-      spark.style.setProperty("--trail-duration", `${(0.34 + Math.random() * .38).toFixed(2)}s`);
-      firework.appendChild(spark);
-    }
-
-    const head = document.createElement("i");
-    head.className = "entrance-cross-firework-head";
-    firework.appendChild(head);
-
-    if (flashBurst) {
-      const flash = document.createElement("i");
-      flash.className = "entrance-cross-firework-launch";
-      firework.appendChild(flash);
-    }
-
-    layer.appendChild(firework);
-    setTimeout(() => firework.remove(), 1900);
+  const engine=ensureEntranceParticleEngine(layer); if(!engine)return;
+  const w=engine.width,h=engine.height,rise=Math.min(h*.72,Math.max(h*.52,h*Number(height||.78)*.88)),duration=.82;
+  const specs=[{sx:w*.1,sy:h*.965,ex:w*.84,ey:h*.965-rise},{sx:w*.9,sy:h*.965,ex:w*.16,ey:h*.965-rise}];
+  specs.forEach(spec=>{
+    if(flashBurst)entranceCanvasFlash(engine,spec.sx,spec.sy,color,48,.24);
+    const emitter={life:duration,smokeTick:0,sparkTick:0,lastX:spec.sx,lastY:spec.sy,update(e,dt){
+      const progress=Math.min(1,this.age/this.life),ease=1-Math.pow(1-progress,2.15),x=spec.sx+(spec.ex-spec.sx)*ease,y=spec.sy+(spec.ey-spec.sy)*ease;
+      this.smokeTick+=dt;this.sparkTick+=dt;
+      const smokeInterval=entranceQualityName()==="performance"?.075:.045;
+      while(this.smokeTick>=smokeInterval){this.smokeTick-=smokeInterval;entranceCanvasSmoke(e,x+(Math.random()-.5)*8,y+(Math.random()-.5)*8,"#C9D1C9",{life:1.25+Math.random()*.55,size:(30+Math.random()*26)*Math.max(.8,width),vx:(Math.random()-.5)*10,vy:-7-Math.random()*7,alpha:.34,grow:.7,priority:0});}
+      const sparkInterval=entranceQualityName()==="performance"?.055:.032;
+      while(this.sparkTick>=sparkInterval){this.sparkTick-=sparkInterval;for(let i=0;i<(entranceQualityName()==="high"?2:1);i++)entranceCanvasSpark(e,x,y,(Math.random()-.5)*70,30+Math.random()*90,color,{life:.34+Math.random()*.3,size:1.5+Math.random()*2.2,gravity:300,drag:.99,priority:2});}
+      this.lastX=x;this.lastY=y;
+    },draw(e,ctx){const progress=Math.min(1,this.age/this.life),ease=1-Math.pow(1-progress,2.15),x=spec.sx+(spec.ex-spec.sx)*ease,y=spec.sy+(spec.ey-spec.sy)*ease;ctx.save();ctx.fillStyle="#FFFFFF";ctx.globalAlpha=.96;ctx.beginPath();ctx.arc(x,y,5.2*Math.max(.85,width),0,Math.PI*2);ctx.fill();ctx.fillStyle=color||"#22C55E";ctx.globalAlpha=.9;ctx.beginPath();ctx.arc(x,y,9.5*Math.max(.85,width),0,Math.PI*2);ctx.fill();ctx.restore();}};
+    engine.addEmitter(emitter);
   });
-
-  const hit = document.createElement("div");
-  hit.className = "entrance-cross-firework-hit";
-  hit.style.setProperty("--pyro-color", color || "#FFFFFF");
-  hit.style.left = "50%";
-  hit.style.bottom = `${Math.round(rise * .5)}px`;
-  layer.appendChild(hit);
-  setTimeout(() => hit.remove(), 1000);
+  setTimeout(()=>{if(entranceParticleEngine===engine&&!engine.destroyed)entranceCanvasFlash(engine,w*.5,h*.965-rise*.5,color,44,.22);},Math.round(duration*500));
 }
 
 function entrancePyroRain(layer, color, intensity, width = 1, curtain = false) {
-  const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  const field = document.createElement("div");
-  field.className = `entrance-pyro-rain${curtain ? " entrance-pyro-curtain" : ""}`;
-  field.style.setProperty("--pyro-color", color || "#FFFFFF");
-  const span = Math.min(100, 38 + Math.max(.5, width) * 30);
-  const start = (100 - span) / 2;
-  const count = reduced ? 14 : Math.round((curtain ? 70 : 48) * Math.max(.65, width) + intensity * 12);
-  for (let i = 0; i < count; i += 1) {
-    const spark = document.createElement("i");
-    spark.className = "entrance-pyro-rain-spark";
-    spark.style.setProperty("--rain-x", `${(start + Math.random() * span).toFixed(2)}%`);
-    spark.style.setProperty("--rain-delay", `${(Math.random() * .42).toFixed(2)}s`);
-    spark.style.setProperty("--rain-duration", `${(.55 + Math.random() * .65).toFixed(2)}s`);
-    spark.style.setProperty("--rain-length", `${Math.round((curtain ? 35 : 18) + Math.random() * (curtain ? 80 : 55))}px`);
-    spark.style.setProperty("--rain-drift", `${((Math.random() - .5) * 80).toFixed(1)}px`);
-    field.appendChild(spark);
-  }
-  layer.appendChild(field);
-  setTimeout(() => field.remove(), 1800);
+  const engine=ensureEntranceParticleEngine(layer); if(!engine)return;
+  const w=engine.width,h=engine.height,span=Math.min(1,.38+Math.max(.5,width)*.3),start=(1-span)/2;
+  const base=curtain?54:36,count=Math.max(10,Math.round((base+Number(intensity||2)*8)*engine.q.particleScale));
+  for(let i=0;i<count;i+=1){const x=w*(start+Math.random()*span),y=-20-Math.random()*h*.18;entranceCanvasSpark(engine,x,y,(Math.random()-.5)*48,h*(.55+Math.random()*.42),color,{life:.9+Math.random()*.6,size:curtain?2.2+Math.random()*2.2:1.7+Math.random()*1.8,gravity:80,drag:.998,priority:2,alpha:.94});}
 }
 
 function applyEntranceScreenFilter() {
@@ -1020,17 +968,14 @@ function applyEntranceScreenFilter() {
 
 function addEntranceAtmosphere(layer, atmosphere) {
   if (!atmosphere || atmosphere.type === "none") return;
-  const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  const density = Number(atmosphere.density || .45);
-  const spread = Number(atmosphere.spread || .75);
-  const heavy = atmosphere.type === "heavy_fog";
-  const total = reduced ? 6 : Math.max(8, Math.round((heavy ? 42 : 28) * density));
-  for (let i=0;i<total;i+=1){
-    const puff=document.createElement("i"); puff.className=`entrance-atmosphere entrance-${atmosphere.type}`;
-    puff.style.setProperty("--fog-color",atmosphere.color||"#FFFFFF");
-    const placement=atmosphere.placement||"floor";
-    let x=50+(Math.random()-.5)*100*spread; if(placement==="sides") x=Math.random()<.5?Math.random()*20:80+Math.random()*20; if(placement==="center") x=35+Math.random()*30;
-    puff.style.setProperty("--fog-x",`${Math.max(0,Math.min(100,x))}%`); puff.style.setProperty("--fog-delay",`${(Math.random()*1.8).toFixed(2)}s`); puff.style.setProperty("--fog-size",`${Math.round((heavy?130:80)+Math.random()*(heavy?220:150))}px`); puff.style.setProperty("--fog-fade",`${Number(atmosphere.fade||4)}s`); layer.appendChild(puff);
+  const engine=ensureEntranceParticleEngine(layer); if(!engine)return;
+  const density=Math.max(.1,Math.min(1,Number(atmosphere.density||.45))),spread=Math.max(.2,Math.min(1,Number(atmosphere.spread||.75))),heavy=atmosphere.type==="heavy_fog",smoke=atmosphere.type==="smoke",mist=atmosphere.type==="mist";
+  const desired=Math.max(4,Math.round((heavy?18:smoke?13:mist?10:14)*density*engine.q.particleScale));
+  const placement=atmosphere.placement||"floor",fade=Math.max(2,Math.min(8,Number(atmosphere.fade||4))),baseColor=atmosphere.color||"#FFFFFF";
+  for(let i=0;i<desired;i+=1){
+    let x=engine.width*(.5+(Math.random()-.5)*spread);if(placement==="sides")x=engine.width*(Math.random()<.5?Math.random()*.2:.8+Math.random()*.2);if(placement==="center")x=engine.width*(.35+Math.random()*.3);
+    let y=engine.height*(smoke?.87:mist?.45:.91); if(heavy)y=engine.height*(.84+Math.random()*.1);
+    entranceCanvasSmoke(engine,x,y,baseColor,{life:fade*(.72+Math.random()*.45),size:(mist?95:heavy?150:smoke?105:120)*( .75+Math.random()*.55),vx:(Math.random()-.5)*(smoke?14:22),vy:smoke?(-28-Math.random()*24):mist?(-5+Math.random()*10):(-6-Math.random()*8),alpha:mist?.16:heavy?.38:smoke?.34:.28,grow:smoke?.9:.6,priority:0});
   }
 }
 

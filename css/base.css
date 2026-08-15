@@ -3667,3 +3667,38 @@ body.room-earthquake .app-window { animation: drk-quake .10s linear 0s 18; }
   .entrance-cross-firework-smoke,
   .entrance-cross-firework-spark { display:none; }
 }
+
+/* v0.18.13 performance pass */
+.entrance-particle-canvas {
+  position:absolute;
+  inset:0;
+  z-index:9;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+}
+.entrance-quality-row {
+  display:grid;
+  grid-template-columns:auto minmax(140px,220px) 1fr;
+  gap:10px;
+  align-items:center;
+  margin:10px 0 4px;
+  padding:9px 11px;
+  border:1px solid rgba(255,255,255,.09);
+  background:rgba(255,255,255,.025);
+}
+.entrance-quality-row label { font-weight:700; }
+.entrance-quality-row select { min-width:140px; }
+@media (max-width:700px){
+  .entrance-quality-row{grid-template-columns:1fr;}
+}
+html[data-entrance-quality="performance"] .entrance-light-beam {
+  filter:none !important;
+  box-shadow:none !important;
+}
+html[data-entrance-quality="performance"] .entrance-lightning-bolt {
+  filter:drop-shadow(0 0 5px #fff) !important;
+}
+html[data-entrance-quality="performance"] .entrance-nameplate.glow {
+  box-shadow:0 0 14px color-mix(in srgb, var(--entrance-primary) 40%, transparent), 0 8px 22px rgba(0,0,0,.35);
+}

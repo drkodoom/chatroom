@@ -1,6 +1,6 @@
-import { apiFetch } from "./api.js?v=0.18.12";
-import { state } from "./state.js?v=0.18.12";
-import { openMemberByUsername } from "./admin.js?v=0.18.12";
+import { apiFetch } from "./api.js?v=0.18.13";
+import { state } from "./state.js?v=0.18.13";
+import { openMemberByUsername } from "./admin.js?v=0.18.13";
 
 const el = (id) => document.getElementById(id);
 let activeProfile = null;
@@ -662,6 +662,8 @@ async function saveRewardDisplay() {
 
 
 const ENTRANCE_TIER_RANK = { basic: 1, rare: 2, epic: 3, champion: 4 };
+const ENTRANCE_QUALITY_KEY = "chatroom_entrance_quality";
+function defaultEntranceQuality(){const saved=String(localStorage.getItem(ENTRANCE_QUALITY_KEY)||"");if(["performance","standard","high"].includes(saved))return saved;const weakCpu=Number(navigator.hardwareConcurrency||8)<=4,weakMemory=Number(navigator.deviceMemory||8)<=4;return weakCpu||weakMemory?"performance":"standard";}
 const ENTRANCE_COLOR_PALETTES = {
   lighting: {
     basic: ["#FFFFFF", "#3B82F6"],
@@ -783,9 +785,15 @@ const ENTRANCE_SCREEN_PRESETS = {
   electric_blue:{tier:"champion",name:"Electric Blue",filter:{mode:"electric_blue",intensity:.55},screenFx:{preset:"electric_blue",effect:"none",shake:0,flash:0,lingerCracks:false}}
 };
 
+// v0.18.13: keep the preset menus focused without breaking older/saved configurations.
+["fan_out","arena_chase","mirror_sweep","cold_impact","converge","spotlight_hit","rolling_wave","figure_eight","dark_search","royal_convergence","crown_chase","controlled_chaos"].forEach(k=>{if(ENTRANCE_LIGHTING_PRESETS[k])ENTRANCE_LIGHTING_PRESETS[k].menuHidden=true;});
+["dual_center"].forEach(k=>{if(ENTRANCE_PYRO_PRESETS[k])ENTRANCE_PYRO_PRESETS[k].menuHidden=true;});
+["heavy_fog"].forEach(k=>{if(ENTRANCE_ATMOSPHERE_PRESETS[k])ENTRANCE_ATMOSPHERE_PRESETS[k].menuHidden=true;});
+["high_contrast","electric_blue"].forEach(k=>{if(ENTRANCE_SCREEN_PRESETS[k])ENTRANCE_SCREEN_PRESETS[k].menuHidden=true;});
+
 function populateSubsystemPresets(selectId,presets,selected="custom"){
   const select=el(selectId); if(!select)return; select.innerHTML="";
-  Object.entries(presets).forEach(([key,preset])=>{if(key==="none")return;const option=document.createElement("option"),locked=(ENTRANCE_TIER_RANK[preset.tier]||1)>currentEntranceRank(); option.value=key; option.disabled=locked; option.textContent=`${locked?"🔒 ":""}${preset.name}${locked?` — ${entranceTierText(preset.tier)}`:""}`; select.appendChild(option);});
+  Object.entries(presets).forEach(([key,preset])=>{if(key==="none"||(preset.menuHidden&&key!==selected))return;const option=document.createElement("option"),locked=(ENTRANCE_TIER_RANK[preset.tier]||1)>currentEntranceRank(); option.value=key; option.disabled=locked; option.textContent=`${locked?"🔒 ":""}${preset.name}${locked?` — ${entranceTierText(preset.tier)}`:""}`; select.appendChild(option);});
   const valid=[...select.options].find(o=>o.value===selected&&!o.disabled)||[...select.options].find(o=>!o.disabled); if(valid)select.value=valid.value;
 }
 function syncEntranceCategoryModes(openAdvanced=false){
@@ -888,7 +896,7 @@ function setEntranceForm(config) {
   el("entranceAtmosphereModeSelect").value=c.atmosphere.type==="none"?"none":(c.atmosphere.preset&&c.atmosphere.preset!=="custom"&&c.atmosphere.preset!=="none"?"preset":"custom"); populateSubsystemPresets("entranceAtmospherePresetSelect",ENTRANCE_ATMOSPHERE_PRESETS,c.atmosphere.preset||"low_fog");
     el("entranceAtmosphereSelect").value=c.atmosphere.type; el("entranceAtmosphereColorInput").value=c.atmosphere.color||"#FFFFFF"; el("entranceAtmosphereDensityInput").value=c.atmosphere.density; el("entranceAtmosphereSpreadInput").value=c.atmosphere.spread??.75; el("entranceAtmospherePlacementSelect").value=c.atmosphere.placement||"floor"; el("entranceAtmosphereFadeInput").value=c.atmosphere.fade||4;
   el("entranceLightingModeSelect").value=c.lighting.enabled===false?"none":(c.lighting.preset&&c.lighting.preset!=="custom"&&c.lighting.preset!=="none"?"preset":"custom");
-    el("entranceLightingEnabledInput").checked=c.lighting.enabled!==false; el("entranceDimmingSelect").value=c.lighting.dimming||"moderate"; el("entranceSpotlightInput").checked=!!c.lighting.spotlight; el("entranceLightningInput").checked=!!c.lighting.lightning; el("entranceBranchingLightningInput").checked=!!c.lighting.branchingLightning; el("entranceLightPrimaryInput").value=c.lighting.primaryColor||"#FFFFFF"; el("entranceLightSecondaryInput").value=c.lighting.secondaryColor||"#3B82F6"; el("entranceLightMotionSelect").value=c.lighting.motion||"none"; el("entranceLightAimSelect").value=c.lighting.aim||"down"; el("entranceLightBehaviorSelect").value=c.lighting.behavior||"steady"; el("entranceLightSpeedInput").value=c.lighting.speed; el("entranceLightBrightnessInput").value=c.lighting.brightness??.6; el("entranceLightBeamWidthInput").value=c.lighting.beamWidth??.9; el("entranceLightFixtureCountInput").value=c.lighting.fixtureCount??4; entranceFixtureOverrides=Array.isArray(c.lighting.fixtures)?c.lighting.fixtures.map(x=>({...x})):[]; populateEntranceLightingPresets(c.lighting.preset||"custom"); renderEntranceFixtureEditor();
+    el("entranceLightingEnabledInput").checked=c.lighting.enabled!==false; el("entranceDimmingSelect").value=c.lighting.dimming||"moderate"; el("entranceSpotlightInput").checked=!!c.lighting.spotlight; el("entranceLightningInput").checked=!!c.lighting.lightning; el("entranceBranchingLightningInput").checked=!!c.lighting.branchingLightning; el("entranceLightPrimaryInput").value=c.lighting.primaryColor||"#FFFFFF"; el("entranceLightSecondaryInput").value=c.lighting.secondaryColor||"#3B82F6"; el("entranceLightMotionSelect").value=c.lighting.motion||"none"; el("entranceLightAimSelect").value=c.lighting.aim||"down"; el("entranceLightBehaviorSelect").value=c.lighting.behavior||"steady"; el("entranceLightSpeedInput").value=c.lighting.speed; el("entranceLightBrightnessInput").value=c.lighting.brightness??.6; el("entranceLightBeamWidthInput").value=c.lighting.beamWidth??.9; el("entranceLightFixtureCountInput").value=c.lighting.fixtureCount??4; entranceFixtureOverrides=Array.isArray(c.lighting.fixtures)?c.lighting.fixtures.map(x=>({...x})):[]; populateEntranceLightingPresets(c.lighting.preset||"custom"); if(el("entranceFixtureDetails")?.open)renderEntranceFixtureEditor();else if(el("entranceFixtureEditor"))el("entranceFixtureEditor").innerHTML="";
   el("entranceScreenModeSelect").value=(c.screenFx.effect||"none")==="none"&&(c.filter.mode||"none")==="none"?"none":(c.screenFx.preset&&c.screenFx.preset!=="custom"&&c.screenFx.preset!=="none"?"preset":"custom"); populateSubsystemPresets("entranceScreenPresetSelect",ENTRANCE_SCREEN_PRESETS,c.screenFx.preset||"cold_blue");
     el("entranceFilterSelect").value=c.filter.mode||"none"; el("entranceFilterIntensityInput").value=c.filter.intensity??.45; el("entranceScreenFxSelect").value=c.screenFx.effect||"none"; el("entranceScreenShakeInput").value=c.screenFx.shake??1; el("entranceScreenFlashInput").value=c.screenFx.flash??.6; el("entranceGlassLingerInput").checked=!!c.screenFx.lingerCracks;
   el("entranceNameplateEnabledInput").checked=c.nameplate.enabled!==false; el("entranceNameplateStyleSelect").value=c.nameplate.style; el("entranceNameplateGlowInput").checked=!!c.nameplate.glow; el("entranceNameplateAnimationSelect").value=c.nameplate.animation||"slide";
@@ -904,28 +912,28 @@ function updateEntranceSummary(){
 function populateEntranceLightingPresets(selected="custom") {
   const select=el("entranceLightingPresetSelect"); if(!select)return;
   select.innerHTML="";
-  Object.entries(ENTRANCE_LIGHTING_PRESETS).forEach(([key,preset])=>{const option=document.createElement("option");const locked=(ENTRANCE_TIER_RANK[preset.tier]||1)>currentEntranceRank();option.value=key;option.disabled=locked;option.textContent=`${locked?"🔒 ":""}${preset.name}${locked?` — ${entranceTierText(preset.tier)}`:""}`;select.appendChild(option);});
+  Object.entries(ENTRANCE_LIGHTING_PRESETS).forEach(([key,preset])=>{if(preset.menuHidden&&key!==selected)return;const option=document.createElement("option");const locked=(ENTRANCE_TIER_RANK[preset.tier]||1)>currentEntranceRank();option.value=key;option.disabled=locked;option.textContent=`${locked?"🔒 ":""}${preset.name}${locked?` — ${entranceTierText(preset.tier)}`:""}`;select.appendChild(option);});
   const valid=[...select.options].find(o=>o.value===selected&&!o.disabled)||[...select.options].find(o=>!o.disabled); if(valid)select.value=valid.value;
 }
 function applyEntranceLightingPreset(){
   const key=el("entranceLightingPresetSelect").value,preset=ENTRANCE_LIGHTING_PRESETS[key]; if(!preset||(ENTRANCE_TIER_RANK[preset.tier]||1)>currentEntranceRank())return;
   const c=currentEntranceForm(); const merged={...c.lighting,...preset.config,enabled:true}; merged.fixtures=buildLightingPresetFixtures(key,merged); entranceFixtureOverrides=merged.fixtures.map(x=>({...x}));
   el("entranceDimmingSelect").value=merged.dimming||c.lighting.dimming; el("entranceLightMotionSelect").value=merged.motion||"none"; el("entranceLightAimSelect").value=merged.aim||"center"; el("entranceLightBehaviorSelect").value=merged.behavior||"steady"; el("entranceLightPrimaryInput").value=merged.primaryColor||c.lighting.primaryColor; el("entranceLightSecondaryInput").value=merged.secondaryColor||c.lighting.secondaryColor; el("entranceLightSpeedInput").value=merged.speed??1; el("entranceLightBrightnessInput").value=merged.brightness??.65; el("entranceLightBeamWidthInput").value=merged.beamWidth??1; el("entranceLightFixtureCountInput").value=merged.fixtureCount||4; if("lightning" in merged)el("entranceLightningInput").checked=!!merged.lightning;
-  el("entranceLightingModeSelect").value="preset"; el("entranceLightingEnabledInput").checked=true; syncEntranceCategoryModes(false); renderEntranceFixtureEditor(); fillEntranceRanges(); el("entranceMessage").className="message success"; el("entranceMessage").textContent=`${preset.name} lighting applied. You can now adjust individual fixtures.`;
+  el("entranceLightingModeSelect").value="preset"; el("entranceLightingEnabledInput").checked=true; syncEntranceCategoryModes(false); if(el("entranceFixtureDetails")?.open)renderEntranceFixtureEditor(); fillEntranceRanges(); el("entranceMessage").className="message success"; el("entranceMessage").textContent=`${preset.name} lighting applied. You can now adjust individual fixtures.`;
 }
 function ensureFixtureOverride(index){
   const count=Math.min(8,+el("entranceLightFixtureCountInput").value||4); while(entranceFixtureOverrides.length<count){const i=entranceFixtureOverrides.length;entranceFixtureOverrides.push({enabled:true,color:undefined,brightness:undefined,aim:"inherit",motion:"inherit",speed:undefined,behavior:"inherit",direction:"normal",phase:count>1?i/(count-1):0,range:1});} return entranceFixtureOverrides[index];
 }
 function fixtureSelect(options,value,onchange){const select=document.createElement("select");options.forEach(([v,label,tier])=>{const o=document.createElement("option");o.value=v;o.textContent=(!tier||tierAtLeast(tier))?label:`🔒 ${label}`;o.disabled=Boolean(tier&&!tierAtLeast(tier));select.appendChild(o);});select.value=[...select.options].some(o=>o.value===value&&!o.disabled)?value:"inherit";select.addEventListener("change",onchange);return select;}
 function renderEntranceFixtureEditor(){
-  const host=el("entranceFixtureEditor"); if(!host)return; const count=Math.min(8,+el("entranceLightFixtureCountInput").value||4); host.innerHTML=""; entranceFixtureOverrides=entranceFixtureOverrides.slice(0,count); for(let i=0;i<count;i+=1){const f=ensureFixtureOverride(i),card=document.createElement("div");card.className="entrance-fixture-card";const effectiveColor=f.color||(i%2?(el("entranceLightSecondaryInput").value||"#FFFFFF"):(el("entranceLightPrimaryInput").value||"#FFFFFF")),effectiveBrightness=f.brightness??(+el("entranceLightBrightnessInput").value||.65),effectiveSpeed=f.speed??(+el("entranceLightSpeedInput").value||1);card.innerHTML=`<div class="entrance-fixture-card-head"><strong>LIGHT ${i+1}</strong><label class="identity-check"><input type="checkbox" data-fixture-power ${f.enabled!==false?"checked":""}> ON</label></div><div class="entrance-fixture-fields"><label>Color<input type="color" data-fixture-color value="${effectiveColor}"></label><label>Brightness<input type="range" data-fixture-brightness min="0" max="1" step="0.05" value="${Number(effectiveBrightness)}"></label><label>Speed<input type="range" data-fixture-speed min="0.3" max="3" step="0.1" value="${Number(effectiveSpeed)}"></label><label>Direction<select data-fixture-direction><option value="normal">Normal</option><option value="reverse">Reverse</option></select></label></div>`;
+  const host=el("entranceFixtureEditor"),details=el("entranceFixtureDetails"); if(!host||!details?.open)return; const count=Math.min(8,+el("entranceLightFixtureCountInput").value||4); host.innerHTML=""; entranceFixtureOverrides=entranceFixtureOverrides.slice(0,count); for(let i=0;i<count;i+=1){const f=ensureFixtureOverride(i),card=document.createElement("div");card.className="entrance-fixture-card";const effectiveColor=f.color||(i%2?(el("entranceLightSecondaryInput").value||"#FFFFFF"):(el("entranceLightPrimaryInput").value||"#FFFFFF")),effectiveBrightness=f.brightness??(+el("entranceLightBrightnessInput").value||.65),effectiveSpeed=f.speed??(+el("entranceLightSpeedInput").value||1);card.innerHTML=`<div class="entrance-fixture-card-head"><strong>LIGHT ${i+1}</strong><label class="identity-check"><input type="checkbox" data-fixture-power ${f.enabled!==false?"checked":""}> ON</label></div><div class="entrance-fixture-fields"><label>Color<input type="color" data-fixture-color value="${effectiveColor}"></label><label>Brightness<input type="range" data-fixture-brightness min="0" max="1" step="0.05" value="${Number(effectiveBrightness)}"></label><label>Speed<input type="range" data-fixture-speed min="0.3" max="3" step="0.1" value="${Number(effectiveSpeed)}"></label><label>Direction<select data-fixture-direction><option value="normal">Normal</option><option value="reverse">Reverse</option></select></label></div>`;
     const fields=card.querySelector('.entrance-fixture-fields'); const aimWrap=document.createElement('label');aimWrap.textContent='Aim';aimWrap.appendChild(fixtureSelect([["inherit","Use Rig Aim"],["center","Center Stage","basic"],["down","Straight Down","basic"],["ramp","Entrance / Ramp","rare"],["screen","Back Wall / Screen","rare"],["crowd_left","Crowd Left","rare"],["crowd_right","Crowd Right","rare"],["outward","Wide Outward","rare"]],f.aim||"inherit",e=>{f.aim=e.target.value;}));fields.appendChild(aimWrap);
     const motionWrap=document.createElement('label');motionWrap.textContent='Movement';motionWrap.appendChild(fixtureSelect([["inherit","Use Rig Movement"],["none","Still","basic"],["sweep","Horizontal Sweep","basic"],["vertical","Vertical Sweep","rare"],["diagonal","Diagonal Sweep","rare"],["pendulum","Pendulum","rare"],["search","Search","epic"],["circle","Circle","epic"],["figure8","Figure 8","epic"],["converge","Converge","epic"],["diverge","Diverge","epic"]],f.motion||"inherit",e=>{f.motion=e.target.value;}));fields.appendChild(motionWrap);
     const behaviorWrap=document.createElement('label');behaviorWrap.textContent='Behavior';behaviorWrap.appendChild(fixtureSelect([["inherit","Use Rig Behavior"],["steady","Steady","basic"],["pulse","Pulse","rare"],["blink","Blink","rare"],["alternating","Alternating Pulse","rare"],["chase","Chase","rare"],["shimmer","Gold Shimmer","champion"]],f.behavior||"inherit",e=>{f.behavior=e.target.value;}));fields.appendChild(behaviorWrap);
     card.querySelector('[data-fixture-power]').addEventListener('change',e=>{f.enabled=e.target.checked;});card.querySelector('[data-fixture-color]').addEventListener('change',e=>{const palette=ENTRANCE_COLOR_PALETTES.lighting[currentEntranceTier()];f.color=palette===null?e.target.value:nearestPaletteColor(e.target.value,palette||['#FFFFFF']);e.target.value=f.color;});card.querySelector('[data-fixture-brightness]').addEventListener('input',e=>{f.brightness=+e.target.value;});card.querySelector('[data-fixture-speed]').addEventListener('input',e=>{f.speed=+e.target.value;});const dir=card.querySelector('[data-fixture-direction]');dir.value=f.direction||'normal';dir.addEventListener('change',e=>{f.direction=e.target.value;});host.appendChild(card);
   }
 }
-function resetEntranceFixtures(){entranceFixtureOverrides=[];el("entranceLightingModeSelect").value="custom";syncEntranceCategoryModes(true);renderEntranceFixtureEditor();}
+function resetEntranceFixtures(){entranceFixtureOverrides=[];el("entranceLightingModeSelect").value="custom";syncEntranceCategoryModes(true);if(el("entranceFixtureDetails")?.open)renderEntranceFixtureEditor();}
 
 function populateEntranceTemplates(selected=entranceTemplateSelection||"custom") {
   const select = el("entranceTemplateSelect");
@@ -1000,8 +1008,9 @@ function setEntranceControlAvailability() {
 }
 
 function setEntranceEditorMode(mode){
-  const canAdvanced=true; const advanced=mode==="advanced";
+  const advanced=mode==="advanced";
   el("entranceForm").classList.toggle("show-advanced",advanced); el("entranceBasicModeButton").classList.toggle("is-active",!advanced); el("entranceAdvancedModeButton").classList.toggle("is-active",advanced); el("entranceAdvancedModeButton").disabled=false; el("entranceAdvancedModeButton").title="Custom controls show every option; locked effects still follow your Entrance Rank."; localStorage.setItem("chatroom_entrance_editor_mode",advanced?"advanced":"basic");
+  if(!advanced){const details=el("entranceFixtureDetails");if(details)details.open=false;if(el("entranceFixtureEditor"))el("entranceFixtureEditor").innerHTML="";}
 }
 function resetEntranceForm(){ setEntranceForm(entranceDefaults()); el("entranceMessage").className="message"; el("entranceMessage").textContent="Entrance reset locally. Press SAVE to keep the reset."; }
 
@@ -1105,6 +1114,7 @@ export function initProfiles() {
   el("profileSaveRewardsButton").addEventListener("click", saveRewardDisplay);
   el("myProfileButton").addEventListener("click", openOwnProfile);
   el("entranceCloseButton").addEventListener("click", closeEntranceEditor);
+  if(el("entranceQualitySelect")){const quality=defaultEntranceQuality();el("entranceQualitySelect").value=quality;document.documentElement.dataset.entranceQuality=quality;el("entranceQualitySelect").addEventListener("change",e=>{localStorage.setItem(ENTRANCE_QUALITY_KEY,e.target.value);document.documentElement.dataset.entranceQuality=e.target.value;});}
   el("entranceOverlay").addEventListener("click", (event) => { if (event.target === el("entranceOverlay")) closeEntranceEditor(); });
   el("entranceForm").addEventListener("submit", saveEntrance);
   el("entrancePreviewButton").addEventListener("click", previewEntrance);
@@ -1115,6 +1125,7 @@ export function initProfiles() {
     el("entranceApplyLightingPresetButton").addEventListener("click", applyEntranceLightingPreset);
   el("entranceApplyScreenPresetButton").addEventListener("click", applyEntranceScreenPreset);
   el("entranceResetFixturesButton").addEventListener("click", resetEntranceFixtures);
+  el("entranceFixtureDetails")?.addEventListener("toggle",()=>{if(el("entranceFixtureDetails").open)renderEntranceFixtureEditor();else if(el("entranceFixtureEditor"))el("entranceFixtureEditor").innerHTML="";});
   ["entrancePyroModeSelect","entranceAtmosphereModeSelect","entranceLightingModeSelect","entranceScreenModeSelect"].forEach(id=>el(id).addEventListener("change",()=>{syncEntranceCategoryModes(true);applyEntranceTierUI();}));
   el("entrancePyroEnabledInput").addEventListener("change", applyEntranceTierUI);
   el("entranceLightingEnabledInput").addEventListener("change", applyEntranceTierUI);
@@ -1125,5 +1136,5 @@ export function initProfiles() {
   ["entrancePyroDurationInput","entrancePyroFrequencyInput","entrancePyroHeightInput","entrancePyroWidthInput","entrancePyroBurstCountInput","entrancePyroStyleSelect","entranceAtmosphereSelect","entranceLightMotionSelect","entranceLightAimSelect","entranceLightBehaviorSelect","entranceDimmingSelect","entranceScreenFxSelect","entranceTotalDurationInput","entrancePyroStartInput"].forEach((id)=>el(id).addEventListener("input",()=>{applyEntranceTierUI();fillEntranceRanges();}));
   [["entrancePyroColorInput","pyro"],["entranceAtmosphereColorInput","atmosphere"],["entranceLightPrimaryInput","lighting"],["entranceLightSecondaryInput","lighting"]].forEach(([id,kind])=>el(id).addEventListener("change",()=>snapEntranceColor(id,kind)));
   el("entrancePyroStyleSelect").addEventListener("change",()=>{syncPyroFlashDefault();fillEntranceRanges();});
-  el("entranceLightFixtureCountInput").addEventListener("input",renderEntranceFixtureEditor);
+  el("entranceLightFixtureCountInput").addEventListener("input",()=>{if(el("entranceFixtureDetails")?.open)renderEntranceFixtureEditor();});
 }
